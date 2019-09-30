@@ -1,0 +1,30 @@
+# vsim -c -do "run.do" work.riscv_core 
+# Start time: 16:01:23 on Aug 15,2019
+# Loading std.standard
+# Loading std.textio(body)
+# Loading ieee.std_logic_1164(body)
+# Loading ieee.numeric_std(body)
+# Loading ieee.math_real(body)
+# Loading work.riscv_mpsoc_pkg
+# Loading work.riscv_core(rtl)
+# Loading work.riscv_if(rtl)
+# Loading work.riscv_id(rtl)
+# Loading work.riscv_execution(rtl)
+# Loading work.riscv_alu(rtl)
+# Loading work.riscv_lsu(rtl)
+# Loading work.riscv_bu(rtl)
+# Loading work.riscv_mul(rtl)
+# Loading work.riscv_div(rtl)
+# Loading work.riscv_memory(rtl)
+# Loading work.riscv_wb(rtl)
+# Loading work.riscv_state(rtl)
+# Loading work.riscv_rf(rtl)
+# Loading work.riscv_bp(rtl)
+# Loading work.riscv_ram_1r1w(rtl)
+# Loading work.riscv_ram_1r1w_generic(rtl)
+# Loading work.riscv_du(rtl)
+# ** Warning: Design size of 10078 statements exceeds ModelSim-Intel FPGA Starter Edition recommended capacity.
+# Expect performance to be adversely affected.
+# do run.do
+# End time: 16:01:23 on Aug 15,2019, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 1
