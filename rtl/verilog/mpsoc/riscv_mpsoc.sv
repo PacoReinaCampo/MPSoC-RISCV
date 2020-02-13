@@ -82,11 +82,11 @@ module riscv_mpsoc #(
 
   parameter            TECHNOLOGY         = "GENERIC",
 
-  parameter            MNMIVEC_DEFAULT    = PC_INIT - 'h004,
-  parameter            MTVEC_DEFAULT      = PC_INIT - 'h040,
-  parameter            HTVEC_DEFAULT      = PC_INIT - 'h080,
-  parameter            STVEC_DEFAULT      = PC_INIT - 'h0C0,
-  parameter            UTVEC_DEFAULT      = PC_INIT - 'h100,
+  parameter [XLEN-1:0] MNMIVEC_DEFAULT    = PC_INIT - 'h004,
+  parameter [XLEN-1:0] MTVEC_DEFAULT      = PC_INIT - 'h040,
+  parameter [XLEN-1:0] HTVEC_DEFAULT      = PC_INIT - 'h080,
+  parameter [XLEN-1:0] STVEC_DEFAULT      = PC_INIT - 'h0C0,
+  parameter [XLEN-1:0] UTVEC_DEFAULT      = PC_INIT - 'h100,
 
   parameter            JEDEC_BANK            = 10,
   parameter            JEDEC_MANUFACTURER_ID = 'h6e,
@@ -102,8 +102,8 @@ module riscv_mpsoc #(
 
   parameter            SYNC_DEPTH         = 3,
 
-  parameter            CORES_PER_SIMD     = 8,
-  parameter            CORES_PER_MISD     = 8,
+  parameter            CORES_PER_SIMD     = 4,
+  parameter            CORES_PER_MISD     = 4,
 
   parameter            X                  = 2,
   parameter            Y                  = 2,
@@ -111,29 +111,12 @@ module riscv_mpsoc #(
 
   parameter            NODES              = X*Y*Z,
 
-  parameter            CHANNELS           = 2
+  parameter            CHANNELS           = 7
 )
   (
     //Common signals
     input                                 HRESETn,
     input                                 HCLK,
-
-    //GLIP host connection
-    input       [XLEN               -1:0] glip_misd_in_data,
-    input                                 glip_misd_in_valid,
-    output                                glip_misd_in_ready,
-
-    output      [XLEN               -1:0] glip_misd_out_data,
-    output                                glip_misd_out_valid,
-    input                                 glip_misd_out_ready,
-
-    input       [XLEN               -1:0] glip_simd_in_data,
-    input                                 glip_simd_in_valid,
-    output                                glip_simd_in_ready,
-
-    output      [XLEN               -1:0] glip_simd_out_data,
-    output                                glip_simd_out_valid,
-    input                                 glip_simd_out_ready,
 
     //PMA configuration
     input logic [PMA_CNT -1:0][     13:0] pma_cfg_i,
@@ -208,13 +191,13 @@ module riscv_mpsoc #(
 
     //Debug Interface
     input       [X-1:0][Y-1:0][Z-1:0][CORES_PER_MISD-1:0]                          dbg_misd_stall,
-    input       [X-1:0][Y-1:0][Z-1:0][CORES_PER_SIMD-1:0]                          dbg_misd_strb,
-    input       [X-1:0][Y-1:0][Z-1:0][CORES_PER_SIMD-1:0]                          dbg_misd_we,
-    input       [X-1:0][Y-1:0][Z-1:0][CORES_PER_SIMD-1:0][PLEN               -1:0] dbg_misd_addr,
-    input       [X-1:0][Y-1:0][Z-1:0][CORES_PER_SIMD-1:0][XLEN               -1:0] dbg_misd_dati,
-    output      [X-1:0][Y-1:0][Z-1:0][CORES_PER_SIMD-1:0][XLEN               -1:0] dbg_misd_dato,
-    output      [X-1:0][Y-1:0][Z-1:0][CORES_PER_SIMD-1:0]                          dbg_misd_ack,
-    output      [X-1:0][Y-1:0][Z-1:0][CORES_PER_SIMD-1:0]                          dbg_misd_bp,
+    input       [X-1:0][Y-1:0][Z-1:0][CORES_PER_MISD-1:0]                          dbg_misd_strb,
+    input       [X-1:0][Y-1:0][Z-1:0][CORES_PER_MISD-1:0]                          dbg_misd_we,
+    input       [X-1:0][Y-1:0][Z-1:0][CORES_PER_MISD-1:0][PLEN               -1:0] dbg_misd_addr,
+    input       [X-1:0][Y-1:0][Z-1:0][CORES_PER_MISD-1:0][XLEN               -1:0] dbg_misd_dati,
+    output      [X-1:0][Y-1:0][Z-1:0][CORES_PER_MISD-1:0][XLEN               -1:0] dbg_misd_dato,
+    output      [X-1:0][Y-1:0][Z-1:0][CORES_PER_MISD-1:0]                          dbg_misd_ack,
+    output      [X-1:0][Y-1:0][Z-1:0][CORES_PER_MISD-1:0]                          dbg_misd_bp,
 
     input       [X-1:0][Y-1:0][Z-1:0][CORES_PER_SIMD-1:0]                          dbg_simd_stall,
     input       [X-1:0][Y-1:0][Z-1:0][CORES_PER_SIMD-1:0]                          dbg_simd_strb,
@@ -226,13 +209,14 @@ module riscv_mpsoc #(
     output      [X-1:0][Y-1:0][Z-1:0][CORES_PER_SIMD-1:0]                          dbg_simd_bp,
 
     //GPIO Interface
-    input       [X-1:0][Y-1:0][Z-1:0][PDATA_SIZE         -1:0] gpio_simd_i,
-    output reg  [X-1:0][Y-1:0][Z-1:0][PDATA_SIZE         -1:0] gpio_simd_o,
-    output reg  [X-1:0][Y-1:0][Z-1:0][PDATA_SIZE         -1:0] gpio_simd_oe,
 
-    input       [X-1:0][Y-1:0][Z-1:0][PDATA_SIZE         -1:0] gpio_misd_i,
-    output reg  [X-1:0][Y-1:0][Z-1:0][PDATA_SIZE         -1:0] gpio_misd_o,
-    output reg  [X-1:0][Y-1:0][Z-1:0][PDATA_SIZE         -1:0] gpio_misd_oe        
+    input       [X-1:0][Y-1:0][Z-1:0][CORES_PER_MISD-1:0][PDATA_SIZE         -1:0] gpio_misd_i,
+    output reg  [X-1:0][Y-1:0][Z-1:0][CORES_PER_MISD-1:0][PDATA_SIZE         -1:0] gpio_misd_o,
+    output reg  [X-1:0][Y-1:0][Z-1:0][CORES_PER_MISD-1:0][PDATA_SIZE         -1:0] gpio_misd_oe,
+
+    input       [X-1:0][Y-1:0][Z-1:0][CORES_PER_SIMD-1:0][PDATA_SIZE         -1:0] gpio_simd_i,
+    output reg  [X-1:0][Y-1:0][Z-1:0][CORES_PER_SIMD-1:0][PDATA_SIZE         -1:0] gpio_simd_o,
+    output reg  [X-1:0][Y-1:0][Z-1:0][CORES_PER_SIMD-1:0][PDATA_SIZE         -1:0] gpio_simd_oe
   );
 
   ////////////////////////////////////////////////////////////////
@@ -247,6 +231,12 @@ module riscv_mpsoc #(
   localparam LOCAL_SUBNET = 0;
   localparam DEBUG_ROUTER_BUFFER_SIZE = 4;
 
+  parameter FLIT_WIDTH       = 34;
+  parameter OUTPUTS          = 7;
+  parameter ENABLE_VCHANNELS = 1;
+  parameter BUFFER_SIZE_IN   = 4;
+  parameter BUFFER_SIZE_OUT  = 4;
+
   ////////////////////////////////////////////////////////////////
   //
   // Variables
@@ -254,52 +244,26 @@ module riscv_mpsoc #(
   genvar i, j, k;
 
   // Flits from NoC->tiles
-  wire  [NODES-1:0][CHANNELS-1:0][HADDR_SIZE-1:0] noc_misd_in_flit;
+  wire  [NODES-1:0][CHANNELS-1:0][FLIT_WIDTH-1:0] noc_misd_in_flit;
   wire  [NODES-1:0][CHANNELS-1:0]                 noc_misd_in_last;
   wire  [NODES-1:0][CHANNELS-1:0]                 noc_misd_in_valid;
   wire  [NODES-1:0][CHANNELS-1:0]                 noc_misd_in_ready;
 
-  wire  [NODES-1:0][CHANNELS-1:0][HADDR_SIZE-1:0] noc_simd_out_flit;
+  wire  [NODES-1:0][CHANNELS-1:0][FLIT_WIDTH-1:0] noc_simd_out_flit;
   wire  [NODES-1:0][CHANNELS-1:0]                 noc_simd_out_last;
   wire  [NODES-1:0][CHANNELS-1:0]                 noc_simd_out_valid;
   wire  [NODES-1:0][CHANNELS-1:0]                 noc_simd_out_ready;
 
   // Flits from tiles->NoC
-  wire  [NODES-1:0][CHANNELS-1:0][HADDR_SIZE-1:0] noc_misd_out_flit;
+  wire  [NODES-1:0][CHANNELS-1:0][FLIT_WIDTH-1:0] noc_misd_out_flit;
   wire  [NODES-1:0][CHANNELS-1:0]                 noc_misd_out_last;
   wire  [NODES-1:0][CHANNELS-1:0]                 noc_misd_out_valid;
   wire  [NODES-1:0][CHANNELS-1:0]                 noc_misd_out_ready;
 
-  wire  [NODES-1:0][CHANNELS-1:0][HADDR_SIZE-1:0] noc_simd_in_flit;
+  wire  [NODES-1:0][CHANNELS-1:0][FLIT_WIDTH-1:0] noc_simd_in_flit;
   wire  [NODES-1:0][CHANNELS-1:0]                 noc_simd_in_last;
   wire  [NODES-1:0][CHANNELS-1:0]                 noc_simd_in_valid;
   wire  [NODES-1:0][CHANNELS-1:0]                 noc_simd_in_ready;
-
-  logic                                rst_misd_sys;
-  logic                                rst_misd_cpu;
-
-  logic                                rst_simd_sys;
-  logic                                rst_simd_cpu;
-
-  logic [X-1:0][Y-1:0][Z-1:0][CHANNELS-1:0][HDATA_SIZE-1:0] debug_misd_ring_in_data;
-  logic [X-1:0][Y-1:0][Z-1:0][CHANNELS-1:0]                 debug_misd_ring_in_last;
-  logic [X-1:0][Y-1:0][Z-1:0][CHANNELS-1:0]                 debug_misd_ring_in_valid;
-  logic [X-1:0][Y-1:0][Z-1:0][CHANNELS-1:0]                 debug_misd_ring_in_ready;
-
-  logic [X-1:0][Y-1:0][Z-1:0][CHANNELS-1:0][HDATA_SIZE-1:0] debug_misd_ring_out_data;
-  logic [X-1:0][Y-1:0][Z-1:0][CHANNELS-1:0]                 debug_misd_ring_out_last;
-  logic [X-1:0][Y-1:0][Z-1:0][CHANNELS-1:0]                 debug_misd_ring_out_valid;
-  logic [X-1:0][Y-1:0][Z-1:0][CHANNELS-1:0]                 debug_misd_ring_out_ready;
-
-  logic [X-1:0][Y-1:0][Z-1:0][CHANNELS-1:0][HDATA_SIZE-1:0] debug_simd_ring_in_data;
-  logic [X-1:0][Y-1:0][Z-1:0][CHANNELS-1:0]                 debug_simd_ring_in_last;
-  logic [X-1:0][Y-1:0][Z-1:0][CHANNELS-1:0]                 debug_simd_ring_in_valid;
-  logic [X-1:0][Y-1:0][Z-1:0][CHANNELS-1:0]                 debug_simd_ring_in_ready;
-
-  logic [X-1:0][Y-1:0][Z-1:0][CHANNELS-1:0][HDATA_SIZE-1:0] debug_simd_ring_out_data;
-  logic [X-1:0][Y-1:0][Z-1:0][CHANNELS-1:0]                 debug_simd_ring_out_last;
-  logic [X-1:0][Y-1:0][Z-1:0][CHANNELS-1:0]                 debug_simd_ring_out_valid;
-  logic [X-1:0][Y-1:0][Z-1:0][CHANNELS-1:0]                 debug_simd_ring_out_ready;
 
   ////////////////////////////////////////////////////////////////
   //
@@ -307,17 +271,21 @@ module riscv_mpsoc #(
   //
 
   //Instantiate RISC-V NoC MISD
-  riscv_noc_mesh #(
-    .PLEN      (PLEN),
-    .NODES     (NODES),
-    .INPUTS    (7),
-    .OUTPUTS   (7),
-    .CHANNELS  (CHANNELS),
-    .VCHANNELS (2)
+  mpsoc_noc_mesh #(
+    .FLIT_WIDTH       (FLIT_WIDTH),
+    .CHANNELS         (CHANNELS),
+    .OUTPUTS          (OUTPUTS),
+    .ENABLE_VCHANNELS (ENABLE_VCHANNELS),
+    .X                (X),
+    .Y                (Y),
+    .Z                (Z),
+    .NODES            (NODES),
+    .BUFFER_SIZE_IN   (BUFFER_SIZE_IN),
+    .BUFFER_SIZE_OUT  (BUFFER_SIZE_OUT)
   )
-  noc_mesh_misd (
-    .rst       ( HRESETn ),
-    .clk       ( HCLK    ),
+  mesh_misd (
+    .rst       ( rst ),
+    .clk       ( clk ),
 
     .in_flit   ( noc_misd_out_flit  ),
     .in_last   ( noc_misd_out_last  ),
@@ -331,17 +299,21 @@ module riscv_mpsoc #(
   );
 
   //Instantiate RISC-V NoC SIMD
-  riscv_noc_mesh #(
-    .PLEN      (PLEN),
-    .NODES     (NODES),
-    .INPUTS    (7),
-    .OUTPUTS   (7),
-    .CHANNELS  (CHANNELS),
-    .VCHANNELS (2)
+  mpsoc_noc_mesh #(
+    .FLIT_WIDTH       (FLIT_WIDTH),
+    .CHANNELS         (CHANNELS),
+    .OUTPUTS          (OUTPUTS),
+    .ENABLE_VCHANNELS (ENABLE_VCHANNELS),
+    .X                (X),
+    .Y                (Y),
+    .Z                (Z),
+    .NODES            (NODES),
+    .BUFFER_SIZE_IN   (BUFFER_SIZE_IN),
+    .BUFFER_SIZE_OUT  (BUFFER_SIZE_OUT)
   )
-  noc_mesh_simd (
-    .rst       ( HRESETn ),
-    .clk       ( HCLK    ),
+  mesh_simd (
+    .rst       ( rst ),
+    .clk       ( clk ),
 
     .in_flit   ( noc_simd_out_flit  ),
     .in_last   ( noc_simd_out_last  ),
@@ -352,76 +324,6 @@ module riscv_mpsoc #(
     .out_last  ( noc_simd_in_last  ),
     .out_valid ( noc_simd_in_valid ),
     .out_ready ( noc_simd_in_ready )
-  );
-
-  //Instantiate RISC-V Debug MISD
-  riscv_debug_interface #(
-    .XLEN (XLEN),
-    .PLEN (PLEN),
-
-    .MAX_REG_SIZE (64),
-    .BUFFER_SIZE  (4),
-    .CHANNELS     (CHANNELS)
-  )
-  debug_interface_misd (
-    .clk            ( HCLK    ),
-    .rst            ( HRESETn ),
-
-    .sys_rst        ( rst_misd_sys ),
-    .cpu_rst        ( rst_misd_cpu ),
-
-    .glip_in_data   ( glip_misd_in_data  ),
-    .glip_in_valid  ( glip_misd_in_valid ),
-    .glip_in_ready  ( glip_misd_in_ready ),
-
-    .glip_out_data  ( glip_misd_out_data  ),
-    .glip_out_valid ( glip_misd_out_valid ),
-    .glip_out_ready ( glip_misd_out_ready ),
-
-    .ring_out_data  ( debug_misd_ring_in_data   [0][0][1] ),
-    .ring_out_last  ( debug_misd_ring_in_last   [0][0][1] ),
-    .ring_out_valid ( debug_misd_ring_in_valid  [0][0][1] ),
-    .ring_out_ready ( debug_misd_ring_in_ready  [0][0][1] ),
-
-    .ring_in_data   ( debug_misd_ring_out_data  [0][0][1] ),
-    .ring_in_last   ( debug_misd_ring_out_last  [0][0][1] ),
-    .ring_in_valid  ( debug_misd_ring_out_valid [0][0][1] ),
-    .ring_in_ready  ( debug_misd_ring_out_ready [0][0][1] )
-  );
-
-  //Instantiate RISC-V Debug SIMD
-  riscv_debug_interface #(
-    .XLEN (XLEN),
-    .PLEN (PLEN),
-
-    .MAX_REG_SIZE (64),
-    .BUFFER_SIZE  (4),
-    .CHANNELS     (CHANNELS)
-  )
-  debug_interface_simd (
-    .clk            ( HCLK    ),
-    .rst            ( HRESETn ),
-
-    .sys_rst        ( rst_simd_sys ),
-    .cpu_rst        ( rst_simd_cpu ),
-
-    .glip_in_data   ( glip_simd_in_data  ),
-    .glip_in_valid  ( glip_simd_in_valid ),
-    .glip_in_ready  ( glip_simd_in_ready ),
-
-    .glip_out_data  ( glip_simd_out_data  ),
-    .glip_out_valid ( glip_simd_out_valid ),
-    .glip_out_ready ( glip_simd_out_ready ),
-
-    .ring_out_data  ( debug_simd_ring_in_data   [0][0][0] ),
-    .ring_out_last  ( debug_simd_ring_in_last   [0][0][0] ),
-    .ring_out_valid ( debug_simd_ring_in_valid  [0][0][0] ),
-    .ring_out_ready ( debug_simd_ring_in_ready  [0][0][0] ),
-
-    .ring_in_data   ( debug_simd_ring_out_data  [0][0][1] ),
-    .ring_in_last   ( debug_simd_ring_out_last  [0][0][1] ),
-    .ring_in_valid  ( debug_simd_ring_out_valid [0][0][1] ),
-    .ring_in_ready  ( debug_simd_ring_out_ready [0][0][1] )
   );
 
   //Instantiate RISC-V SoC
@@ -485,7 +387,6 @@ module riscv_mpsoc #(
             .CORES_PER_SIMD        ( CORES_PER_SIMD ),
             .CORES_PER_MISD        ( CORES_PER_MISD ),
 
-            .HADDR_SIZE            ( HADDR_SIZE ),
             .CHANNELS              ( CHANNELS )
           )
           soc (
@@ -496,27 +397,6 @@ module riscv_mpsoc #(
             //PMA configuration
             .pma_cfg_i     ( pma_cfg_i ),
             .pma_adr_i     ( pma_adr_i ),
-
-            //Debug
-            .debug_misd_ring_in_data   ( debug_misd_ring_in_data   [i][j][k] ),
-            .debug_misd_ring_in_last   ( debug_misd_ring_in_last   [i][j][k] ),
-            .debug_misd_ring_in_valid  ( debug_misd_ring_in_valid  [i][j][k] ),
-            .debug_misd_ring_in_ready  ( debug_misd_ring_in_ready  [i][j][k] ),
-
-            .debug_misd_ring_out_data  ( debug_misd_ring_out_data  [i][j][k] ),
-            .debug_misd_ring_out_last  ( debug_misd_ring_out_last  [i][j][k] ),
-            .debug_misd_ring_out_valid ( debug_misd_ring_out_valid [i][j][k] ),
-            .debug_misd_ring_out_ready ( debug_misd_ring_out_ready [i][j][k] ),
-
-            .debug_simd_ring_in_data   ( debug_simd_ring_in_data   [i][j][k] ),
-            .debug_simd_ring_in_last   ( debug_simd_ring_in_last   [i][j][k] ),
-            .debug_simd_ring_in_valid  ( debug_simd_ring_in_valid  [i][j][k] ),
-            .debug_simd_ring_in_ready  ( debug_simd_ring_in_ready  [i][j][k] ),
-
-            .debug_simd_ring_out_data  ( debug_simd_ring_out_data  [i][j][k] ),
-            .debug_simd_ring_out_last  ( debug_simd_ring_out_last  [i][j][k] ),
-            .debug_simd_ring_out_valid ( debug_simd_ring_out_valid [i][j][k] ),
-            .debug_simd_ring_out_ready ( debug_simd_ring_out_ready [i][j][k] ),
 
             //AHB instruction - Single Port
             .sins_simd_HSEL      ( sins_simd_HSEL      [i][j][k] ),

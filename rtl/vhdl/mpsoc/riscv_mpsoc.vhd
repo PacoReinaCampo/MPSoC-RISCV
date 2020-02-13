@@ -1,4 +1,4 @@
--- Converted from rtl/verilog/mpsoc/riscv_mpsoc.sv
+-- Converted from riscv_mpsoc.sv
 -- by verilog2vhdl - QueenField
 
 --//////////////////////////////////////////////////////////////////////////////
@@ -50,27 +50,88 @@ use ieee.numeric_std.all;
 use work.riscv_mpsoc_pkg.all;
 
 entity riscv_mpsoc is
+  generic (
+    XLEN : integer := 64;
+    PLEN : integer := 64;
+
+    PC_INIT : std_logic_vector(63 downto 0) := X"0000000080000000";
+
+    HAS_USER  : std_logic := '1';
+    HAS_SUPER : std_logic := '1';
+    HAS_HYPER : std_logic := '1';
+    HAS_BPU   : std_logic := '1';
+    HAS_FPU   : std_logic := '1';
+    HAS_MMU   : std_logic := '1';
+    HAS_RVM   : std_logic := '1';
+    HAS_RVA   : std_logic := '1';
+    HAS_RVC   : std_logic := '1';
+
+    IS_RV32E : std_logic := '1';
+
+    MULT_LATENCY : std_logic := '1';
+
+    BREAKPOINTS : integer := 8;  --Number of hardware breakpoints
+
+    PMA_CNT : integer := 4;
+    PMP_CNT : integer := 16;  --Number of Physical Memory Protection entries
+
+    BP_GLOBAL_BITS : integer := 2;
+    BP_LOCAL_BITS  : integer := 10;
+
+    ICACHE_SIZE        : integer := 0;   --in KBytes
+    ICACHE_BLOCK_SIZE  : integer := 32;  --in Bytes
+    ICACHE_WAYS        : integer := 2;   --'n'-way set associative
+    ICACHE_REPLACE_ALG : integer := 0;
+    ITCM_SIZE          : integer := 0;
+
+    DCACHE_SIZE        : integer := 0;   --in KBytes
+    DCACHE_BLOCK_SIZE  : integer := 32;  --in Bytes
+    DCACHE_WAYS        : integer := 2;   --'n'-way set associative
+    DCACHE_REPLACE_ALG : integer := 0;
+    DTCM_SIZE          : integer := 0;
+
+    WRITEBUFFER_SIZE : integer := 8;
+
+    TECHNOLOGY : string := "GENERIC";
+
+    MNMIVEC_DEFAULT : std_logic_vector(63 downto 0) := X"0000000000000004";
+    MTVEC_DEFAULT   : std_logic_vector(63 downto 0) := X"0000000000000040";
+    HTVEC_DEFAULT   : std_logic_vector(63 downto 0) := X"0000000000000080";
+    STVEC_DEFAULT   : std_logic_vector(63 downto 0) := X"00000000000000C0";
+    UTVEC_DEFAULT   : std_logic_vector(63 downto 0) := X"0000000000000100";
+
+    JEDEC_BANK : integer := 10;
+
+    JEDEC_MANUFACTURER_ID : std_logic_vector(7 downto 0) := X"6E";
+
+    HARTID : integer := 0;
+
+    PARCEL_SIZE : integer := 32;
+
+    HADDR_SIZE : integer := 64;
+    HDATA_SIZE : integer := 64;
+    PADDR_SIZE : integer := 64;
+    PDATA_SIZE : integer := 64;
+
+    FLIT_WIDTH : integer := 34;
+
+    SYNC_DEPTH : integer := 3;
+
+    CORES_PER_SIMD : integer := 8;
+    CORES_PER_MISD : integer := 8;
+
+    X : integer := 2;
+    Y : integer := 2;
+    Z : integer := 2;
+
+    NODES : integer := 8;
+
+    CHANNELS : integer := 7
+  );
   port (
     --Common signals
-    HRESETn : in std_ulogic;
-    HCLK    : in std_ulogic;
-
-    --GLIP host connection
-    glip_misd_in_data  : in  std_ulogic_vector(XLEN-1 downto 0);
-    glip_misd_in_valid : in  std_ulogic;
-    glip_misd_in_ready : out std_ulogic;
-
-    glip_misd_out_data  : out std_ulogic_vector(XLEN-1 downto 0);
-    glip_misd_out_valid : out std_ulogic;
-    glip_misd_out_ready : in  std_ulogic;
-
-    glip_simd_in_data  : in  std_ulogic_vector(XLEN-1 downto 0);
-    glip_simd_in_valid : in  std_ulogic;
-    glip_simd_in_ready : out std_ulogic;
-
-    glip_simd_out_data  : out std_ulogic_vector(XLEN-1 downto 0);
-    glip_simd_out_valid : out std_ulogic;
-    glip_simd_out_ready : in  std_ulogic;
+    HRESETn : in std_logic;
+    HCLK    : in std_logic;
 
     --PMA configuration
     pma_cfg_i : in M_PMA_CNT_13;
@@ -163,211 +224,244 @@ entity riscv_mpsoc is
     dbg_simd_bp    : out M_XYZ_CORES_PER_SIMD;
 
     --GPIO Interface
-    gpio_simd_i  : in  M_XYZ_PDATA_SIZE;
-    gpio_simd_o  : out M_XYZ_PDATA_SIZE;
-    gpio_simd_oe : out M_XYZ_PDATA_SIZE;
 
-    gpio_misd_i  : in  M_XYZ_PDATA_SIZE;
-    gpio_misd_o  : out M_XYZ_PDATA_SIZE;
-    gpio_misd_oe : out M_XYZ_PDATA_SIZE
+    gpio_misd_i  : in  M_XYZ_CORES_PER_MISD_PDATA_SIZE;
+    gpio_misd_o  : out M_XYZ_CORES_PER_MISD_PDATA_SIZE;
+    gpio_misd_oe : out M_XYZ_CORES_PER_MISD_PDATA_SIZE;
+
+    gpio_simd_i  : in  M_XYZ_CORES_PER_SIMD_PDATA_SIZE;
+    gpio_simd_o  : out M_XYZ_CORES_PER_SIMD_PDATA_SIZE;
+    gpio_simd_oe : out M_XYZ_CORES_PER_SIMD_PDATA_SIZE
   );
 end riscv_mpsoc;
 
 architecture RTL of riscv_mpsoc is
-  component riscv_noc_mesh
+  component mpsoc_noc_mesh
+    generic (
+      FLIT_WIDTH       : integer := 34;
+      VCHANNELS        : integer := 7;
+      CHANNELS         : integer := 7;
+      OUTPUTS          : integer := 7;
+      ENABLE_VCHANNELS : integer := 1;
+      X                : integer := 2;
+      Y                : integer := 2;
+      Z                : integer := 2;
+      NODES            : integer := 8;
+      BUFFER_SIZE_IN   : integer := 4;
+      BUFFER_SIZE_OUT  : integer := 4
+    );
     port (
-      clk : in std_ulogic;
-      rst : in std_ulogic;
+      clk : in std_logic;
+      rst : in std_logic;
 
-      in_flit  : in  M_NODES_CHANNELS_PLEN;
+      in_flit  : in  M_NODES_CHANNELS_FLIT_WIDTH;
       in_last  : in  M_NODES_CHANNELS;
       in_valid : in  M_NODES_CHANNELS;
       in_ready : out M_NODES_CHANNELS;
 
-      out_flit  : out M_NODES_CHANNELS_PLEN;
+      out_flit  : out M_NODES_CHANNELS_FLIT_WIDTH;
       out_last  : out M_NODES_CHANNELS;
       out_valid : out M_NODES_CHANNELS;
       out_ready : in  M_NODES_CHANNELS
     );
   end component;
 
-  component riscv_debug_interface
-    port (
-      clk : in std_ulogic;
-      rst : in std_ulogic;
-
-      -- GLIP host connection
-      glip_in_data  : in  std_ulogic_vector(XLEN-1 downto 0);
-      glip_in_valid : in  std_ulogic;
-      glip_in_ready : out std_ulogic;
-
-      glip_out_data  : out std_ulogic_vector(XLEN-1 downto 0);
-      glip_out_valid : out std_ulogic;
-      glip_out_ready : in  std_ulogic;
-
-      -- ring connection
-      ring_out_data  : out M_CHANNELS_XLEN;
-      ring_out_last  : out std_ulogic_vector(CHANNELS-1 downto 0);
-      ring_out_valid : out std_ulogic_vector(CHANNELS-1 downto 0);
-      ring_out_ready : in  std_ulogic_vector(CHANNELS-1 downto 0);
-
-      ring_in_data  : in  M_CHANNELS_XLEN;
-      ring_in_last  : in  std_ulogic_vector(CHANNELS-1 downto 0);
-      ring_in_valid : in  std_ulogic_vector(CHANNELS-1 downto 0);
-      ring_in_ready : out std_ulogic_vector(CHANNELS-1 downto 0);
-
-      -- system reset request
-      sys_rst : out std_ulogic;
-
-      -- CPU reset request
-      cpu_rst : out std_ulogic
-    );
-  end component;
-
   component riscv_soc
+    generic (
+    XLEN : integer := 64;
+    PLEN : integer := 64;
+
+    PC_INIT : std_logic_vector(63 downto 0) := X"0000000080000000";
+
+    HAS_USER  : std_logic := '1';
+    HAS_SUPER : std_logic := '1';
+    HAS_HYPER : std_logic := '1';
+    HAS_BPU   : std_logic := '1';
+    HAS_FPU   : std_logic := '1';
+    HAS_MMU   : std_logic := '1';
+    HAS_RVM   : std_logic := '1';
+    HAS_RVA   : std_logic := '1';
+    HAS_RVC   : std_logic := '1';
+
+    IS_RV32E : std_logic := '1';
+
+    MULT_LATENCY : std_logic := '1';
+
+    BREAKPOINTS : integer := 8;         --Number of hardware breakpoints
+
+    PMA_CNT : integer := 4;
+    PMP_CNT : integer := 16;  --Number of Physical Memory Protection entries
+
+    BP_GLOBAL_BITS : integer := 2;
+    BP_LOCAL_BITS  : integer := 10;
+
+    ICACHE_SIZE        : integer := 0;   --in KBytes
+    ICACHE_BLOCK_SIZE  : integer := 32;  --in Bytes
+    ICACHE_WAYS        : integer := 2;   --'n'-way set associative
+    ICACHE_REPLACE_ALG : integer := 0;
+    ITCM_SIZE          : integer := 0;
+
+    DCACHE_SIZE        : integer := 0;   --in KBytes
+    DCACHE_BLOCK_SIZE  : integer := 32;  --in Bytes
+    DCACHE_WAYS        : integer := 2;   --'n'-way set associative
+    DCACHE_REPLACE_ALG : integer := 0;
+    DTCM_SIZE          : integer := 0;
+    WRITEBUFFER_SIZE   : integer := 8;
+
+    TECHNOLOGY : string := "GENERIC";
+
+    MNMIVEC_DEFAULT : std_logic_vector(63 downto 0) := X"0000000000000004";
+    MTVEC_DEFAULT   : std_logic_vector(63 downto 0) := X"0000000000000040";
+    HTVEC_DEFAULT   : std_logic_vector(63 downto 0) := X"0000000000000080";
+    STVEC_DEFAULT   : std_logic_vector(63 downto 0) := X"00000000000000C0";
+    UTVEC_DEFAULT   : std_logic_vector(63 downto 0) := X"0000000000000100";
+
+    JEDEC_BANK : integer := 10;
+
+    JEDEC_MANUFACTURER_ID : std_logic_vector(7 downto 0) := X"6E";
+
+    HARTID : integer := 0;
+
+    PARCEL_SIZE : integer := 32;
+
+    HADDR_SIZE : integer := 64;
+    HDATA_SIZE : integer := 64;
+    PADDR_SIZE : integer := 64;
+    PDATA_SIZE : integer := 64;
+
+    FLIT_WIDTH : integer := 34;
+
+    SYNC_DEPTH : integer := 3;
+
+    CORES_PER_SIMD : integer := 4;
+    CORES_PER_MISD : integer := 4;
+
+    CORES_PER_TILE : integer := 8;
+
+    CHANNELS : integer := 7
+    );
     port (
-    --Common signals
-    HRESETn : in std_ulogic;
-    HCLK    : in std_ulogic;
+      --Common signals
+      HRESETn : in std_logic;
+      HCLK    : in std_logic;
 
-    --PMA configuration
-    pma_cfg_i : in M_PMA_CNT_13;
-    pma_adr_i : in M_PMA_CNT_PLEN;
+      --PMA configuration
+      pma_cfg_i : in M_PMA_CNT_13;
+      pma_adr_i : in M_PMA_CNT_PLEN;
 
-    --Debug
-    debug_misd_ring_in_data  : in  M_CHANNELS_XLEN;
-    debug_misd_ring_in_last  : in  std_ulogic_vector(CHANNELS-1 downto 0);
-    debug_misd_ring_in_valid : in  std_ulogic_vector(CHANNELS-1 downto 0);
-    debug_misd_ring_in_ready : out std_ulogic_vector(CHANNELS-1 downto 0);
+      --AHB instruction - Single Port
+      sins_simd_HSEL      : out std_logic;
+      sins_simd_HADDR     : out std_logic_vector(PLEN-1 downto 0);
+      sins_simd_HWDATA    : out std_logic_vector(XLEN-1 downto 0);
+      sins_simd_HRDATA    : in  std_logic_vector(XLEN-1 downto 0);
+      sins_simd_HWRITE    : out std_logic;
+      sins_simd_HSIZE     : out std_logic_vector(2 downto 0);
+      sins_simd_HBURST    : out std_logic_vector(2 downto 0);
+      sins_simd_HPROT     : out std_logic_vector(3 downto 0);
+      sins_simd_HTRANS    : out std_logic_vector(1 downto 0);
+      sins_simd_HMASTLOCK : out std_logic;
+      sins_simd_HREADY    : in  std_logic;
+      sins_simd_HRESP     : in  std_logic;
 
-    debug_misd_ring_out_data  : out M_CHANNELS_XLEN;
-    debug_misd_ring_out_last  : out std_ulogic_vector(CHANNELS-1 downto 0);
-    debug_misd_ring_out_valid : out std_ulogic_vector(CHANNELS-1 downto 0);
-    debug_misd_ring_out_ready : in  std_ulogic_vector(CHANNELS-1 downto 0);
+      --AHB data - Single Port
+      sdat_misd_HSEL      : out std_logic;
+      sdat_misd_HADDR     : out std_logic_vector(PLEN-1 downto 0);
+      sdat_misd_HWDATA    : out std_logic_vector(XLEN-1 downto 0);
+      sdat_misd_HRDATA    : in  std_logic_vector(XLEN-1 downto 0);
+      sdat_misd_HWRITE    : out std_logic;
+      sdat_misd_HSIZE     : out std_logic_vector(2 downto 0);
+      sdat_misd_HBURST    : out std_logic_vector(2 downto 0);
+      sdat_misd_HPROT     : out std_logic_vector(3 downto 0);
+      sdat_misd_HTRANS    : out std_logic_vector(1 downto 0);
+      sdat_misd_HMASTLOCK : out std_logic;
+      sdat_misd_HREADY    : in  std_logic;
+      sdat_misd_HRESP     : in  std_logic;
 
-    debug_simd_ring_in_data  : in  M_CHANNELS_XLEN;
-    debug_simd_ring_in_last  : in  std_ulogic_vector(CHANNELS-1 downto 0);
-    debug_simd_ring_in_valid : in  std_ulogic_vector(CHANNELS-1 downto 0);
-    debug_simd_ring_in_ready : out std_ulogic_vector(CHANNELS-1 downto 0);
+      --AHB instruction - Multi Port
+      mins_misd_HSEL      : out std_logic_vector(CORES_PER_MISD-1 downto 0);
+      mins_misd_HADDR     : out M_CORES_PER_MISD_PLEN;
+      mins_misd_HWDATA    : out M_CORES_PER_MISD_XLEN;
+      mins_misd_HRDATA    : in  M_CORES_PER_MISD_XLEN;
+      mins_misd_HWRITE    : out std_logic_vector(CORES_PER_MISD-1 downto 0);
+      mins_misd_HSIZE     : out M_CORES_PER_MISD_2;
+      mins_misd_HBURST    : out M_CORES_PER_MISD_2;
+      mins_misd_HPROT     : out M_CORES_PER_MISD_3;
+      mins_misd_HTRANS    : out M_CORES_PER_MISD_1;
+      mins_misd_HMASTLOCK : out std_logic_vector(CORES_PER_MISD-1 downto 0);
+      mins_misd_HREADY    : in  std_logic_vector(CORES_PER_MISD-1 downto 0);
+      mins_misd_HRESP     : in  std_logic_vector(CORES_PER_MISD-1 downto 0);
 
-    debug_simd_ring_out_data  : out M_CHANNELS_XLEN;
-    debug_simd_ring_out_last  : out std_ulogic_vector(CHANNELS-1 downto 0);
-    debug_simd_ring_out_valid : out std_ulogic_vector(CHANNELS-1 downto 0);
-    debug_simd_ring_out_ready : in  std_ulogic_vector(CHANNELS-1 downto 0);
+      --AHB data - Multi Port
+      mdat_simd_HSEL      : out std_logic_vector(CORES_PER_SIMD-1 downto 0);
+      mdat_simd_HADDR     : out M_CORES_PER_SIMD_PLEN;
+      mdat_simd_HWDATA    : out M_CORES_PER_SIMD_XLEN;
+      mdat_simd_HRDATA    : in  M_CORES_PER_SIMD_XLEN;
+      mdat_simd_HWRITE    : out std_logic_vector(CORES_PER_SIMD-1 downto 0);
+      mdat_simd_HSIZE     : out M_CORES_PER_SIMD_2;
+      mdat_simd_HBURST    : out M_CORES_PER_SIMD_2;
+      mdat_simd_HPROT     : out M_CORES_PER_SIMD_3;
+      mdat_simd_HTRANS    : out M_CORES_PER_SIMD_1;
+      mdat_simd_HMASTLOCK : out std_logic_vector(CORES_PER_SIMD-1 downto 0);
+      mdat_simd_HREADY    : in  std_logic_vector(CORES_PER_SIMD-1 downto 0);
+      mdat_simd_HRESP     : in  std_logic_vector(CORES_PER_SIMD-1 downto 0);
 
-    --AHB instruction - Single Port
-    sins_simd_HSEL      : out std_ulogic;
-    sins_simd_HADDR     : out std_ulogic_vector(PLEN-1 downto 0);
-    sins_simd_HWDATA    : out std_ulogic_vector(XLEN-1 downto 0);
-    sins_simd_HRDATA    : in  std_ulogic_vector(XLEN-1 downto 0);
-    sins_simd_HWRITE    : out std_ulogic;
-    sins_simd_HSIZE     : out std_ulogic_vector(2 downto 0);
-    sins_simd_HBURST    : out std_ulogic_vector(2 downto 0);
-    sins_simd_HPROT     : out std_ulogic_vector(3 downto 0);
-    sins_simd_HTRANS    : out std_ulogic_vector(1 downto 0);
-    sins_simd_HMASTLOCK : out std_ulogic;
-    sins_simd_HREADY    : in  std_ulogic;
-    sins_simd_HRESP     : in  std_ulogic;
+      --Interrupts Interface
+      ext_misd_nmi  : in std_logic_vector(CORES_PER_MISD-1 downto 0);
+      ext_misd_tint : in std_logic_vector(CORES_PER_MISD-1 downto 0);
+      ext_misd_sint : in std_logic_vector(CORES_PER_MISD-1 downto 0);
+      ext_misd_int  : in M_CORES_PER_MISD_3;
 
-    --AHB data - Single Port
-    sdat_misd_HSEL      : out std_ulogic;
-    sdat_misd_HADDR     : out std_ulogic_vector(PLEN-1 downto 0);
-    sdat_misd_HWDATA    : out std_ulogic_vector(XLEN-1 downto 0);
-    sdat_misd_HRDATA    : in  std_ulogic_vector(XLEN-1 downto 0);
-    sdat_misd_HWRITE    : out std_ulogic;
-    sdat_misd_HSIZE     : out std_ulogic_vector(2 downto 0);
-    sdat_misd_HBURST    : out std_ulogic_vector(2 downto 0);
-    sdat_misd_HPROT     : out std_ulogic_vector(3 downto 0);
-    sdat_misd_HTRANS    : out std_ulogic_vector(1 downto 0);
-    sdat_misd_HMASTLOCK : out std_ulogic;
-    sdat_misd_HREADY    : in  std_ulogic;
-    sdat_misd_HRESP     : in  std_ulogic;
+      ext_simd_nmi  : in std_logic_vector(CORES_PER_SIMD-1 downto 0);
+      ext_simd_tint : in std_logic_vector(CORES_PER_SIMD-1 downto 0);
+      ext_simd_sint : in std_logic_vector(CORES_PER_SIMD-1 downto 0);
+      ext_simd_int  : in M_CORES_PER_SIMD_3;
 
-    --AHB instruction - Multi Port
-    mins_misd_HSEL      : out std_ulogic_vector(CORES_PER_MISD-1 downto 0);
-    mins_misd_HADDR     : out M_CORES_PER_MISD_PLEN;
-    mins_misd_HWDATA    : out M_CORES_PER_MISD_XLEN;
-    mins_misd_HRDATA    : in  M_CORES_PER_MISD_XLEN;
-    mins_misd_HWRITE    : out std_ulogic_vector(CORES_PER_MISD-1 downto 0);
-    mins_misd_HSIZE     : out M_CORES_PER_MISD_2;
-    mins_misd_HBURST    : out M_CORES_PER_MISD_2;
-    mins_misd_HPROT     : out M_CORES_PER_MISD_3;
-    mins_misd_HTRANS    : out M_CORES_PER_MISD_1;
-    mins_misd_HMASTLOCK : out std_ulogic_vector(CORES_PER_MISD-1 downto 0);
-    mins_misd_HREADY    : in  std_ulogic_vector(CORES_PER_MISD-1 downto 0);
-    mins_misd_HRESP     : in  std_ulogic_vector(CORES_PER_MISD-1 downto 0);
+      --Debug Interface
+      dbg_misd_stall : in  std_logic_vector(CORES_PER_MISD-1 downto 0);
+      dbg_misd_strb  : in  std_logic_vector(CORES_PER_MISD-1 downto 0);
+      dbg_misd_we    : in  std_logic_vector(CORES_PER_MISD-1 downto 0);
+      dbg_misd_addr  : in  M_CORES_PER_MISD_PLEN;
+      dbg_misd_dati  : in  M_CORES_PER_MISD_XLEN;
+      dbg_misd_dato  : out M_CORES_PER_MISD_XLEN;
+      dbg_misd_ack   : out std_logic_vector(CORES_PER_MISD-1 downto 0);
+      dbg_misd_bp    : out std_logic_vector(CORES_PER_MISD-1 downto 0);
 
-    --AHB data - Multi Port
-    mdat_simd_HSEL      : out std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-    mdat_simd_HADDR     : out M_CORES_PER_SIMD_PLEN;
-    mdat_simd_HWDATA    : out M_CORES_PER_SIMD_XLEN;
-    mdat_simd_HRDATA    : in  M_CORES_PER_SIMD_XLEN;
-    mdat_simd_HWRITE    : out std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-    mdat_simd_HSIZE     : out M_CORES_PER_SIMD_2;
-    mdat_simd_HBURST    : out M_CORES_PER_SIMD_2;
-    mdat_simd_HPROT     : out M_CORES_PER_SIMD_3;
-    mdat_simd_HTRANS    : out M_CORES_PER_SIMD_1;
-    mdat_simd_HMASTLOCK : out std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-    mdat_simd_HREADY    : in  std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-    mdat_simd_HRESP     : in  std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
+      dbg_simd_stall : in  std_logic_vector(CORES_PER_SIMD-1 downto 0);
+      dbg_simd_strb  : in  std_logic_vector(CORES_PER_SIMD-1 downto 0);
+      dbg_simd_we    : in  std_logic_vector(CORES_PER_SIMD-1 downto 0);
+      dbg_simd_addr  : in  M_CORES_PER_SIMD_PLEN;
+      dbg_simd_dati  : in  M_CORES_PER_SIMD_XLEN;
+      dbg_simd_dato  : out M_CORES_PER_SIMD_XLEN;
+      dbg_simd_ack   : out std_logic_vector(CORES_PER_SIMD-1 downto 0);
+      dbg_simd_bp    : out std_logic_vector(CORES_PER_SIMD-1 downto 0);
 
-    --Interrupts Interface
-    ext_misd_nmi  : in std_ulogic_vector(CORES_PER_MISD-1 downto 0);
-    ext_misd_tint : in std_ulogic_vector(CORES_PER_MISD-1 downto 0);
-    ext_misd_sint : in std_ulogic_vector(CORES_PER_MISD-1 downto 0);
-    ext_misd_int  : in M_CORES_PER_MISD_3;
+      --GPIO Interface
+      gpio_misd_i  : in  M_CORES_PER_MISD_PDATA_SIZE;
+      gpio_misd_o  : out M_CORES_PER_MISD_PDATA_SIZE;
+      gpio_misd_oe : out M_CORES_PER_MISD_PDATA_SIZE;
 
-    ext_simd_nmi  : in std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-    ext_simd_tint : in std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-    ext_simd_sint : in std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-    ext_simd_int  : in M_CORES_PER_SIMD_3;
+      gpio_simd_i  : in  M_CORES_PER_SIMD_PDATA_SIZE;
+      gpio_simd_o  : out M_CORES_PER_SIMD_PDATA_SIZE;
+      gpio_simd_oe : out M_CORES_PER_SIMD_PDATA_SIZE;
 
-    --Debug Interface
-    dbg_misd_stall : in  std_ulogic_vector(CORES_PER_MISD-1 downto 0);
-    dbg_misd_strb  : in  std_ulogic_vector(CORES_PER_MISD-1 downto 0);
-    dbg_misd_we    : in  std_ulogic_vector(CORES_PER_MISD-1 downto 0);
-    dbg_misd_addr  : in  M_CORES_PER_MISD_PLEN;
-    dbg_misd_dati  : in  M_CORES_PER_MISD_XLEN;
-    dbg_misd_dato  : out M_CORES_PER_MISD_XLEN;
-    dbg_misd_ack   : out std_ulogic_vector(CORES_PER_MISD-1 downto 0);
-    dbg_misd_bp    : out std_ulogic_vector(CORES_PER_MISD-1 downto 0);
+      --NoC Interface
+      noc_misd_in_flit   : in  M_CHANNELS_FLIT_WIDTH;
+      noc_misd_in_last   : in  std_logic_vector(CHANNELS-1 downto 0);
+      noc_misd_in_valid  : in  std_logic_vector(CHANNELS-1 downto 0);
+      noc_misd_in_ready  : out std_logic_vector(CHANNELS-1 downto 0);
+      noc_misd_out_flit  : out M_CHANNELS_FLIT_WIDTH;
+      noc_misd_out_last  : out std_logic_vector(CHANNELS-1 downto 0);
+      noc_misd_out_valid : out std_logic_vector(CHANNELS-1 downto 0);
+      noc_misd_out_ready : in  std_logic_vector(CHANNELS-1 downto 0);
 
-    dbg_simd_stall : in  std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-    dbg_simd_strb  : in  std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-    dbg_simd_we    : in  std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-    dbg_simd_addr  : in  M_CORES_PER_SIMD_PLEN;
-    dbg_simd_dati  : in  M_CORES_PER_SIMD_XLEN;
-    dbg_simd_dato  : out M_CORES_PER_SIMD_XLEN;
-    dbg_simd_ack   : out std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-    dbg_simd_bp    : out std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-
-    --NoC Interface
-    noc_misd_in_flit   : in  M_CHANNELS_PLEN;
-    noc_misd_in_last   : in  std_ulogic_vector(CHANNELS-1 downto 0);
-    noc_misd_in_valid  : in  std_ulogic_vector(CHANNELS-1 downto 0);
-    noc_misd_in_ready  : out std_ulogic_vector(CHANNELS-1 downto 0);
-    noc_misd_out_flit  : out M_CHANNELS_PLEN;
-    noc_misd_out_last  : out std_ulogic_vector(CHANNELS-1 downto 0);
-    noc_misd_out_valid : out std_ulogic_vector(CHANNELS-1 downto 0);
-    noc_misd_out_ready : in  std_ulogic_vector(CHANNELS-1 downto 0);
-
-    noc_simd_in_flit   : in  M_CHANNELS_PLEN;
-    noc_simd_in_last   : in  std_ulogic_vector(CHANNELS-1 downto 0);
-    noc_simd_in_valid  : in  std_ulogic_vector(CHANNELS-1 downto 0);
-    noc_simd_in_ready  : out std_ulogic_vector(CHANNELS-1 downto 0);
-    noc_simd_out_flit  : out M_CHANNELS_PLEN;
-    noc_simd_out_last  : out std_ulogic_vector(CHANNELS-1 downto 0);
-    noc_simd_out_valid : out std_ulogic_vector(CHANNELS-1 downto 0);
-    noc_simd_out_ready : in  std_ulogic_vector(CHANNELS-1 downto 0);
-
-    --GPIO Interface
-    gpio_simd_i  : in  std_ulogic_vector(PDATA_SIZE-1 downto 0);
-    gpio_simd_o  : out std_ulogic_vector(PDATA_SIZE-1 downto 0);
-    gpio_simd_oe : out std_ulogic_vector(PDATA_SIZE-1 downto 0);
-
-    gpio_misd_i  : in  std_ulogic_vector(PDATA_SIZE-1 downto 0);
-    gpio_misd_o  : out std_ulogic_vector(PDATA_SIZE-1 downto 0);
-    gpio_misd_oe : out std_ulogic_vector(PDATA_SIZE-1 downto 0)
+      noc_simd_in_flit   : in  M_CHANNELS_FLIT_WIDTH;
+      noc_simd_in_last   : in  std_logic_vector(CHANNELS-1 downto 0);
+      noc_simd_in_valid  : in  std_logic_vector(CHANNELS-1 downto 0);
+      noc_simd_in_ready  : out std_logic_vector(CHANNELS-1 downto 0);
+      noc_simd_out_flit  : out M_CHANNELS_FLIT_WIDTH;
+      noc_simd_out_last  : out std_logic_vector(CHANNELS-1 downto 0);
+      noc_simd_out_valid : out std_logic_vector(CHANNELS-1 downto 0);
+      noc_simd_out_ready : in  std_logic_vector(CHANNELS-1 downto 0)
     );
   end component;
 
@@ -383,58 +477,37 @@ architecture RTL of riscv_mpsoc is
   constant LOCAL_SUBNET             : integer := 0;
   constant DEBUG_ROUTER_BUFFER_SIZE : integer := 4;
 
+  constant OUTPUTS          : integer := 7;
+  constant ENABLE_VCHANNELS : integer := 1;
+  constant BUFFER_SIZE_IN   : integer := 4;
+  constant BUFFER_SIZE_OUT  : integer := 4;
+
   --//////////////////////////////////////////////////////////////
   --
   -- Variables
   --
 
   -- Flits from NoC->tiles
-  signal noc_misd_in_flit  : M_NODES_CHANNELS_PLEN;
+  signal noc_misd_in_flit  : M_NODES_CHANNELS_FLIT_WIDTH;
   signal noc_misd_in_last  : M_NODES_CHANNELS;
   signal noc_misd_in_valid : M_NODES_CHANNELS;
   signal noc_misd_in_ready : M_NODES_CHANNELS;
 
-  signal noc_simd_out_flit  : M_NODES_CHANNELS_PLEN;
+  signal noc_simd_out_flit  : M_NODES_CHANNELS_FLIT_WIDTH;
   signal noc_simd_out_last  : M_NODES_CHANNELS;
   signal noc_simd_out_valid : M_NODES_CHANNELS;
   signal noc_simd_out_ready : M_NODES_CHANNELS;
 
   -- Flits from tiles->NoC
-  signal noc_misd_out_flit  : M_NODES_CHANNELS_PLEN;
+  signal noc_misd_out_flit  : M_NODES_CHANNELS_FLIT_WIDTH;
   signal noc_misd_out_last  : M_NODES_CHANNELS;
   signal noc_misd_out_valid : M_NODES_CHANNELS;
   signal noc_misd_out_ready : M_NODES_CHANNELS;
 
-  signal noc_simd_in_flit  : M_NODES_CHANNELS_PLEN;
+  signal noc_simd_in_flit  : M_NODES_CHANNELS_FLIT_WIDTH;
   signal noc_simd_in_last  : M_NODES_CHANNELS;
   signal noc_simd_in_valid : M_NODES_CHANNELS;
   signal noc_simd_in_ready : M_NODES_CHANNELS;
-
-  signal rst_misd_sys : std_ulogic;
-  signal rst_misd_cpu : std_ulogic;
-
-  signal rst_simd_sys : std_ulogic;
-  signal rst_simd_cpu : std_ulogic;
-
-  signal debug_misd_ring_in_data  : M_XYZ_CHANNELS_XLEN;
-  signal debug_misd_ring_in_last  : M_XYZ_CHANNELS;
-  signal debug_misd_ring_in_valid : M_XYZ_CHANNELS;
-  signal debug_misd_ring_in_ready : M_XYZ_CHANNELS;
-
-  signal debug_misd_ring_out_data  : M_XYZ_CHANNELS_XLEN;
-  signal debug_misd_ring_out_last  : M_XYZ_CHANNELS;
-  signal debug_misd_ring_out_valid : M_XYZ_CHANNELS;
-  signal debug_misd_ring_out_ready : M_XYZ_CHANNELS;
-
-  signal debug_simd_ring_in_data  : M_XYZ_CHANNELS_XLEN;
-  signal debug_simd_ring_in_last  : M_XYZ_CHANNELS;
-  signal debug_simd_ring_in_valid : M_XYZ_CHANNELS;
-  signal debug_simd_ring_in_ready : M_XYZ_CHANNELS;
-
-  signal debug_simd_ring_out_data  : M_XYZ_CHANNELS_XLEN;
-  signal debug_simd_ring_out_last  : M_XYZ_CHANNELS;
-  signal debug_simd_ring_out_valid : M_XYZ_CHANNELS;
-  signal debug_simd_ring_out_ready : M_XYZ_CHANNELS;
 
 begin
   --//////////////////////////////////////////////////////////////
@@ -443,100 +516,130 @@ begin
   --
 
   --Instantiate RISC-V NoC MISD
-  noc_mesh_misd : riscv_noc_mesh
-    port map (
-      rst => HRESETn,
-      clk => HCLK,
+  --mesh_misd : mpsoc_noc_mesh
+    --generic map (
+      --FLIT_WIDTH       => FLIT_WIDTH,
+      --VCHANNELS        => VCHANNELS,
+      --CHANNELS         => CHANNELS,
+      --OUTPUTS          => OUTPUTS,
+      --ENABLE_VCHANNELS => ENABLE_VCHANNELS,
+      --X                => X,
+      --Y                => Y,
+      --Z                => Z,
+      --NODES            => NODES,
+      --BUFFER_SIZE_IN   => BUFFER_SIZE_IN,
+      --BUFFER_SIZE_OUT  => BUFFER_SIZE_OUT
+    --)
+    --port map (
+      --rst => HRESETn,
+      --clk => HCLK,
 
-      in_flit  => noc_misd_out_flit,
-      in_last  => noc_misd_out_last,
-      in_valid => noc_misd_out_valid,
-      in_ready => noc_misd_out_ready,
+      --in_flit  => noc_misd_out_flit,
+      --in_last  => noc_misd_out_last,
+      --in_valid => noc_misd_out_valid,
+      --in_ready => noc_misd_out_ready,
 
-      out_flit  => noc_misd_in_flit,
-      out_last  => noc_misd_in_last,
-      out_valid => noc_misd_in_valid,
-      out_ready => noc_misd_in_ready
-    );
+      --out_flit  => noc_misd_in_flit,
+      --out_last  => noc_misd_in_last,
+      --out_valid => noc_misd_in_valid,
+      --out_ready => noc_misd_in_ready
+    --);
 
   --Instantiate RISC-V NoC SIMD
-  noc_mesh_simd : riscv_noc_mesh
-    port map (
-      rst => HRESETn,
-      clk => HCLK,
+  --mesh_simd : mpsoc_noc_mesh
+    --generic map (
+      --FLIT_WIDTH       => FLIT_WIDTH,
+      --VCHANNELS        => VCHANNELS,
+      --CHANNELS         => CHANNELS,
+      --OUTPUTS          => OUTPUTS,
+      --ENABLE_VCHANNELS => ENABLE_VCHANNELS,
+      --X                => X,
+      --Y                => Y,
+      --Z                => Z,
+      --NODES            => NODES,
+      --BUFFER_SIZE_IN   => BUFFER_SIZE_IN,
+      --BUFFER_SIZE_OUT  => BUFFER_SIZE_OUT
+    --)
+    --port map (
+      --rst => HRESETn,
+      --clk => HCLK,
 
-      in_flit  => noc_simd_out_flit,
-      in_last  => noc_simd_out_last,
-      in_valid => noc_simd_out_valid,
-      in_ready => noc_simd_out_ready,
+      --in_flit  => noc_simd_out_flit,
+      --in_last  => noc_simd_out_last,
+      --in_valid => noc_simd_out_valid,
+      --in_ready => noc_simd_out_ready,
 
-      out_flit  => noc_simd_in_flit,
-      out_last  => noc_simd_in_last,
-      out_valid => noc_simd_in_valid,
-      out_ready => noc_simd_in_ready
-    );
-
-  --Instantiate RISC-V Debug MISD
-  debug_interface_misd : riscv_debug_interface
-    port map (
-      clk => HCLK,
-      rst => HRESETn,
-
-      sys_rst => rst_misd_sys,
-      cpu_rst => rst_misd_cpu,
-
-      glip_in_data  => glip_misd_in_data,
-      glip_in_valid => glip_misd_in_valid,
-      glip_in_ready => glip_misd_in_ready,
-
-      glip_out_data  => glip_misd_out_data,
-      glip_out_valid => glip_misd_out_valid,
-      glip_out_ready => glip_misd_out_ready,
-
-      ring_out_data  => debug_misd_ring_in_data(0,0,1),
-      ring_out_last  => debug_misd_ring_in_last(0,0,1),
-      ring_out_valid => debug_misd_ring_in_valid(0,0,1),
-      ring_out_ready => debug_misd_ring_in_ready(0,0,1),
-
-      ring_in_data  => debug_misd_ring_out_data(0,0,1),
-      ring_in_last  => debug_misd_ring_out_last(0,0,1),
-      ring_in_valid => debug_misd_ring_out_valid(0,0,1),
-      ring_in_ready => debug_misd_ring_out_ready(0,0,1)
-    );
-
-  --Instantiate RISC-V Debug SIMD
-  debug_interface_simd : riscv_debug_interface
-    port map (
-      clk => HCLK,
-      rst => HRESETn,
-
-      sys_rst => rst_simd_sys,
-      cpu_rst => rst_simd_cpu,
-
-      glip_in_data  => glip_simd_in_data,
-      glip_in_valid => glip_simd_in_valid,
-      glip_in_ready => glip_simd_in_ready,
-
-      glip_out_data  => glip_simd_out_data,
-      glip_out_valid => glip_simd_out_valid,
-      glip_out_ready => glip_simd_out_ready,
-
-      ring_out_data  => debug_simd_ring_in_data(0,0,0),
-      ring_out_last  => debug_simd_ring_in_last(0,0,0),
-      ring_out_valid => debug_simd_ring_in_valid(0,0,0),
-      ring_out_ready => debug_simd_ring_in_ready(0,0,0),
-
-      ring_in_data  => debug_simd_ring_out_data(0,0,1),
-      ring_in_last  => debug_simd_ring_out_last(0,0,1),
-      ring_in_valid => debug_simd_ring_out_valid(0,0,1),
-      ring_in_ready => debug_simd_ring_out_ready(0,0,1)
-    );
+      --out_flit  => noc_simd_in_flit,
+      --out_last  => noc_simd_in_last,
+      --out_valid => noc_simd_in_valid,
+      --out_ready => noc_simd_in_ready
+    --);
 
   --Instantiate RISC-V SoC
   generating_0 : for i in 0 to X - 1 generate
     generating_1 : for j in 0 to Y - 1 generate
       generating_2 : for k in 0 to Z - 1 generate
         soc : riscv_soc
+          generic map (
+            XLEN      => XLEN,
+            PLEN      => PLEN,
+            PC_INIT   => PC_INIT,
+            HAS_USER  => HAS_USER,
+            HAS_SUPER => HAS_SUPER,
+            HAS_HYPER => HAS_HYPER,
+            HAS_BPU   => HAS_BPU,
+            HAS_FPU   => HAS_FPU,
+            HAS_MMU   => HAS_MMU,
+            HAS_RVM   => HAS_RVM,
+            HAS_RVA   => HAS_RVA,
+            HAS_RVC   => HAS_RVC,
+
+            IS_RV32E => IS_RV32E,
+
+            MULT_LATENCY => MULT_LATENCY,
+
+            BREAKPOINTS => BREAKPOINTS,
+
+            PMA_CNT => PMA_CNT,
+            PMP_CNT => PMP_CNT,
+
+            BP_GLOBAL_BITS => BP_GLOBAL_BITS,
+            BP_LOCAL_BITS  => BP_LOCAL_BITS,
+
+            ICACHE_SIZE        => ICACHE_SIZE,
+            ICACHE_BLOCK_SIZE  => ICACHE_BLOCK_SIZE,
+            ICACHE_WAYS        => ICACHE_WAYS,
+            ICACHE_REPLACE_ALG => ICACHE_REPLACE_ALG,
+            ITCM_SIZE          => ITCM_SIZE,
+
+            DCACHE_SIZE        => DCACHE_SIZE,
+            DCACHE_BLOCK_SIZE  => DCACHE_BLOCK_SIZE,
+            DCACHE_WAYS        => DCACHE_WAYS,
+            DCACHE_REPLACE_ALG => DCACHE_REPLACE_ALG,
+            DTCM_SIZE          => DTCM_SIZE,
+            WRITEBUFFER_SIZE   => WRITEBUFFER_SIZE,
+
+            TECHNOLOGY => TECHNOLOGY,
+
+            MNMIVEC_DEFAULT => MNMIVEC_DEFAULT,
+            MTVEC_DEFAULT   => MTVEC_DEFAULT,
+            HTVEC_DEFAULT   => HTVEC_DEFAULT,
+            STVEC_DEFAULT   => STVEC_DEFAULT,
+            UTVEC_DEFAULT   => UTVEC_DEFAULT,
+
+            JEDEC_BANK => JEDEC_BANK,
+
+            JEDEC_MANUFACTURER_ID => JEDEC_MANUFACTURER_ID,
+
+            HARTID => HARTID,
+
+            PARCEL_SIZE => PARCEL_SIZE,
+
+            CORES_PER_SIMD => CORES_PER_SIMD,
+            CORES_PER_MISD => CORES_PER_MISD,
+
+            CHANNELS => CHANNELS
+          )
           port map (
             --Common signals
             HRESETn => HRESETn,
@@ -545,27 +648,6 @@ begin
             --PMA configuration
             pma_cfg_i => pma_cfg_i,
             pma_adr_i => pma_adr_i,
-
-            --Debug
-            debug_misd_ring_in_data  => debug_misd_ring_in_data(i,j,k),
-            debug_misd_ring_in_last  => debug_misd_ring_in_last(i,j,k),
-            debug_misd_ring_in_valid => debug_misd_ring_in_valid(i,j,k),
-            debug_misd_ring_in_ready => debug_misd_ring_in_ready(i,j,k),
-
-            debug_misd_ring_out_data  => debug_misd_ring_out_data(i,j,k),
-            debug_misd_ring_out_last  => debug_misd_ring_out_last(i,j,k),
-            debug_misd_ring_out_valid => debug_misd_ring_out_valid(i,j,k),
-            debug_misd_ring_out_ready => debug_misd_ring_out_ready(i,j,k),
-
-            debug_simd_ring_in_data  => debug_simd_ring_in_data(i,j,k),
-            debug_simd_ring_in_last  => debug_simd_ring_in_last(i,j,k),
-            debug_simd_ring_in_valid => debug_simd_ring_in_valid(i,j,k),
-            debug_simd_ring_in_ready => debug_simd_ring_in_ready(i,j,k),
-
-            debug_simd_ring_out_data  => debug_simd_ring_out_data(i,j,k),
-            debug_simd_ring_out_last  => debug_simd_ring_out_last(i,j,k),
-            debug_simd_ring_out_valid => debug_simd_ring_out_valid(i,j,k),
-            debug_simd_ring_out_ready => debug_simd_ring_out_ready(i,j,k),
 
             --AHB instruction - Single Port
             sins_simd_HSEL      => sins_simd_HSEL(i,j,k),

@@ -1,4 +1,4 @@
--- Converted from rtl/verilog/soc/riscv_simd.sv
+-- Converted from riscv_simd.sv
 -- by verilog2vhdl - QueenField
 
 --//////////////////////////////////////////////////////////////////////////////
@@ -49,288 +49,442 @@ use ieee.numeric_std.all;
 use ieee.math_real.all;
 
 use work.riscv_mpsoc_pkg.all;
-use work.riscv_dbg_pkg.all;
-use work.riscv_msi_pkg.all;
+use work.mpsoc_msi_pkg.all;
 
 entity riscv_simd is
+  generic (
+    XLEN : integer := 64;
+    PLEN : integer := 64;
+
+    PC_INIT : std_logic_vector(63 downto 0) := X"0000000080000000";
+
+    HAS_USER  : std_logic := '1';
+    HAS_SUPER : std_logic := '1';
+    HAS_HYPER : std_logic := '1';
+    HAS_BPU   : std_logic := '1';
+    HAS_FPU   : std_logic := '1';
+    HAS_MMU   : std_logic := '1';
+    HAS_RVM   : std_logic := '1';
+    HAS_RVA   : std_logic := '1';
+    HAS_RVC   : std_logic := '1';
+
+    IS_RV32E : std_logic := '1';
+
+    MULT_LATENCY : std_logic := '1';
+
+    BREAKPOINTS : integer := 8;  --Number of hardware breakpoints
+
+    PMA_CNT : integer := 16;
+    PMP_CNT : integer := 16;  --Number of Physical Memory Protection entries
+
+    BP_GLOBAL_BITS : integer := 2;
+    BP_LOCAL_BITS  : integer := 10;
+
+    ICACHE_SIZE        : integer := 0;   --in KBytes
+    ICACHE_BLOCK_SIZE  : integer := 32;  --in Bytes
+    ICACHE_WAYS        : integer := 2;   --'n'-way set associative
+    ICACHE_REPLACE_ALG : integer := 0;
+    ITCM_SIZE          : integer := 0;
+
+    DCACHE_SIZE        : integer := 0;   --in KBytes
+    DCACHE_BLOCK_SIZE  : integer := 32;  --in Bytes
+    DCACHE_WAYS        : integer := 2;   --'n'-way set associative
+    DCACHE_REPLACE_ALG : integer := 0;
+    DTCM_SIZE          : integer := 0;
+
+    WRITEBUFFER_SIZE : integer := 8;
+
+    TECHNOLOGY : string := "GENERIC";
+
+    MNMIVEC_DEFAULT : std_logic_vector(63 downto 0) := X"0000000000000004";
+    MTVEC_DEFAULT   : std_logic_vector(63 downto 0) := X"0000000000000040";
+    HTVEC_DEFAULT   : std_logic_vector(63 downto 0) := X"0000000000000080";
+    STVEC_DEFAULT   : std_logic_vector(63 downto 0) := X"00000000000000C0";
+    UTVEC_DEFAULT   : std_logic_vector(63 downto 0) := X"0000000000000100";
+
+    JEDEC_BANK : integer := 10;
+
+    JEDEC_MANUFACTURER_ID : std_logic_vector(7 downto 0) := X"6E";
+
+    HARTID : integer := 0;
+
+    PARCEL_SIZE : integer := 32;
+
+    HADDR_SIZE : integer := 64;
+    HDATA_SIZE : integer := 64;
+    PADDR_SIZE : integer := 64;
+    PDATA_SIZE : integer := 64;
+
+    FLIT_WIDTH : integer := 34;
+
+    SYNC_DEPTH : integer := 3;
+
+    CORES_PER_SIMD : integer := 8;
+
+    CHANNELS : integer := 2
+  );
   port (
     --Common signals
-    HRESETn : in std_ulogic;
-    HCLK    : in std_ulogic;
-
-    --Debug
-    debug_ring_in_data  : in  M_CHANNELS_XLEN;
-    debug_ring_in_last  : in  std_ulogic_vector(CHANNELS-1 downto 0);
-    debug_ring_in_valid : in  std_ulogic_vector(CHANNELS-1 downto 0);
-    debug_ring_in_ready : out std_ulogic_vector(CHANNELS-1 downto 0);
-
-    debug_ring_out_data  : out M_CHANNELS_XLEN;
-    debug_ring_out_last  : out std_ulogic_vector(CHANNELS-1 downto 0);
-    debug_ring_out_valid : out std_ulogic_vector(CHANNELS-1 downto 0);
-    debug_ring_out_ready : in  std_ulogic_vector(CHANNELS-1 downto 0);
+    HRESETn : in std_logic;
+    HCLK    : in std_logic;
 
     --PMA configuration
-    pma_cfg_i : M_PMA_CNT_13;
-    pma_adr_i : M_PMA_CNT_PLEN;
+    pma_cfg_i : in M_PMA_CNT_13;
+    pma_adr_i : in M_PMA_CNT_PLEN;
 
     --AHB instruction
-    ins_HSEL      : out std_ulogic;
-    ins_HADDR     : out std_ulogic_vector(PLEN-1 downto 0);
-    ins_HWDATA    : out std_ulogic_vector(XLEN-1 downto 0);
-    ins_HRDATA    : in  std_ulogic_vector(XLEN-1 downto 0);
-    ins_HWRITE    : out std_ulogic;
-    ins_HSIZE     : out std_ulogic_vector(2 downto 0);
-    ins_HBURST    : out std_ulogic_vector(2 downto 0);
-    ins_HPROT     : out std_ulogic_vector(3 downto 0);
-    ins_HTRANS    : out std_ulogic_vector(1 downto 0);
-    ins_HMASTLOCK : out std_ulogic;
-    ins_HREADY    : in  std_ulogic;
-    ins_HRESP     : in  std_ulogic;
+    ins_HSEL      : out std_logic;
+    ins_HADDR     : out std_logic_vector(PLEN-1 downto 0);
+    ins_HWDATA    : out std_logic_vector(XLEN-1 downto 0);
+    ins_HRDATA    : in  std_logic_vector(XLEN-1 downto 0);
+    ins_HWRITE    : out std_logic;
+    ins_HSIZE     : out std_logic_vector(2 downto 0);
+    ins_HBURST    : out std_logic_vector(2 downto 0);
+    ins_HPROT     : out std_logic_vector(3 downto 0);
+    ins_HTRANS    : out std_logic_vector(1 downto 0);
+    ins_HMASTLOCK : out std_logic;
+    ins_HREADY    : in  std_logic;
+    ins_HRESP     : in  std_logic;
 
     --AHB data
-    dat_HSEL      : out std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
+    dat_HSEL      : out std_logic_vector(CORES_PER_SIMD-1 downto 0);
     dat_HADDR     : out M_CORES_PER_SIMD_PLEN;
     dat_HWDATA    : out M_CORES_PER_SIMD_XLEN;
     dat_HRDATA    : in  M_CORES_PER_SIMD_XLEN;
-    dat_HWRITE    : out std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
+    dat_HWRITE    : out std_logic_vector(CORES_PER_SIMD-1 downto 0);
     dat_HSIZE     : out M_CORES_PER_SIMD_2;
     dat_HBURST    : out M_CORES_PER_SIMD_2;
     dat_HPROT     : out M_CORES_PER_SIMD_3;
     dat_HTRANS    : out M_CORES_PER_SIMD_1;
-    dat_HMASTLOCK : out std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-    dat_HREADY    : in  std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-    dat_HRESP     : in  std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
+    dat_HMASTLOCK : out std_logic_vector(CORES_PER_SIMD-1 downto 0);
+    dat_HREADY    : in  std_logic_vector(CORES_PER_SIMD-1 downto 0);
+    dat_HRESP     : in  std_logic_vector(CORES_PER_SIMD-1 downto 0);
 
     --Interrupts Interface
-    ext_nmi  : in std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-    ext_tint : in std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-    ext_sint : in std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
+    ext_nmi  : in std_logic_vector(CORES_PER_SIMD-1 downto 0);
+    ext_tint : in std_logic_vector(CORES_PER_SIMD-1 downto 0);
+    ext_sint : in std_logic_vector(CORES_PER_SIMD-1 downto 0);
     ext_int  : in M_CORES_PER_SIMD_3;
 
     --Debug Interface
-    dbg_stall : in  std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-    dbg_strb  : in  std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-    dbg_we    : in  std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
+    dbg_stall : in  std_logic_vector(CORES_PER_SIMD-1 downto 0);
+    dbg_strb  : in  std_logic_vector(CORES_PER_SIMD-1 downto 0);
+    dbg_we    : in  std_logic_vector(CORES_PER_SIMD-1 downto 0);
     dbg_addr  : in  M_CORES_PER_SIMD_PLEN;
     dbg_dati  : in  M_CORES_PER_SIMD_XLEN;
     dbg_dato  : out M_CORES_PER_SIMD_XLEN;
-    dbg_ack   : out std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-    dbg_bp    : out std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
+    dbg_ack   : out std_logic_vector(CORES_PER_SIMD-1 downto 0);
+    dbg_bp    : out std_logic_vector(CORES_PER_SIMD-1 downto 0);
 
     --GPIO Interface
-    gpio_i  : in  std_ulogic_vector(PDATA_SIZE-1 downto 0);
-    gpio_o  : out std_ulogic_vector(PDATA_SIZE-1 downto 0);
-    gpio_oe : out std_ulogic_vector(PDATA_SIZE-1 downto 0);
+    gpio_i  : in  M_CORES_PER_SIMD_PDATA_SIZE;
+    gpio_o  : out M_CORES_PER_SIMD_PDATA_SIZE;
+    gpio_oe : out M_CORES_PER_SIMD_PDATA_SIZE;
 
     --NoC Interface
-    noc_in_flit   : in  M_CHANNELS_PLEN;
-    noc_in_last   : in  std_ulogic_vector(CHANNELS-1 downto 0);
-    noc_in_valid  : in  std_ulogic_vector(CHANNELS-1 downto 0);
-    noc_in_ready  : out std_ulogic_vector(CHANNELS-1 downto 0);
-    noc_out_flit  : out M_CHANNELS_PLEN;
-    noc_out_last  : out std_ulogic_vector(CHANNELS-1 downto 0);
-    noc_out_valid : out std_ulogic_vector(CHANNELS-1 downto 0);
-    noc_out_ready : in  std_ulogic_vector(CHANNELS-1 downto 0)
+    noc_in_flit  : in  M_CHANNELS_FLIT_WIDTH;
+    noc_in_last  : in  std_logic_vector(CHANNELS-1 downto 0);
+    noc_in_valid : in  std_logic_vector(CHANNELS-1 downto 0);
+    noc_in_ready : out std_logic_vector(CHANNELS-1 downto 0);
+
+    noc_out_flit  : out M_CHANNELS_FLIT_WIDTH;
+    noc_out_last  : out std_logic_vector(CHANNELS-1 downto 0);
+    noc_out_valid : out std_logic_vector(CHANNELS-1 downto 0);
+    noc_out_ready : in  std_logic_vector(CHANNELS-1 downto 0)
   );
 end riscv_simd;
 
 architecture RTL of riscv_simd is
   component riscv_pu
+    generic (
+      XLEN : integer := 64;
+      PLEN : integer := 64;
+
+      HAS_USER  : std_logic := '1';
+      HAS_SUPER : std_logic := '1';
+      HAS_HYPER : std_logic := '1';
+      HAS_BPU   : std_logic := '1';
+      HAS_FPU   : std_logic := '1';
+      HAS_MMU   : std_logic := '1';
+      HAS_RVM   : std_logic := '1';
+      HAS_RVA   : std_logic := '1';
+      HAS_RVC   : std_logic := '1';
+
+      IS_RV32E : std_logic := '1';
+
+      MULT_LATENCY : std_logic := '1';
+
+      BREAKPOINTS : integer := 8;       --Number of hardware breakpoints
+
+      PMA_CNT : integer := 4;
+      PMP_CNT : integer := 16;  --Number of Physical Memory Protection entries
+
+      BP_GLOBAL_BITS    : integer := 2;
+      BP_LOCAL_BITS     : integer := 10;
+      BP_LOCAL_BITS_LSB : integer := 2;
+
+      ICACHE_SIZE        : integer := 64;  --in KBytes
+      ICACHE_BLOCK_SIZE  : integer := 64;  --in Bytes
+      ICACHE_WAYS        : integer := 2;   --'n'-way set associative
+      ICACHE_REPLACE_ALG : integer := 0;
+      ITCM_SIZE          : integer := 0;
+
+      DCACHE_SIZE        : integer := 64;  --in KBytes
+      DCACHE_BLOCK_SIZE  : integer := 64;  --in Bytes
+      DCACHE_WAYS        : integer := 2;   --'n'-way set associative
+      DCACHE_REPLACE_ALG : integer := 0;
+      DTCM_SIZE          : integer := 0;
+
+      WRITEBUFFER_SIZE : integer := 8;
+
+      TECHNOLOGY : string := "GENERIC";
+
+      PC_INIT : std_logic_vector(63 downto 0) := X"0000000080000000";
+
+      MNMIVEC_DEFAULT : std_logic_vector(63 downto 0) := X"0000000000000004";
+      MTVEC_DEFAULT   : std_logic_vector(63 downto 0) := X"0000000000000040";
+      HTVEC_DEFAULT   : std_logic_vector(63 downto 0) := X"0000000000000080";
+      STVEC_DEFAULT   : std_logic_vector(63 downto 0) := X"00000000000000C0";
+      UTVEC_DEFAULT   : std_logic_vector(63 downto 0) := X"0000000000000100";
+
+      JEDEC_BANK : integer := 10;
+
+      JEDEC_MANUFACTURER_ID : std_logic_vector(7 downto 0) := X"6E";
+
+      HARTID : integer := 0;
+
+      PARCEL_SIZE : integer := 64
+    );
     port (
       --AHB interfaces
-      HRESETn : in std_ulogic;
-      HCLK    : in std_ulogic;
+      HRESETn : in std_logic;
+      HCLK    : in std_logic;
 
       pma_cfg_i : M_PMA_CNT_13;
       pma_adr_i : M_PMA_CNT_PLEN;
 
-      dat_HSEL      : out std_ulogic;
-      dat_HADDR     : out std_ulogic_vector(PLEN-1 downto 0);
-      dat_HWDATA    : out std_ulogic_vector(XLEN-1 downto 0);
-      dat_HRDATA    : in  std_ulogic_vector(XLEN-1 downto 0);
-      dat_HWRITE    : out std_ulogic;
-      dat_HSIZE     : out std_ulogic_vector(2 downto 0);
-      dat_HBURST    : out std_ulogic_vector(2 downto 0);
-      dat_HPROT     : out std_ulogic_vector(3 downto 0);
-      dat_HTRANS    : out std_ulogic_vector(1 downto 0);
-      dat_HMASTLOCK : out std_ulogic;
-      dat_HREADY    : in  std_ulogic;
-      dat_HRESP     : in  std_ulogic;
+      ins_HSEL      : out std_logic;
+      ins_HADDR     : out std_logic_vector(PLEN-1 downto 0);
+      ins_HWDATA    : out std_logic_vector(XLEN-1 downto 0);
+      ins_HRDATA    : in  std_logic_vector(XLEN-1 downto 0);
+      ins_HWRITE    : out std_logic;
+      ins_HSIZE     : out std_logic_vector(2 downto 0);
+      ins_HBURST    : out std_logic_vector(2 downto 0);
+      ins_HPROT     : out std_logic_vector(3 downto 0);
+      ins_HTRANS    : out std_logic_vector(1 downto 0);
+      ins_HMASTLOCK : out std_logic;
+      ins_HREADY    : in  std_logic;
+      ins_HRESP     : in  std_logic;
 
-      ins_HSEL      : out std_ulogic;
-      ins_HADDR     : out std_ulogic_vector(PLEN-1 downto 0);
-      ins_HWDATA    : out std_ulogic_vector(XLEN-1 downto 0);
-      ins_HRDATA    : in  std_ulogic_vector(XLEN-1 downto 0);
-      ins_HWRITE    : out std_ulogic;
-      ins_HSIZE     : out std_ulogic_vector(2 downto 0);
-      ins_HBURST    : out std_ulogic_vector(2 downto 0);
-      ins_HPROT     : out std_ulogic_vector(3 downto 0);
-      ins_HTRANS    : out std_ulogic_vector(1 downto 0);
-      ins_HMASTLOCK : out std_ulogic;
-      ins_HREADY    : in  std_ulogic;
-      ins_HRESP     : in  std_ulogic;
+      dat_HSEL      : out std_logic;
+      dat_HADDR     : out std_logic_vector(PLEN-1 downto 0);
+      dat_HWDATA    : out std_logic_vector(XLEN-1 downto 0);
+      dat_HRDATA    : in  std_logic_vector(XLEN-1 downto 0);
+      dat_HWRITE    : out std_logic;
+      dat_HSIZE     : out std_logic_vector(2 downto 0);
+      dat_HBURST    : out std_logic_vector(2 downto 0);
+      dat_HPROT     : out std_logic_vector(3 downto 0);
+      dat_HTRANS    : out std_logic_vector(1 downto 0);
+      dat_HMASTLOCK : out std_logic;
+      dat_HREADY    : in  std_logic;
+      dat_HRESP     : in  std_logic;
 
       --Interrupts
-      ext_nmi  : in std_ulogic;
-      ext_tint : in std_ulogic;
-      ext_sint : in std_ulogic;
-      ext_int  : in std_ulogic_vector(3 downto 0);
+      ext_nmi  : in std_logic;
+      ext_tint : in std_logic;
+      ext_sint : in std_logic;
+      ext_int  : in std_logic_vector(3 downto 0);
 
       --Debug Interface
-      dbg_stall : in  std_ulogic;
-      dbg_strb  : in  std_ulogic;
-      dbg_we    : in  std_ulogic;
-      dbg_addr  : in  std_ulogic_vector(PLEN-1 downto 0);
-      dbg_dati  : in  std_ulogic_vector(XLEN-1 downto 0);
-      dbg_dato  : out std_ulogic_vector(XLEN-1 downto 0);
-      dbg_ack   : out std_ulogic;
-      dbg_bp    : out std_ulogic
+      dbg_stall : in  std_logic;
+      dbg_strb  : in  std_logic;
+      dbg_we    : in  std_logic;
+      dbg_addr  : in  std_logic_vector(PLEN-1 downto 0);
+      dbg_dati  : in  std_logic_vector(XLEN-1 downto 0);
+      dbg_dato  : out std_logic_vector(XLEN-1 downto 0);
+      dbg_ack   : out std_logic;
+      dbg_bp    : out std_logic
     );
   end component;
 
-  component riscv_simd_memory_interconnect
-    port (    --Common signals
-    HRESETn : in std_ulogic;
-    HCLK    : in std_ulogic;
-
-    --Master Ports; AHB masters connect to these
-    -- thus these are actually AHB Slave Interfaces
-    mst_priority : in M_CORES_PER_SIMD_2;
-
-    mst_HSEL      : in  std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-    mst_HADDR     : in  M_CORES_PER_SIMD_PLEN;
-    mst_HWDATA    : in  M_CORES_PER_SIMD_XLEN;
-    mst_HRDATA    : out M_CORES_PER_SIMD_XLEN;
-    mst_HWRITE    : in  std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-    mst_HSIZE     : in  M_CORES_PER_SIMD_2;
-    mst_HBURST    : in  M_CORES_PER_SIMD_2;
-    mst_HPROT     : in  M_CORES_PER_SIMD_3;
-    mst_HTRANS    : in  M_CORES_PER_SIMD_1;
-    mst_HMASTLOCK : in  std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-    mst_HREADYOUT : out std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-    mst_HREADY    : in  std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-    mst_HRESP     : out std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-
-    --Slave Ports; AHB Slaves connect to these
-    --  thus these are actually AHB Master Interfaces
-    slv_addr_mask : in M_CORES_PER_SIMD_PLEN;
-    slv_addr_base : in M_CORES_PER_SIMD_PLEN;
-
-    slv_HSEL      : out std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-    slv_HADDR     : out M_CORES_PER_SIMD_PLEN;
-    slv_HWDATA    : out M_CORES_PER_SIMD_XLEN;
-    slv_HRDATA    : in  M_CORES_PER_SIMD_XLEN;
-    slv_HWRITE    : out std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-    slv_HSIZE     : out M_CORES_PER_SIMD_2;
-    slv_HBURST    : out M_CORES_PER_SIMD_2;
-    slv_HPROT     : out M_CORES_PER_SIMD_3;
-    slv_HTRANS    : out M_CORES_PER_SIMD_1;
-    slv_HMASTLOCK : out std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-    slv_HREADYOUT : out std_ulogic_vector(CORES_PER_SIMD-1 downto 0);  --HREADYOUT to slave-decoder; generates HREADY to all connected slaves
-    slv_HREADY    : in  std_ulogic_vector(CORES_PER_SIMD-1 downto 0);  --combinatorial HREADY from all connected slaves
-    slv_HRESP     : in  std_ulogic_vector(CORES_PER_SIMD-1 downto 0)
-    );
-  end component;
-
-  component riscv_simd_peripheral_interconnect
-    port (    --Common signals
-    --Common signals
-    HRESETn : in std_ulogic;
-    HCLK    : in std_ulogic;
-
-    --Master Ports; AHB masters connect to these
-    -- thus these are actually AHB Slave Interfaces
-    mst_priority : in M_2_2;
-
-    mst_HSEL      : in  std_ulogic_vector(2 downto 0);
-    mst_HADDR     : in  M_2_PLEN;
-    mst_HWDATA    : in  M_2_XLEN;
-    mst_HRDATA    : out M_2_XLEN;
-    mst_HWRITE    : in  std_ulogic_vector(2 downto 0);
-    mst_HSIZE     : in  M_2_2;
-    mst_HBURST    : in  M_2_2;
-    mst_HPROT     : in  M_2_3;
-    mst_HTRANS    : in  M_2_1;
-    mst_HMASTLOCK : in  std_ulogic_vector(2 downto 0);
-    mst_HREADYOUT : out std_ulogic_vector(2 downto 0);
-    mst_HREADY    : in  std_ulogic_vector(2 downto 0);
-    mst_HRESP     : out std_ulogic_vector(2 downto 0);
-
-    --Slave Ports; AHB Slaves connect to these
-    --  thus these are actually AHB Master Interfaces
-    slv_addr_mask : in M_CORES_PER_SIMD1_PLEN;
-    slv_addr_base : in M_CORES_PER_SIMD1_PLEN;
-
-    slv_HSEL      : out std_ulogic_vector(CORES_PER_SIMD downto 0);
-    slv_HADDR     : out M_CORES_PER_SIMD1_PLEN;
-    slv_HWDATA    : out M_CORES_PER_SIMD1_XLEN;
-    slv_HRDATA    : in  M_CORES_PER_SIMD1_XLEN;
-    slv_HWRITE    : out std_ulogic_vector(CORES_PER_SIMD downto 0);
-    slv_HSIZE     : out M_CORES_PER_SIMD1_2;
-    slv_HBURST    : out M_CORES_PER_SIMD1_2;
-    slv_HPROT     : out M_CORES_PER_SIMD1_3;
-    slv_HTRANS    : out M_CORES_PER_SIMD1_1;
-    slv_HMASTLOCK : out std_ulogic_vector(CORES_PER_SIMD downto 0);
-    slv_HREADYOUT : out std_ulogic_vector(CORES_PER_SIMD downto 0);  --HREADYOUT to slave-decoder; generates HREADY to all connected slaves
-    slv_HREADY    : in  std_ulogic_vector(CORES_PER_SIMD downto 0);  --combinatorial HREADY from all connected slaves
-    slv_HRESP     : in  std_ulogic_vector(CORES_PER_SIMD downto 0)
-    );
-  end component;
-
-  component riscv_noc_adapter
+  component mpsoc_msi_interface
     generic (
-      PLEN         : integer := 32;
-      XLEN         : integer := 32;
-      BUFFER_DEPTH : integer := 4;
-      CHANNELS     : integer := 2
+      PLEN    : integer := 64;
+      XLEN    : integer := 64;
+      MASTERS : integer := 3;
+      SLAVES  : integer := 8
     );
     port (
       --Common signals
-      HCLK    : in std_ulogic;
-      HRESETn : in std_ulogic;
+      HRESETn : in std_logic;
+      HCLK    : in std_logic;
 
-      --NoC Interface
-      noc_out_flit  : out M_CHANNELS_PLEN;
-      noc_out_last  : out std_ulogic_vector(CHANNELS-1 downto 0);
-      noc_out_valid : out std_ulogic_vector(CHANNELS-1 downto 0);
-      noc_out_ready : in  std_ulogic_vector(CHANNELS-1 downto 0);
+      --Master Ports; AHB masters connect to these
+      -- thus these are actually AHB Slave Interfaces
+      mst_priority : in M_MASTERS_2;
 
-      noc_in_flit  : in M_CHANNELS_PLEN;
-      noc_in_last  : in  std_ulogic_vector(CHANNELS-1 downto 0);
-      noc_in_valid : in  std_ulogic_vector(CHANNELS-1 downto 0);
-      noc_in_ready : out std_ulogic_vector(CHANNELS-1 downto 0);
+      mst_HSEL      : in  std_logic_vector(MASTERS-1 downto 0);
+      mst_HADDR     : in  M_MASTERS_PLEN;
+      mst_HWDATA    : in  M_MASTERS_XLEN;
+      mst_HRDATA    : out M_MASTERS_XLEN;
+      mst_HWRITE    : in  std_logic_vector(MASTERS-1 downto 0);
+      mst_HSIZE     : in  M_MASTERS_2;
+      mst_HBURST    : in  M_MASTERS_2;
+      mst_HPROT     : in  M_MASTERS_3;
+      mst_HTRANS    : in  M_MASTERS_1;
+      mst_HMASTLOCK : in  std_logic_vector(MASTERS-1 downto 0);
+      mst_HREADYOUT : out std_logic_vector(MASTERS-1 downto 0);
+      mst_HREADY    : in  std_logic_vector(MASTERS-1 downto 0);
+      mst_HRESP     : out std_logic_vector(MASTERS-1 downto 0);
 
-      --AHB instruction interface
-      mst_HSEL      : in  std_ulogic;
-      mst_HADDR     : in  std_ulogic_vector(PLEN-1 downto 0);
-      mst_HWDATA    : in  std_ulogic_vector(XLEN-1 downto 0);
-      mst_HRDATA    : out std_ulogic_vector(XLEN-1 downto 0);
-      mst_HWRITE    : in  std_ulogic;
-      mst_HSIZE     : in  std_ulogic_vector(2 downto 0);
-      mst_HBURST    : in  std_ulogic_vector(2 downto 0);
-      mst_HPROT     : in  std_ulogic_vector(3 downto 0);
-      mst_HTRANS    : in  std_ulogic_vector(1 downto 0);
-      mst_HMASTLOCK : in  std_ulogic;
-      mst_HREADYOUT : out std_ulogic;
-      mst_HRESP     : out std_ulogic;
+      --Slave Ports; AHB Slaves connect to these
+      --  thus these are actually AHB Master Interfaces
+      slv_addr_mask : in M_SLAVES_PLEN;
+      slv_addr_base : in M_SLAVES_PLEN;
 
-      --AHB data interface
-      slv_HSEL      : out std_ulogic;
-      slv_HADDR     : out std_ulogic_vector(PLEN-1 downto 0);
-      slv_HWDATA    : out std_ulogic_vector(XLEN-1 downto 0);
-      slv_HRDATA    : in  std_ulogic_vector(XLEN-1 downto 0);
-      slv_HWRITE    : out std_ulogic;
-      slv_HSIZE     : out std_ulogic_vector(2 downto 0);
-      slv_HBURST    : out std_ulogic_vector(2 downto 0);
-      slv_HPROT     : out std_ulogic_vector(3 downto 0);
-      slv_HTRANS    : out std_ulogic_vector(1 downto 0);
-      slv_HMASTLOCK : out std_ulogic;
-      slv_HREADY    : in  std_ulogic;
-      slv_HRESP     : in  std_ulogic
+      slv_HSEL      : out std_logic_vector(SLAVES-1 downto 0);
+      slv_HADDR     : out M_SLAVES_PLEN;
+      slv_HWDATA    : out M_SLAVES_XLEN;
+      slv_HRDATA    : in  M_SLAVES_XLEN;
+      slv_HWRITE    : out std_logic_vector(SLAVES-1 downto 0);
+      slv_HSIZE     : out M_SLAVES_2;
+      slv_HBURST    : out M_SLAVES_2;
+      slv_HPROT     : out M_SLAVES_3;
+      slv_HTRANS    : out M_SLAVES_1;
+      slv_HMASTLOCK : out std_logic_vector(SLAVES-1 downto 0);
+      slv_HREADYOUT : out std_logic_vector(SLAVES-1 downto 0);  --HREADYOUT to slave-decoder; generates HREADY to all connected slaves
+      slv_HREADY    : in  std_logic_vector(SLAVES-1 downto 0);  --combinatorial HREADY from all connected slaves
+      slv_HRESP     : in  std_logic_vector(SLAVES-1 downto 0)
     );
   end component;
 
-  component riscv_bridge
+  component mpsoc_dma_ahb3_top
+    generic (
+      ADDR_WIDTH             : integer := 32;
+      DATA_WIDTH             : integer := 32;
+      TABLE_ENTRIES          : integer := 4;
+      TABLE_ENTRIES_PTRWIDTH : integer := integer(log2(real(4)));
+      TILEID                 : integer := 0;
+      NOC_PACKET_SIZE        : integer := 16;
+      GENERATE_INTERRUPT     : integer := 1
+    );
+    port (
+      clk : in std_logic;
+      rst : in std_logic;
+
+      noc_in_req_flit  : in  std_logic_vector(FLIT_WIDTH-1 downto 0);
+      noc_in_req_valid : in  std_logic;
+      noc_in_req_ready : out std_logic;
+
+      noc_in_res_flit  : in  std_logic_vector(FLIT_WIDTH-1 downto 0);
+      noc_in_res_valid : in  std_logic;
+      noc_in_res_ready : out std_logic;
+
+      noc_out_req_flit  : out std_logic_vector(FLIT_WIDTH-1 downto 0);
+      noc_out_req_valid : out std_logic;
+      noc_out_req_ready : in  std_logic;
+
+      noc_out_res_flit  : out std_logic_vector(FLIT_WIDTH-1 downto 0);
+      noc_out_res_valid : out std_logic;
+      noc_out_res_ready : in  std_logic;
+
+      ahb3_if_haddr     : in  std_logic_vector(ADDR_WIDTH-1 downto 0);
+      ahb3_if_hrdata    : in  std_logic_vector(DATA_WIDTH-1 downto 0);
+      ahb3_if_hmastlock : in  std_logic;
+      ahb3_if_hsel      : in  std_logic;
+      ahb3_if_hwrite    : in  std_logic;
+      ahb3_if_hwdata    : out std_logic_vector(DATA_WIDTH-1 downto 0);
+      ahb3_if_hready    : out std_logic;
+      ahb3_if_hresp     : out std_logic;
+
+      ahb3_haddr     : out std_logic_vector(ADDR_WIDTH-1 downto 0);
+      ahb3_hwdata    : out std_logic_vector(DATA_WIDTH-1 downto 0);
+      ahb3_hmastlock : out std_logic;
+      ahb3_hsel      : out std_logic;
+      ahb3_hprot     : out std_logic_vector(3 downto 0);
+      ahb3_hwrite    : out std_logic;
+      ahb3_hsize     : out std_logic_vector(2 downto 0);
+      ahb3_hburst    : out std_logic_vector(2 downto 0);
+      ahb3_htrans    : out std_logic_vector(1 downto 0);
+      ahb3_hrdata    : in  std_logic_vector(DATA_WIDTH-1 downto 0);
+      ahb3_hready    : in  std_logic;
+
+      irq : out std_logic_vector(TABLE_ENTRIES-1 downto 0)
+    );
+  end component;
+
+  component mpsoc_noc_buffer
+    generic (
+      FLIT_WIDTH : integer := 34;
+      DEPTH      : integer := 16;
+      FULLPACKET : integer := 0
+    );
+    port (
+      -- the width of the index
+      clk : in std_logic;
+      rst : in std_logic;
+
+      --FIFO input side
+      in_flit  : in  std_logic_vector(FLIT_WIDTH-1 downto 0);
+      in_last  : in  std_logic;
+      in_valid : in  std_logic;
+      in_ready : out std_logic;
+
+      --FIFO output side
+      out_flit  : out std_logic_vector(FLIT_WIDTH-1 downto 0);
+      out_last  : out std_logic;
+      out_valid : out std_logic;
+      out_ready : in  std_logic;
+
+      packet_size : out std_logic_vector(integer(log2(real(DEPTH))) downto 0)
+    );
+  end component;
+
+  component mpsoc_noc_mux
+    generic (
+      FLIT_WIDTH : integer := 34;
+      CHANNELS   : integer := 7
+    );
+    port (
+      clk : in std_logic;
+      rst : in std_logic;
+
+      in_flit  : in  M_CHANNELS_FLIT_WIDTH;
+      in_last  : in  std_logic_vector(CHANNELS-1 downto 0);
+      in_valid : in  std_logic_vector(CHANNELS-1 downto 0);
+      in_ready : out std_logic_vector(CHANNELS-1 downto 0);
+
+      out_flit  : out std_logic_vector(FLIT_WIDTH-1 downto 0);
+      out_last  : out std_logic;
+      out_valid : out std_logic;
+      out_ready : in  std_logic
+    );
+  end component;
+
+  component mpsoc_noc_demux
+    generic (
+      FLIT_WIDTH : integer := 34;
+      CHANNELS   : integer := 7;
+
+      MAPPING : std_logic_vector(63 downto 0) := (others => 'X')
+    );
+    port (
+      clk : in std_logic;
+      rst : in std_logic;
+
+      in_flit  : in  std_logic_vector(FLIT_WIDTH-1 downto 0);
+      in_last  : in  std_logic;
+      in_valid : in  std_logic;
+      in_ready : out std_logic;
+
+      out_flit  : out M_CHANNELS_FLIT_WIDTH;
+      out_last  : out std_logic_vector(CHANNELS-1 downto 0);
+      out_valid : out std_logic_vector(CHANNELS-1 downto 0);
+      out_ready : in  std_logic_vector(CHANNELS-1 downto 0)
+    );
+  end component;
+
+  component mpsoc_peripheral_bridge
     generic (
       HADDR_SIZE : integer := 32;
       HDATA_SIZE : integer := 32;
@@ -340,207 +494,122 @@ architecture RTL of riscv_simd is
     );
     port (
       --AHB Slave Interface
-      HRESETn   : in  std_ulogic;
-      HCLK      : in  std_ulogic;
-      HSEL      : in  std_ulogic;
-      HADDR     : in  std_ulogic_vector(HADDR_SIZE-1 downto 0);
-      HWDATA    : in  std_ulogic_vector(HDATA_SIZE-1 downto 0);
-      HRDATA    : out std_ulogic_vector(HDATA_SIZE-1 downto 0);
-      HWRITE    : in  std_ulogic_vector(PDATA_SIZE/8-1 downto 0);
-      HSIZE     : in  std_ulogic_vector(2 downto 0);
-      HBURST    : in  std_ulogic_vector(2 downto 0);
-      HPROT     : in  std_ulogic_vector(3 downto 0);
-      HTRANS    : in  std_ulogic_vector(1 downto 0);
-      HMASTLOCK : in  std_ulogic;
-      HREADYOUT : out std_ulogic;
-      HREADY    : in  std_ulogic;
-      HRESP     : out std_ulogic;
+      HRESETn   : in  std_logic;
+      HCLK      : in  std_logic;
+      HSEL      : in  std_logic;
+      HADDR     : in  std_logic_vector(HADDR_SIZE-1 downto 0);
+      HWDATA    : in  std_logic_vector(HDATA_SIZE-1 downto 0);
+      HRDATA    : out std_logic_vector(HDATA_SIZE-1 downto 0);
+      HWRITE    : in  std_logic;
+      HSIZE     : in  std_logic_vector(2 downto 0);
+      HBURST    : in  std_logic_vector(2 downto 0);
+      HPROT     : in  std_logic_vector(3 downto 0);
+      HTRANS    : in  std_logic_vector(1 downto 0);
+      HMASTLOCK : in  std_logic;
+      HREADYOUT : out std_logic;
+      HREADY    : in  std_logic;
+      HRESP     : out std_logic;
 
       --APB Master Interface
-      PRESETn : in  std_ulogic;
-      PCLK    : in  std_ulogic;
-      PSEL    : out std_ulogic;
-      PENABLE : out std_ulogic;
-      PPROT   : out std_ulogic_vector(2 downto 0);
-      PWRITE  : out std_ulogic_vector(PDATA_SIZE/8-1 downto 0);
-      PSTRB   : out std_ulogic_vector(PDATA_SIZE/8-1 downto 0);
-      PADDR   : out std_ulogic_vector(PADDR_SIZE-1 downto 0);
-      PWDATA  : out std_ulogic_vector(PDATA_SIZE-1 downto 0);
-      PRDATA  : in  std_ulogic_vector(PDATA_SIZE-1 downto 0);
-      PREADY  : in  std_ulogic;
-      PSLVERR : in  std_ulogic
+      PRESETn : in  std_logic;
+      PCLK    : in  std_logic;
+      PSEL    : out std_logic;
+      PENABLE : out std_logic;
+      PPROT   : out std_logic_vector(2 downto 0);
+      PWRITE  : out std_logic;
+      PSTRB   : out std_logic;
+      PADDR   : out std_logic_vector(PADDR_SIZE-1 downto 0);
+      PWDATA  : out std_logic_vector(PDATA_SIZE-1 downto 0);
+      PRDATA  : in  std_logic_vector(PDATA_SIZE-1 downto 0);
+      PREADY  : in  std_logic;
+      PSLVERR : in  std_logic
     );
   end component;
 
-  component riscv_gpio
-    port (
-      PRESETn : in std_ulogic;
-      PCLK    : in std_ulogic;
-
-      PSEL    : in  std_ulogic;
-      PENABLE : in  std_ulogic;
-      PWRITE  : in  std_ulogic_vector(PDATA_SIZE/8-1 downto 0);
-      PSTRB   : in  std_ulogic_vector(PDATA_SIZE/8-1 downto 0);
-      PADDR   : in  std_ulogic_vector(PADDR_SIZE-1 downto 0);
-      PWDATA  : in  std_ulogic_vector(PDATA_SIZE-1 downto 0);
-      PRDATA  : out std_ulogic_vector(PDATA_SIZE-1 downto 0);
-      PREADY  : out std_ulogic;
-      PSLVERR : out std_ulogic;
-
-      gpio_i  : in  std_ulogic_vector(PDATA_SIZE-1 downto 0);
-      gpio_o  : out std_ulogic_vector(PDATA_SIZE-1 downto 0);
-      gpio_oe : out std_ulogic_vector(PDATA_SIZE-1 downto 0)
-    );
-  end component;
-
-  component riscv_simd_mpram
+  component mpsoc_gpio
     generic (
-      MEM_SIZE          : integer := 0;    --Memory in Bytes
+      PADDR_SIZE : integer := 64;
+      PDATA_SIZE : integer := 64
+    );
+    port (
+      PRESETn : in std_logic;
+      PCLK    : in std_logic;
+
+      PSEL    : in  std_logic;
+      PENABLE : in  std_logic;
+      PWRITE  : in  std_logic;
+      PSTRB   : in  std_logic;
+      PADDR   : in  std_logic_vector(63 downto 0);
+      PWDATA  : in  std_logic_vector(PDATA_SIZE-1 downto 0);
+      PRDATA  : out std_logic_vector(PDATA_SIZE-1 downto 0);
+      PREADY  : out std_logic;
+      PSLVERR : out std_logic;
+
+      gpio_i  : in  std_logic_vector(PDATA_SIZE-1 downto 0);
+      gpio_o  : out std_logic_vector(PDATA_SIZE-1 downto 0);
+      gpio_oe : out std_logic_vector(PDATA_SIZE-1 downto 0)
+    );
+  end component;
+
+  component mpsoc_spram
+    generic (
+      MEM_SIZE          : integer := 0;  --Memory in Bytes
       MEM_DEPTH         : integer := 256;  --Memory depth
       PLEN              : integer := 64;
-      XLEN              : integer := 32;
+      XLEN              : integer := 64;
       TECHNOLOGY        : string  := "GENERIC";
       REGISTERED_OUTPUT : string  := "NO"
     );
     port (
-      HRESETn : in std_ulogic;
-      HCLK    : in std_ulogic;
+      HRESETn : in std_logic;
+      HCLK    : in std_logic;
 
       --AHB Slave Interfaces (receive data from AHB Masters)
       --AHB Masters connect to these ports
-      HSEL      : in  std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
+      HSEL      : in  std_logic;
+      HADDR     : in  std_logic_vector(PLEN-1 downto 0);
+      HWDATA    : in  std_logic_vector(XLEN-1 downto 0);
+      HRDATA    : out std_logic_vector(XLEN-1 downto 0);
+      HWRITE    : in  std_logic;
+      HSIZE     : in  std_logic_vector(2 downto 0);
+      HBURST    : in  std_logic_vector(2 downto 0);
+      HPROT     : in  std_logic_vector(3 downto 0);
+      HTRANS    : in  std_logic_vector(1 downto 0);
+      HMASTLOCK : in  std_logic;
+      HREADYOUT : out std_logic;
+      HREADY    : in  std_logic;
+      HRESP     : out std_logic
+    );
+  end component;
+
+  component mpsoc_simd_mpram
+    generic (
+      MEM_SIZE          : integer := 0;  --Memory in Bytes
+      MEM_DEPTH         : integer := 256;  --Memory depth
+      PLEN              : integer := 64;
+      XLEN              : integer := 64;
+      TECHNOLOGY        : string  := "GENERIC";
+      REGISTERED_OUTPUT : string  := "NO"
+    );
+    port (
+      HRESETn : in std_logic;
+      HCLK    : in std_logic;
+
+      --AHB Slave Interfaces (receive data from AHB Masters)
+      --AHB Masters connect to these ports
+      HSEL      : in  std_logic_vector(CORES_PER_SIMD-1 downto 0);
       HADDR     : in  M_CORES_PER_SIMD_PLEN;
       HWDATA    : in  M_CORES_PER_SIMD_XLEN;
       HRDATA    : out M_CORES_PER_SIMD_XLEN;
-      HWRITE    : in  std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
+      HWRITE    : in  std_logic_vector(CORES_PER_SIMD-1 downto 0);
       HSIZE     : in  M_CORES_PER_SIMD_2;
       HBURST    : in  M_CORES_PER_SIMD_2;
       HPROT     : in  M_CORES_PER_SIMD_3;
       HTRANS    : in  M_CORES_PER_SIMD_1;
-      HMASTLOCK : in  std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-      HREADYOUT : out std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-      HREADY    : in  std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-      HRESP     : out std_ulogic_vector(CORES_PER_SIMD-1 downto 0)
-    );
-  end component;
-
-  component riscv_spram
-    generic (
-      MEM_SIZE          : integer := 0;    --Memory in Bytes
-      MEM_DEPTH         : integer := 256;  --Memory depth
-      PLEN              : integer := 64;
-      XLEN              : integer := 32;
-      TECHNOLOGY        : string  := "GENERIC";
-      REGISTERED_OUTPUT : string  := "NO"
-    );
-    port (
-      HRESETn : in std_ulogic;
-      HCLK    : in std_ulogic;
-
-      --AHB Slave Interfaces (receive data from AHB Masters)
-      --AHB Masters connect to these ports
-      HSEL      : in  std_ulogic;
-      HADDR     : in  std_ulogic_vector(PLEN-1 downto 0);
-      HWDATA    : in  std_ulogic_vector(XLEN-1 downto 0);
-      HRDATA    : out std_ulogic_vector(XLEN-1 downto 0);
-      HWRITE    : in  std_ulogic;
-      HSIZE     : in  std_ulogic_vector(2 downto 0);
-      HBURST    : in  std_ulogic_vector(2 downto 0);
-      HPROT     : in  std_ulogic_vector(3 downto 0);
-      HTRANS    : in  std_ulogic_vector(1 downto 0);
-      HMASTLOCK : in  std_ulogic;
-      HREADYOUT : out std_ulogic;
-      HREADY    : in  std_ulogic;
-      HRESP     : out std_ulogic
-    );
-  end component;
-
-  component riscv_debug_ring_expand
-    port (
-      clk : in std_ulogic;
-      rst : in std_ulogic;
-
-      id_map : in M_NODES_15;
-
-      dii_in_data  : in  M_NODES_XLEN;
-      dii_in_last  : in  std_ulogic_vector(NODES-1 downto 0);
-      dii_in_valid : in  std_ulogic_vector(NODES-1 downto 0);
-      dii_in_ready : out std_ulogic_vector(NODES-1 downto 0);
-
-      dii_out_data  : out M_NODES_XLEN;
-      dii_out_last  : out std_ulogic_vector(NODES-1 downto 0);
-      dii_out_valid : out std_ulogic_vector(NODES-1 downto 0);
-      dii_out_ready : in  std_ulogic_vector(NODES-1 downto 0);
-
-      ext_in_data  : in  M_CHANNELS_XLEN;
-      ext_in_last  : in  std_ulogic_vector(CHANNELS-1 downto 0);
-      ext_in_valid : in  std_ulogic_vector(CHANNELS-1 downto 0);
-      ext_in_ready : out std_ulogic_vector(CHANNELS-1 downto 0);  -- extension input ports
-
-      ext_out_data  : out M_CHANNELS_XLEN;
-      ext_out_last  : out std_ulogic_vector(CHANNELS-1 downto 0);
-      ext_out_valid : out std_ulogic_vector(CHANNELS-1 downto 0);
-      ext_out_ready : in  std_ulogic_vector(CHANNELS-1 downto 0)  -- extension output ports
-    );
-  end component;
-
-  component riscv_osd_ctm_template
-    port (
-      clk : in std_ulogic;
-      rst : in std_ulogic;
-
-      id : in std_ulogic_vector(15 downto 0);
-
-      debug_in_data  : in  std_ulogic_vector(DATA_WIDTH-1 downto 0);
-      debug_in_last  : in  std_ulogic;
-      debug_in_valid : in  std_ulogic;
-      debug_in_ready : out std_ulogic;
-
-      debug_out_data  : out std_ulogic_vector(DATA_WIDTH-1 downto 0);
-      debug_out_last  : out std_ulogic;
-      debug_out_valid : out std_ulogic;
-      debug_out_ready : in  std_ulogic;
-
-      trace_port_insn     : in std_ulogic_vector(XLEN-1 downto 0);
-      trace_port_pc       : in std_ulogic_vector(XLEN-1 downto 0);
-      trace_port_jb       : in std_ulogic;
-      trace_port_jal      : in std_ulogic;
-      trace_port_jr       : in std_ulogic;
-      trace_port_jbtarget : in std_ulogic_vector(XLEN-1 downto 0);
-      trace_port_valid    : in std_ulogic;
-      trace_port_data     : in std_ulogic_vector(VALWIDTH-1 downto 0);
-      trace_port_addr     : in std_ulogic_vector(4 downto 0);
-      trace_port_we       : in std_ulogic
-    );
-  end component;
-
-  component riscv_osd_stm_template
-    port (
-      clk : in std_ulogic;
-      rst : in std_ulogic;
-
-      id : in std_ulogic_vector(15 downto 0);
-
-      debug_in_data  : in  std_ulogic_vector(XLEN-1 downto 0);
-      debug_in_last  : in  std_ulogic;
-      debug_in_valid : in  std_ulogic;
-      debug_in_ready : out std_ulogic;
-
-      debug_out_data  : out std_ulogic_vector(XLEN-1 downto 0);
-      debug_out_last  : out std_ulogic;
-      debug_out_valid : out std_ulogic;
-      debug_out_ready : in  std_ulogic;
-
-      trace_port_insn     : in std_ulogic_vector(XLEN-1 downto 0);
-      trace_port_pc       : in std_ulogic_vector(XLEN-1 downto 0);
-      trace_port_jb       : in std_ulogic;
-      trace_port_jal      : in std_ulogic;
-      trace_port_jr       : in std_ulogic;
-      trace_port_jbtarget : in std_ulogic_vector(XLEN-1 downto 0);
-      trace_port_valid    : in std_ulogic;
-      trace_port_data     : in std_ulogic_vector(VALWIDTH-1 downto 0);
-      trace_port_addr     : in std_ulogic_vector(4 downto 0);
-      trace_port_we       : in std_ulogic
+      HMASTLOCK : in  std_logic_vector(CORES_PER_SIMD-1 downto 0);
+      HREADYOUT : out std_logic_vector(CORES_PER_SIMD-1 downto 0);
+      HREADY    : in  std_logic_vector(CORES_PER_SIMD-1 downto 0);
+      HRESP     : out std_logic_vector(CORES_PER_SIMD-1 downto 0)
     );
   end component;
 
@@ -548,7 +617,21 @@ architecture RTL of riscv_simd is
   --
   -- Constants
   --
+  constant MASTERS : integer := 5;
+  constant SLAVES  : integer := 5;
+
+  constant ADDR_WIDTH : integer := 32;
+  constant DATA_WIDTH : integer := 32;
+
+  constant TABLE_ENTRIES          : integer := 4;
+  constant TABLE_ENTRIES_PTRWIDTH : integer := integer(log2(real(4)));
+  constant TILEID                 : integer := 0;
+  constant NOC_PACKET_SIZE        : integer := 16;
+  constant GENERATE_INTERRUPT     : integer := 1;
+
   constant SIMD_BITS : integer := integer(log2(real(CORES_PER_SIMD)));
+
+  constant MAPPING : std_logic_vector(XLEN-1 downto 0) := (others => 'X');
 
   --////////////////////////////////////////////////////////////////
   --
@@ -556,7 +639,7 @@ architecture RTL of riscv_simd is
   --
   function to_stdlogic (
     input : boolean
-  ) return std_ulogic is
+  ) return std_logic is
   begin
     if input then
       return('1');
@@ -566,9 +649,9 @@ architecture RTL of riscv_simd is
   end function to_stdlogic;
 
   function reduce_or (
-    reduce_or_in : std_ulogic_vector
-  ) return std_ulogic is
-    variable reduce_or_out : std_ulogic := '0';
+    reduce_or_in : std_logic_vector
+  ) return std_logic is
+    variable reduce_or_out : std_logic := '0';
   begin
     for i in reduce_or_in'range loop
       reduce_or_out := reduce_or_out or reduce_or_in(i);
@@ -577,24 +660,24 @@ architecture RTL of riscv_simd is
   end reduce_or;
 
   function onehot2int (
-    onehot : std_ulogic_vector(CORES_PER_SIMD-1 downto 0)
+    onehot : std_logic_vector(CORES_PER_SIMD-1 downto 0)
   ) return integer is
     variable onehot2int_return : integer := -1;
 
-    variable onehot_return : std_ulogic_vector(CORES_PER_SIMD-1 downto 0) := onehot;
+    variable onehot_return : std_logic_vector(CORES_PER_SIMD-1 downto 0) := onehot;
   begin
     while (reduce_or(onehot) = '1') loop
       onehot2int_return := onehot2int_return + 1;
-      onehot_return     := std_ulogic_vector(unsigned(onehot_return) srl 1);
+      onehot_return     := std_logic_vector(unsigned(onehot_return) srl 1);
     end loop;
     return onehot2int_return;
   end onehot2int;  --onehot2int
 
   function highest_requested_priority (
-    hsel : std_ulogic_vector(CORES_PER_SIMD-1 downto 0)
-  ) return std_ulogic_vector is
-    variable priorities : M_CORES_PER_SIMD_2;
-    variable highest_requested_priority_return : std_ulogic_vector (2 downto 0);
+    hsel : std_logic_vector(CORES_PER_SIMD-1 downto 0)
+  ) return std_logic_vector is
+    variable priorities                        : M_CORES_PER_SIMD_2;
+    variable highest_requested_priority_return : std_logic_vector (2 downto 0);
   begin
     highest_requested_priority_return := (others => '0');
     for n in 0 to CORES_PER_SIMD - 1 loop
@@ -606,12 +689,12 @@ architecture RTL of riscv_simd is
   end highest_requested_priority;  --highest_requested_priority
 
   function requesters (
-    hsel            : std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-    priority_select : std_ulogic_vector(2 downto 0)
+    hsel            : std_logic_vector(CORES_PER_SIMD-1 downto 0);
+    priority_select : std_logic_vector(2 downto 0)
 
-  ) return std_ulogic_vector is
-    variable priorities : M_CORES_PER_SIMD_2;
-    variable requesters_return : std_ulogic_vector (CORES_PER_SIMD-1 downto 0);
+  ) return std_logic_vector is
+    variable priorities        : M_CORES_PER_SIMD_2;
+    variable requesters_return : std_logic_vector (CORES_PER_SIMD-1 downto 0);
   begin
     for n in 0 to CORES_PER_SIMD - 1 loop
       requesters_return(n) := to_stdlogic(priorities(n) = priority_select) and hsel(n);
@@ -620,13 +703,13 @@ architecture RTL of riscv_simd is
   end requesters;  --requesters
 
   function nxt_simd_master (
-    pending_simd_masters : std_ulogic_vector(CORES_PER_SIMD-1 downto 0);  --pending masters for the requesed priority level
-    last_simd_master     : std_ulogic_vector(CORES_PER_SIMD-1 downto 0);  --last granted master for the priority level
-    current_simd_master  : std_ulogic_vector(CORES_PER_SIMD-1 downto 0)  --current granted master (indpendent of priority level)
-  ) return std_ulogic_vector is
+    pending_simd_masters : std_logic_vector(CORES_PER_SIMD-1 downto 0);  --pending masters for the requesed priority level
+    last_simd_master     : std_logic_vector(CORES_PER_SIMD-1 downto 0);  --last granted master for the priority level
+    current_simd_master  : std_logic_vector(CORES_PER_SIMD-1 downto 0)  --current granted master (indpendent of priority level)
+  ) return std_logic_vector is
     variable offset                 : integer;
-    variable sr                     : std_ulogic_vector(CORES_PER_SIMD*2-1 downto 0);
-    variable nxt_simd_master_return : std_ulogic_vector (CORES_PER_SIMD-1 downto 0);
+    variable sr                     : std_logic_vector(CORES_PER_SIMD*2-1 downto 0);
+    variable nxt_simd_master_return : std_logic_vector (CORES_PER_SIMD-1 downto 0);
   begin
     --default value, don't switch if not needed
     nxt_simd_master_return := current_simd_master;
@@ -637,7 +720,7 @@ architecture RTL of riscv_simd is
     sr := (pending_simd_masters & pending_simd_masters);
     for n in 0 to CORES_PER_SIMD - 1 loop
       if (sr(n+offset) = '1') then
-        return std_ulogic_vector(to_unsigned(2**((n+offset) mod CORES_PER_SIMD), CORES_PER_SIMD));
+        return std_logic_vector(to_unsigned(2**((n+offset) mod CORES_PER_SIMD), CORES_PER_SIMD));
       end if;
     end loop;
     return nxt_simd_master_return;
@@ -645,212 +728,266 @@ architecture RTL of riscv_simd is
 
   --//////////////////////////////////////////////////////////////
   --
-  -- Types
-  --
-  type M_2_CORES_PER_SIMD is array (2 downto 0) of std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-  type M_CORES_PER_SIMD_4 is array (CORES_PER_SIMD-1 downto 0) of std_ulogic_vector(4 downto 0);
-  --//////////////////////////////////////////////////////////////
-  --
   -- Variables
   --
 
-  --AHB Bus Master Interfaces
-  signal mst_noc_HSEL      : std_ulogic;
-  signal mst_noc_HADDR     : std_ulogic_vector(PLEN-1 downto 0);
-  signal mst_noc_HWDATA    : std_ulogic_vector(XLEN-1 downto 0);
-  signal mst_noc_HRDATA    : std_ulogic_vector(XLEN-1 downto 0);
-  signal mst_noc_HWRITE    : std_ulogic;
-  signal mst_noc_HSIZE     : std_ulogic_vector(2 downto 0);
-  signal mst_noc_HBURST    : std_ulogic_vector(2 downto 0);
-  signal mst_noc_HPROT     : std_ulogic_vector(3 downto 0);
-  signal mst_noc_HTRANS    : std_ulogic_vector(1 downto 0);
-  signal mst_noc_HMASTLOCK : std_ulogic;
-  signal mst_noc_HREADYOUT : std_ulogic;
-  signal mst_noc_HRESP     : std_ulogic;
+  -- DMA
+  signal noc_ahb3_in_req_flit  : M_CORES_PER_SIMD_FLIT_WIDTH;
+  signal noc_ahb3_in_req_valid : std_logic_vector(CORES_PER_SIMD-1 downto 0);
+  signal noc_ahb3_in_req_ready : std_logic_vector(CORES_PER_SIMD-1 downto 0);
 
-  signal mst_gpio_HSEL      : std_ulogic;
-  signal mst_gpio_HADDR     : std_ulogic_vector(PLEN-1 downto 0);
-  signal mst_gpio_HWDATA    : std_ulogic_vector(XLEN-1 downto 0);
-  signal mst_gpio_HRDATA    : std_ulogic_vector(XLEN-1 downto 0);
-  signal mst_gpio_HWRITE    : std_ulogic_vector(PDATA_SIZE/8-1 downto 0);
-  signal mst_gpio_HSIZE     : std_ulogic_vector(2 downto 0);
-  signal mst_gpio_HBURST    : std_ulogic_vector(2 downto 0);
-  signal mst_gpio_HPROT     : std_ulogic_vector(3 downto 0);
-  signal mst_gpio_HTRANS    : std_ulogic_vector(1 downto 0);
-  signal mst_gpio_HMASTLOCK : std_ulogic;
-  signal mst_gpio_HREADY    : std_ulogic;
-  signal mst_gpio_HREADYOUT : std_ulogic;
-  signal mst_gpio_HRESP     : std_ulogic;
+  signal noc_ahb3_in_res_flit  : M_CORES_PER_SIMD_FLIT_WIDTH;
+  signal noc_ahb3_in_res_valid : std_logic_vector(CORES_PER_SIMD-1 downto 0);
+  signal noc_ahb3_in_res_ready : std_logic_vector(CORES_PER_SIMD-1 downto 0);
 
-  signal gpio_PSEL    : std_ulogic;
-  signal gpio_PENABLE : std_ulogic;
-  signal gpio_PWRITE  : std_ulogic_vector(PDATA_SIZE/8-1 downto 0);
-  signal gpio_PSTRB   : std_ulogic_vector(PDATA_SIZE/8-1 downto 0);
-  signal gpio_PADDR   : std_ulogic_vector(PADDR_SIZE-1 downto 0);
-  signal gpio_PWDATA  : std_ulogic_vector(PDATA_SIZE-1 downto 0);
-  signal gpio_PRDATA  : std_ulogic_vector(PDATA_SIZE-1 downto 0);
-  signal gpio_PREADY  : std_ulogic;
-  signal gpio_PSLVERR : std_ulogic;
+  signal noc_ahb3_out_req_flit  : M_CORES_PER_SIMD_FLIT_WIDTH;
+  signal noc_ahb3_out_req_valid : std_logic_vector(CORES_PER_SIMD-1 downto 0);
+  signal noc_ahb3_out_req_ready : std_logic_vector(CORES_PER_SIMD-1 downto 0);
 
-  signal mst_sram_HSEL      : std_ulogic;
-  signal mst_sram_HADDR     : std_ulogic_vector(PLEN-1 downto 0);
-  signal mst_sram_HWDATA    : std_ulogic_vector(XLEN-1 downto 0);
-  signal mst_sram_HRDATA    : std_ulogic_vector(XLEN-1 downto 0);
-  signal mst_sram_HWRITE    : std_ulogic;
-  signal mst_sram_HSIZE     : std_ulogic_vector(2 downto 0);
-  signal mst_sram_HBURST    : std_ulogic_vector(2 downto 0);
-  signal mst_sram_HPROT     : std_ulogic_vector(3 downto 0);
-  signal mst_sram_HTRANS    : std_ulogic_vector(1 downto 0);
-  signal mst_sram_HMASTLOCK : std_ulogic;
-  signal mst_sram_HREADY    : std_ulogic;
-  signal mst_sram_HREADYOUT : std_ulogic;
-  signal mst_sram_HRESP     : std_ulogic;
+  signal noc_ahb3_out_res_flit  : M_CORES_PER_SIMD_FLIT_WIDTH;
+  signal noc_ahb3_out_res_valid : std_logic_vector(CORES_PER_SIMD-1 downto 0);
+  signal noc_ahb3_out_res_ready : std_logic_vector(CORES_PER_SIMD-1 downto 0);
 
-  signal mst_mram_HSEL      : std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
+  signal ahb3_if_hsel      : std_logic_vector(CORES_PER_SIMD-1 downto 0);
+  signal ahb3_if_haddr     : M_CORES_PER_SIMD_ADDR_WIDTH;
+  signal ahb3_if_hrdata    : M_CORES_PER_SIMD_DATA_WIDTH;
+  signal ahb3_if_hwdata    : M_CORES_PER_SIMD_DATA_WIDTH;
+  signal ahb3_if_hwrite    : std_logic_vector(CORES_PER_SIMD-1 downto 0);
+  signal ahb3_if_hmastlock : std_logic_vector(CORES_PER_SIMD-1 downto 0);
+  signal ahb3_if_hready    : std_logic_vector(CORES_PER_SIMD-1 downto 0);
+  signal ahb3_if_hresp     : std_logic_vector(CORES_PER_SIMD-1 downto 0);
+
+  signal ahb3_hsel      : std_logic_vector(CORES_PER_SIMD-1 downto 0);
+  signal ahb3_haddr     : M_CORES_PER_SIMD_ADDR_WIDTH;
+  signal ahb3_hwdata    : M_CORES_PER_SIMD_DATA_WIDTH;
+  signal ahb3_hrdata    : M_CORES_PER_SIMD_DATA_WIDTH;
+  signal ahb3_hwrite    : std_logic_vector(CORES_PER_SIMD-1 downto 0);
+  signal ahb3_hsize     : M_CORES_PER_SIMD_2;
+  signal ahb3_hburst    : M_CORES_PER_SIMD_2;
+  signal ahb3_hprot     : M_CORES_PER_SIMD_3;
+  signal ahb3_htrans    : M_CORES_PER_SIMD_1;
+  signal ahb3_hmastlock : std_logic_vector(CORES_PER_SIMD-1 downto 0);
+  signal ahb3_hready    : std_logic_vector(CORES_PER_SIMD-1 downto 0);
+
+  signal irq_ahb3 : M_CORES_PER_SIMD_TABLE_ENTRIES;
+
+  signal mux_flit  : M_CORES_PER_SIMD_FLIT_WIDTH;
+  signal mux_last  : std_logic_vector(CORES_PER_SIMD-1 downto 0);
+  signal mux_valid : std_logic_vector(CORES_PER_SIMD-1 downto 0);
+  signal mux_ready : std_logic_vector(CORES_PER_SIMD-1 downto 0);
+
+  signal demux_flit  : M_CORES_PER_SIMD_FLIT_WIDTH;
+  signal demux_last  : std_logic_vector(CORES_PER_SIMD-1 downto 0);
+  signal demux_valid : std_logic_vector(CORES_PER_SIMD-1 downto 0);
+  signal demux_ready : std_logic_vector(CORES_PER_SIMD-1 downto 0);
+
+  -- Connections DMA
+  signal noc_ahb3_in_flit  : M_CORES_PER_SIMD_CHANNELS_FLIT_WIDTH;
+  signal noc_ahb3_in_valid : M_CORES_PER_SIMD_CHANNELS;
+  signal noc_ahb3_in_ready : M_CORES_PER_SIMD_CHANNELS;
+
+  signal noc_ahb3_out_flit  : M_CORES_PER_SIMD_CHANNELS_FLIT_WIDTH;
+  signal noc_ahb3_out_valid : M_CORES_PER_SIMD_CHANNELS;
+  signal noc_ahb3_out_ready : M_CORES_PER_SIMD_CHANNELS;
+
+  -- Connections SIMD
+  signal noc_input_flit  : M_CORES_PER_SIMD_FLIT_WIDTH;
+  signal noc_input_last  : std_logic_vector(CORES_PER_SIMD-1 downto 0);
+  signal noc_input_valid : std_logic_vector(CORES_PER_SIMD-1 downto 0);
+  signal noc_input_ready : std_logic_vector(CORES_PER_SIMD-1 downto 0);
+
+  signal noc_output_flit  : M_CORES_PER_SIMD_FLIT_WIDTH;
+  signal noc_output_last  : std_logic_vector(CORES_PER_SIMD-1 downto 0);
+  signal noc_output_valid : std_logic_vector(CORES_PER_SIMD-1 downto 0);
+  signal noc_output_ready : std_logic_vector(CORES_PER_SIMD-1 downto 0);
+
+  -- Connections LNKs
+  signal linked0_flit  : std_logic_vector(FLIT_WIDTH-1 downto 0);
+  signal linked0_last  : std_logic;
+  signal linked0_valid : std_logic;
+  signal linked0_ready : std_logic;
+
+  signal linked1_flit  : std_logic_vector(FLIT_WIDTH-1 downto 0);
+  signal linked1_last  : std_logic;
+  signal linked1_valid : std_logic;
+  signal linked1_ready : std_logic;
+
+  -- MSI
+  signal mst_HSEL      : M_CORES_PER_SIMD_MASTERS;
+  signal mst_HADDR     : M_CORES_PER_SIMD_MASTERS_PLEN;
+  signal mst_HWDATA    : M_CORES_PER_SIMD_MASTERS_XLEN;
+  signal mst_HRDATA    : M_CORES_PER_SIMD_MASTERS_XLEN;
+  signal mst_HWRITE    : M_CORES_PER_SIMD_MASTERS;
+  signal mst_HSIZE     : M_CORES_PER_SIMD_MASTERS_2;
+  signal mst_HBURST    : M_CORES_PER_SIMD_MASTERS_2;
+  signal mst_HPROT     : M_CORES_PER_SIMD_MASTERS_3;
+  signal mst_HTRANS    : M_CORES_PER_SIMD_MASTERS_1;
+  signal mst_HMASTLOCK : M_CORES_PER_SIMD_MASTERS;
+  signal mst_HREADY    : M_CORES_PER_SIMD_MASTERS;
+  signal mst_HREADYOUT : M_CORES_PER_SIMD_MASTERS;
+  signal mst_HRESP     : M_CORES_PER_SIMD_MASTERS;
+
+  signal slv_HSEL      : M_CORES_PER_SIMD_SLAVES;
+  signal slv_HADDR     : M_CORES_PER_SIMD_SLAVES_PLEN;
+  signal slv_HWDATA    : M_CORES_PER_SIMD_SLAVES_XLEN;
+  signal slv_HRDATA    : M_CORES_PER_SIMD_SLAVES_XLEN;
+  signal slv_HWRITE    : M_CORES_PER_SIMD_SLAVES;
+  signal slv_HSIZE     : M_CORES_PER_SIMD_SLAVES_2;
+  signal slv_HBURST    : M_CORES_PER_SIMD_SLAVES_2;
+  signal slv_HPROT     : M_CORES_PER_SIMD_SLAVES_3;
+  signal slv_HTRANS    : M_CORES_PER_SIMD_SLAVES_1;
+  signal slv_HMASTLOCK : M_CORES_PER_SIMD_SLAVES;
+  signal slv_HREADY    : M_CORES_PER_SIMD_SLAVES;
+  signal slv_HRESP     : M_CORES_PER_SIMD_SLAVES;
+
+  -- GPIO
+  signal mst_gpio_HSEL      : std_logic_vector(CORES_PER_SIMD-1 downto 0);
+  signal mst_gpio_HADDR     : M_CORES_PER_SIMD_PLEN;
+  signal mst_gpio_HWDATA    : M_CORES_PER_SIMD_XLEN;
+  signal mst_gpio_HRDATA    : M_CORES_PER_SIMD_XLEN;
+  signal mst_gpio_HWRITE    : std_logic_vector(CORES_PER_SIMD-1 downto 0);
+  signal mst_gpio_HSIZE     : M_CORES_PER_SIMD_2;
+  signal mst_gpio_HBURST    : M_CORES_PER_SIMD_2;
+  signal mst_gpio_HPROT     : M_CORES_PER_SIMD_3;
+  signal mst_gpio_HTRANS    : M_CORES_PER_SIMD_1;
+  signal mst_gpio_HMASTLOCK : std_logic_vector(CORES_PER_SIMD-1 downto 0);
+  signal mst_gpio_HREADY    : std_logic_vector(CORES_PER_SIMD-1 downto 0);
+  signal mst_gpio_HREADYOUT : std_logic_vector(CORES_PER_SIMD-1 downto 0);
+  signal mst_gpio_HRESP     : std_logic_vector(CORES_PER_SIMD-1 downto 0);
+
+  signal gpio_PSEL    : std_logic_vector(CORES_PER_SIMD-1 downto 0);
+  signal gpio_PENABLE : std_logic_vector(CORES_PER_SIMD-1 downto 0);
+  signal gpio_PWRITE  : std_logic_vector(CORES_PER_SIMD-1 downto 0);
+  signal gpio_PSTRB   : std_logic_vector(CORES_PER_SIMD-1 downto 0);
+  signal gpio_PADDR   : M_CORES_PER_SIMD_PADDR_SIZE;
+  signal gpio_PWDATA  : M_CORES_PER_SIMD_PADDR_SIZE;
+  signal gpio_PRDATA  : M_CORES_PER_SIMD_PADDR_SIZE;
+  signal gpio_PREADY  : std_logic_vector(CORES_PER_SIMD-1 downto 0);
+  signal gpio_PSLVERR : std_logic_vector(CORES_PER_SIMD-1 downto 0);
+
+  -- RAM
+  signal mst_sram_HSEL      : std_logic_vector(CORES_PER_SIMD-1 downto 0);
+  signal mst_sram_HADDR     : M_CORES_PER_SIMD_PLEN;
+  signal mst_sram_HWDATA    : M_CORES_PER_SIMD_XLEN;
+  signal mst_sram_HRDATA    : M_CORES_PER_SIMD_XLEN;
+  signal mst_sram_HWRITE    : std_logic_vector(CORES_PER_SIMD-1 downto 0);
+  signal mst_sram_HSIZE     : M_CORES_PER_SIMD_2;
+  signal mst_sram_HBURST    : M_CORES_PER_SIMD_2;
+  signal mst_sram_HPROT     : M_CORES_PER_SIMD_3;
+  signal mst_sram_HTRANS    : M_CORES_PER_SIMD_1;
+  signal mst_sram_HMASTLOCK : std_logic_vector(CORES_PER_SIMD-1 downto 0);
+  signal mst_sram_HREADY    : std_logic_vector(CORES_PER_SIMD-1 downto 0);
+  signal mst_sram_HREADYOUT : std_logic_vector(CORES_PER_SIMD-1 downto 0);
+  signal mst_sram_HRESP     : std_logic_vector(CORES_PER_SIMD-1 downto 0);
+
+  signal mst_mram_HSEL      : std_logic_vector(CORES_PER_SIMD-1 downto 0);
   signal mst_mram_HADDR     : M_CORES_PER_SIMD_PLEN;
   signal mst_mram_HWDATA    : M_CORES_PER_SIMD_XLEN;
   signal mst_mram_HRDATA    : M_CORES_PER_SIMD_XLEN;
-  signal mst_mram_HWRITE    : std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
+  signal mst_mram_HWRITE    : std_logic_vector(CORES_PER_SIMD-1 downto 0);
   signal mst_mram_HSIZE     : M_CORES_PER_SIMD_2;
   signal mst_mram_HBURST    : M_CORES_PER_SIMD_2;
   signal mst_mram_HPROT     : M_CORES_PER_SIMD_3;
   signal mst_mram_HTRANS    : M_CORES_PER_SIMD_1;
-  signal mst_mram_HMASTLOCK : std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-  signal mst_mram_HREADY    : std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-  signal mst_mram_HREADYOUT : std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-  signal mst_mram_HRESP     : std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
+  signal mst_mram_HMASTLOCK : std_logic_vector(CORES_PER_SIMD-1 downto 0);
+  signal mst_mram_HREADY    : std_logic_vector(CORES_PER_SIMD-1 downto 0);
+  signal mst_mram_HREADYOUT : std_logic_vector(CORES_PER_SIMD-1 downto 0);
+  signal mst_mram_HRESP     : std_logic_vector(CORES_PER_SIMD-1 downto 0);
 
-  signal mst_msi_mram_HRDATA    : M_CORES_PER_SIMD_XLEN;
-  signal mst_msi_mram_HREADYOUT : std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-  signal mst_msi_mram_HRESP     : std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-
-  signal mst_HSEL      : std_ulogic_vector(2 downto 0);
-  signal mst_HADDR     : M_2_PLEN;
-  signal mst_HWDATA    : M_2_XLEN;
-  signal mst_HRDATA    : M_2_XLEN;
-  signal mst_HWRITE    : std_ulogic_vector(2 downto 0);
-  signal mst_HSIZE     : M_2_2;
-  signal mst_HBURST    : M_2_2;
-  signal mst_HPROT     : M_2_3;
-  signal mst_HTRANS    : M_2_1;
-  signal mst_HMASTLOCK : std_ulogic_vector(2 downto 0);
-  signal mst_HREADY    : std_ulogic_vector(2 downto 0);
-  signal mst_HREADYOUT : std_ulogic_vector(2 downto 0);
-  signal mst_HRESP     : std_ulogic_vector(2 downto 0);
-
-  --AHB Bus Slaves Interfaces
-  signal out_dat_HSEL      : std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-  signal out_dat_HADDR     : M_CORES_PER_SIMD_PLEN;
-  signal out_dat_HWDATA    : M_CORES_PER_SIMD_XLEN;
-  signal out_dat_HRDATA    : M_CORES_PER_SIMD_XLEN;
-  signal out_dat_HWRITE    : std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-  signal out_dat_HSIZE     : M_CORES_PER_SIMD_2;
-  signal out_dat_HBURST    : M_CORES_PER_SIMD_2;
-  signal out_dat_HPROT     : M_CORES_PER_SIMD_3;
-  signal out_dat_HTRANS    : M_CORES_PER_SIMD_1;
-  signal out_dat_HMASTLOCK : std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-  signal out_dat_HREADY    : std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-  signal out_dat_HREADYOUT : std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-  signal out_dat_HRESP     : std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-
-  signal out_ins_HSEL      : std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-  signal out_ins_HADDR     : M_CORES_PER_SIMD_PLEN;
-  signal out_ins_HWDATA    : M_CORES_PER_SIMD_XLEN;
-  signal out_ins_HRDATA    : M_CORES_PER_SIMD_XLEN;
-  signal out_ins_HWRITE    : std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-  signal out_ins_HSIZE     : M_CORES_PER_SIMD_2;
-  signal out_ins_HBURST    : M_CORES_PER_SIMD_2;
-  signal out_ins_HPROT     : M_CORES_PER_SIMD_3;
-  signal out_ins_HTRANS    : M_CORES_PER_SIMD_1;
-  signal out_ins_HMASTLOCK : std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-  signal out_ins_HREADY    : std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-  signal out_ins_HRESP     : std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-
-  signal bus_ins_HSEL      : std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
+  -- PU
+  signal bus_ins_HSEL      : std_logic_vector(CORES_PER_SIMD-1 downto 0);
   signal bus_ins_HADDR     : M_CORES_PER_SIMD_PLEN;
   signal bus_ins_HWDATA    : M_CORES_PER_SIMD_XLEN;
   signal bus_ins_HRDATA    : M_CORES_PER_SIMD_XLEN;
-  signal bus_ins_HWRITE    : std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
+  signal bus_ins_HWRITE    : std_logic_vector(CORES_PER_SIMD-1 downto 0);
   signal bus_ins_HSIZE     : M_CORES_PER_SIMD_2;
   signal bus_ins_HBURST    : M_CORES_PER_SIMD_2;
   signal bus_ins_HPROT     : M_CORES_PER_SIMD_3;
   signal bus_ins_HTRANS    : M_CORES_PER_SIMD_1;
-  signal bus_ins_HMASTLOCK : std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-  signal bus_ins_HREADY    : std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-  signal bus_ins_HRESP     : std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
+  signal bus_ins_HMASTLOCK : std_logic_vector(CORES_PER_SIMD-1 downto 0);
+  signal bus_ins_HREADY    : std_logic_vector(CORES_PER_SIMD-1 downto 0);
+  signal bus_ins_HRESP     : std_logic_vector(CORES_PER_SIMD-1 downto 0);
 
-  signal slv_noc_HSEL      : std_ulogic;
-  signal slv_noc_HADDR     : std_ulogic_vector(PLEN-1 downto 0);
-  signal slv_noc_HWDATA    : std_ulogic_vector(XLEN-1 downto 0);
-  signal slv_noc_HRDATA    : std_ulogic_vector(XLEN-1 downto 0);
-  signal slv_noc_HWRITE    : std_ulogic;
-  signal slv_noc_HSIZE     : std_ulogic_vector(2 downto 0);
-  signal slv_noc_HBURST    : std_ulogic_vector(2 downto 0);
-  signal slv_noc_HPROT     : std_ulogic_vector(3 downto 0);
-  signal slv_noc_HTRANS    : std_ulogic_vector(1 downto 0);
-  signal slv_noc_HMASTLOCK : std_ulogic;
-  signal slv_noc_HREADY    : std_ulogic;
-  signal slv_noc_HRESP     : std_ulogic;
+  signal requested_priority_lvl : std_logic_vector(2 downto 0);  --requested priority level
+  signal priority_simd_masters  : std_logic_vector(CORES_PER_SIMD-1 downto 0);  --all masters at this priority level
 
-  signal slv_HSEL      : std_ulogic_vector(CORES_PER_SIMD downto 0);
-  signal slv_HADDR     : M_CORES_PER_SIMD1_PLEN;
-  signal slv_HWDATA    : M_CORES_PER_SIMD1_XLEN;
-  signal slv_HRDATA    : M_CORES_PER_SIMD1_XLEN;
-  signal slv_HWRITE    : std_ulogic_vector(CORES_PER_SIMD downto 0);
-  signal slv_HSIZE     : M_CORES_PER_SIMD1_2;
-  signal slv_HBURST    : M_CORES_PER_SIMD1_2;
-  signal slv_HPROT     : M_CORES_PER_SIMD1_3;
-  signal slv_HTRANS    : M_CORES_PER_SIMD1_1;
-  signal slv_HMASTLOCK : std_ulogic_vector(CORES_PER_SIMD downto 0);
-  signal slv_HREADY    : std_ulogic_vector(CORES_PER_SIMD downto 0);
-  signal slv_HRESP     : std_ulogic_vector(CORES_PER_SIMD downto 0);
+  signal pending_simd_master       : std_logic_vector(CORES_PER_SIMD-1 downto 0);  --next master waiting to be served
+  signal last_granted_simd_master  : std_logic_vector(CORES_PER_SIMD-1 downto 0);  --for requested priority level
+  signal last_granted_simd_masters : M_3_CORES_PER_SIMD;  --per priority level, for round-robin
 
-  signal requested_priority_lvl : std_ulogic_vector(2 downto 0);  --requested priority level
-  signal priority_simd_masters  : std_ulogic_vector(CORES_PER_SIMD-1 downto 0);  --all masters at this priority level
+  signal granted_simd_master_idx     : std_logic_vector(SIMD_BITS-1 downto 0);  --granted master as index
+  signal granted_simd_master_idx_dly : std_logic_vector(SIMD_BITS-1 downto 0);  --deleayed granted master index (for HWDATA)
 
-  signal pending_simd_master      : std_ulogic_vector(CORES_PER_SIMD-1 downto 0);  --next master waiting to be served
-  signal last_granted_simd_master : std_ulogic_vector(CORES_PER_SIMD-1 downto 0);  --for requested priority level
+  signal granted_simd_master : std_logic_vector(CORES_PER_SIMD-1 downto 0);
 
-  signal last_granted_simd_masters : M_2_CORES_PER_SIMD;  --per priority level, for round-robin
-
-
-  signal granted_simd_master_idx     : std_ulogic_vector(SIMD_BITS-1 downto 0);  --granted master as index
-  signal granted_simd_master_idx_dly : std_ulogic_vector(SIMD_BITS-1 downto 0);  --deleayed granted master index (for HWDATA)
-
-  signal granted_simd_master : std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-
-  signal dii_in_data  : M_2CORES_PER_SIMD_XLEN;
-  signal dii_in_last  : std_ulogic_vector(2*CORES_PER_SIMD-1 downto 0);
-  signal dii_in_valid : std_ulogic_vector(2*CORES_PER_SIMD-1 downto 0);
-  signal dii_in_ready : std_ulogic_vector(2*CORES_PER_SIMD-1 downto 0);
-
-  signal dii_out_data  : M_2CORES_PER_SIMD_XLEN;
-  signal dii_out_last  : std_ulogic_vector(2*CORES_PER_SIMD-1 downto 0);
-  signal dii_out_valid : std_ulogic_vector(2*CORES_PER_SIMD-1 downto 0);
-  signal dii_out_ready : std_ulogic_vector(2*CORES_PER_SIMD-1 downto 0);
-
-  signal trace_port_insn     : M_CORES_PER_SIMD_XLEN;
-  signal trace_port_pc       : M_CORES_PER_SIMD_XLEN;
-  signal trace_port_jb       : std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-  signal trace_port_jal      : std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-  signal trace_port_jr       : std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-  signal trace_port_jbtarget : M_CORES_PER_SIMD_XLEN;
-  signal trace_port_valid    : std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-  signal trace_port_data     : M_CORES_PER_SIMD_VALWIDTH;
-  signal trace_port_addr     : M_CORES_PER_SIMD_4;
-  signal trace_port_we       : std_ulogic_vector(CORES_PER_SIMD-1 downto 0);
-
-  signal ins_HSEL_sgn : std_ulogic;
-
-begin
   --//////////////////////////////////////////////////////////////
   --
   -- Module Body
   --
 
-  --Instantiate RISC-V PU
+--Instantiate RISC-V PU
+begin
   generating_0 : for t in 0 to CORES_PER_SIMD - 1 generate
+    --Instantiate RISC-V PU
     pu : riscv_pu
+      generic map (
+        XLEN => XLEN,
+        PLEN => PLEN,
+
+        PC_INIT => PC_INIT,
+
+        HAS_USER  => HAS_USER,
+        HAS_SUPER => HAS_SUPER,
+        HAS_HYPER => HAS_HYPER,
+        HAS_BPU   => HAS_BPU,
+        HAS_FPU   => HAS_FPU,
+        HAS_MMU   => HAS_MMU,
+        HAS_RVM   => HAS_RVM,
+        HAS_RVA   => HAS_RVA,
+        HAS_RVC   => HAS_RVC,
+
+        IS_RV32E => IS_RV32E,
+
+        MULT_LATENCY => MULT_LATENCY,
+
+        BREAKPOINTS => BREAKPOINTS,
+
+        PMA_CNT => PMA_CNT,
+        PMP_CNT => PMP_CNT,
+
+        BP_GLOBAL_BITS => BP_GLOBAL_BITS,
+        BP_LOCAL_BITS  => BP_LOCAL_BITS,
+
+        ICACHE_SIZE        => ICACHE_SIZE,
+        ICACHE_BLOCK_SIZE  => ICACHE_BLOCK_SIZE,
+        ICACHE_WAYS        => ICACHE_WAYS,
+        ICACHE_REPLACE_ALG => ICACHE_REPLACE_ALG,
+        ITCM_SIZE          => ITCM_SIZE,
+
+        DCACHE_SIZE        => DCACHE_SIZE,
+        DCACHE_BLOCK_SIZE  => DCACHE_BLOCK_SIZE,
+        DCACHE_WAYS        => DCACHE_WAYS,
+        DCACHE_REPLACE_ALG => DCACHE_REPLACE_ALG,
+        DTCM_SIZE          => DTCM_SIZE,
+
+        WRITEBUFFER_SIZE => WRITEBUFFER_SIZE,
+
+        TECHNOLOGY => TECHNOLOGY,
+
+        MNMIVEC_DEFAULT => MNMIVEC_DEFAULT,
+        MTVEC_DEFAULT   => MTVEC_DEFAULT,
+        HTVEC_DEFAULT   => HTVEC_DEFAULT,
+        STVEC_DEFAULT   => STVEC_DEFAULT,
+        UTVEC_DEFAULT   => UTVEC_DEFAULT,
+
+        JEDEC_BANK => JEDEC_BANK,
+
+        JEDEC_MANUFACTURER_ID => JEDEC_MANUFACTURER_ID,
+
+        HARTID => HARTID,
+
+        PARCEL_SIZE => PARCEL_SIZE
+      )
       port map (
         --Common signals
         HRESETn => HRESETn,
@@ -861,20 +998,6 @@ begin
         pma_adr_i => pma_adr_i,
 
         --AHB instruction
-        dat_HSEL      => dat_HSEL(t),
-        dat_HADDR     => dat_HADDR(t),
-        dat_HWDATA    => dat_HWDATA(t),
-        dat_HRDATA    => dat_HRDATA(t),
-        dat_HWRITE    => dat_HWRITE(t),
-        dat_HSIZE     => dat_HSIZE(t),
-        dat_HBURST    => dat_HBURST(t),
-        dat_HPROT     => dat_HPROT(t),
-        dat_HTRANS    => dat_HTRANS(t),
-        dat_HMASTLOCK => dat_HMASTLOCK(t),
-        dat_HREADY    => dat_HREADY(t),
-        dat_HRESP     => dat_HRESP(t),
-
-        --AHB data
         ins_HSEL      => bus_ins_HSEL(t),
         ins_HADDR     => bus_ins_HADDR(t),
         ins_HWDATA    => bus_ins_HWDATA(t),
@@ -887,6 +1010,20 @@ begin
         ins_HMASTLOCK => bus_ins_HMASTLOCK(t),
         ins_HREADY    => bus_ins_HREADY(t),
         ins_HRESP     => bus_ins_HRESP(t),
+
+        --AHB data
+        dat_HSEL      => dat_HSEL(t),
+        dat_HADDR     => dat_HADDR(t),
+        dat_HWDATA    => dat_HWDATA(t),
+        dat_HRDATA    => dat_HRDATA(t),
+        dat_HWRITE    => dat_HWRITE(t),
+        dat_HSIZE     => dat_HSIZE(t),
+        dat_HBURST    => dat_HBURST(t),
+        dat_HPROT     => dat_HPROT(t),
+        dat_HTRANS    => dat_HTRANS(t),
+        dat_HMASTLOCK => dat_HMASTLOCK(t),
+        dat_HREADY    => dat_HREADY(t),
+        dat_HRESP     => dat_HRESP(t),
 
         --Interrupts Interface
         ext_nmi  => ext_nmi(t),
@@ -904,6 +1041,413 @@ begin
         dbg_ack   => dbg_ack(t),
         dbg_bp    => dbg_bp(t)
       );
+
+    peripheral_interface : mpsoc_msi_interface
+      generic map (
+        PLEN    => PLEN,
+        XLEN    => XLEN,
+        MASTERS => MASTERS,
+        SLAVES  => SLAVES
+      )
+      port map (
+        --Common signals
+        HRESETn => HRESETn,
+        HCLK    => HCLK,
+
+        --Master Ports; AHB masters connect to these
+        --thus these are actually AHB Slave Interfaces
+        mst_priority => (others => (others => '0')),
+
+        mst_HSEL      => mst_HSEL(t),
+        mst_HADDR     => mst_HADDR(t),
+        mst_HWDATA    => mst_HWDATA(t),
+        mst_HRDATA    => mst_HRDATA(t),
+        mst_HWRITE    => mst_HWRITE(t),
+        mst_HSIZE     => mst_HSIZE(t),
+        mst_HBURST    => mst_HBURST(t),
+        mst_HPROT     => mst_HPROT(t),
+        mst_HTRANS    => mst_HTRANS(t),
+        mst_HMASTLOCK => mst_HMASTLOCK(t),
+        mst_HREADYOUT => mst_HREADYOUT(t),
+        mst_HREADY    => mst_HREADY(t),
+        mst_HRESP     => mst_HRESP(t),
+
+        --Slave Ports; AHB Slaves connect to these
+        --thus these are actually AHB Master Interfaces
+        slv_addr_mask => (others => (others => '0')),
+        slv_addr_base => (others => (others => '0')),
+
+        slv_HSEL      => slv_HSEL(t),
+        slv_HADDR     => slv_HADDR(t),
+        slv_HWDATA    => slv_HWDATA(t),
+        slv_HRDATA    => slv_HRDATA(t),
+        slv_HWRITE    => slv_HWRITE(t),
+        slv_HSIZE     => slv_HSIZE(t),
+        slv_HBURST    => slv_HBURST(t),
+        slv_HPROT     => slv_HPROT(t),
+        slv_HTRANS    => slv_HTRANS(t),
+        slv_HMASTLOCK => slv_HMASTLOCK(t),
+        slv_HREADYOUT => open,
+        slv_HREADY    => slv_HREADY(t),
+        slv_HRESP     => slv_HRESP(t)
+      );
+
+    --Instantiate RISC-V DMA
+    ahb3_top : mpsoc_dma_ahb3_top
+      generic map (
+        ADDR_WIDTH => 64,
+        DATA_WIDTH => 64,
+
+        TABLE_ENTRIES          => TABLE_ENTRIES,
+        TABLE_ENTRIES_PTRWIDTH => TABLE_ENTRIES_PTRWIDTH,
+        TILEID                 => TILEID,
+        NOC_PACKET_SIZE        => NOC_PACKET_SIZE,
+        GENERATE_INTERRUPT     => GENERATE_INTERRUPT
+      )
+      port map (
+        clk => HCLK,
+        rst => HRESETn,
+
+        noc_in_req_flit  => noc_ahb3_in_req_flit(t),
+        noc_in_req_valid => noc_ahb3_in_req_valid(t),
+        noc_in_req_ready => noc_ahb3_in_req_ready(t),
+
+        noc_in_res_flit  => noc_ahb3_in_res_flit(t),
+        noc_in_res_valid => noc_ahb3_in_res_valid(t),
+        noc_in_res_ready => noc_ahb3_in_res_ready(t),
+
+        noc_out_req_flit  => noc_ahb3_out_req_flit(t),
+        noc_out_req_valid => noc_ahb3_out_req_valid(t),
+        noc_out_req_ready => noc_ahb3_out_req_ready(t),
+
+        noc_out_res_flit  => noc_ahb3_out_res_flit(t),
+        noc_out_res_valid => noc_ahb3_out_res_valid(t),
+        noc_out_res_ready => noc_ahb3_out_res_ready(t),
+
+        ahb3_if_haddr     => ahb3_if_haddr(t),
+        ahb3_if_hrdata    => ahb3_if_hrdata(t),
+        ahb3_if_hmastlock => ahb3_if_hmastlock(t),
+        ahb3_if_hsel      => ahb3_if_hsel(t),
+        ahb3_if_hwrite    => ahb3_if_hwrite(t),
+        ahb3_if_hwdata    => ahb3_if_hwdata(t),
+        ahb3_if_hready    => ahb3_if_hready(t),
+        ahb3_if_hresp     => ahb3_if_hresp(t),
+
+        ahb3_haddr     => ahb3_haddr(t),
+        ahb3_hwdata    => ahb3_hwdata(t),
+        ahb3_hmastlock => ahb3_hmastlock(t),
+        ahb3_hsel      => ahb3_hsel(t),
+        ahb3_hprot     => ahb3_hprot(t),
+        ahb3_hwrite    => ahb3_hwrite(t),
+        ahb3_hsize     => ahb3_hsize(t),
+        ahb3_hburst    => ahb3_hburst(t),
+        ahb3_htrans    => ahb3_htrans(t),
+        ahb3_hrdata    => ahb3_hrdata(t),
+        ahb3_hready    => ahb3_hready(t),
+
+        irq => irq_ahb3(t)
+      );
+
+    mux_noc_buffer : mpsoc_noc_buffer
+      generic map (
+        FLIT_WIDTH => FLIT_WIDTH,
+        DEPTH      => 16,
+        FULLPACKET => 0
+      )
+      port map (
+        clk => HRESETn,
+        rst => HCLK,
+
+        in_flit  => mux_flit(t),
+        in_last  => mux_last(t),
+        in_valid => mux_valid(t),
+        in_ready => mux_ready(t),
+
+        out_flit  => noc_output_flit(t),
+        out_last  => noc_output_last(t),
+        out_valid => noc_output_valid(t),
+        out_ready => noc_output_ready(t),
+
+        packet_size => open
+      );
+
+    demux_noc_buffer : mpsoc_noc_buffer
+      generic map (
+        FLIT_WIDTH => FLIT_WIDTH,
+        DEPTH      => 16,
+        FULLPACKET => 0
+      )
+      port map (
+        clk => HRESETn,
+        rst => HCLK,
+
+        in_flit  => noc_input_flit(t),
+        in_last  => noc_input_last(t),
+        in_valid => noc_input_valid(t),
+        in_ready => noc_input_ready(t),
+
+        out_flit  => demux_flit(t),
+        out_last  => demux_last(t),
+        out_valid => demux_valid(t),
+        out_ready => demux_ready(t),
+
+        packet_size => open
+      );
+
+    --noc_mux : mpsoc_noc_mux
+      --generic map (
+        --FLIT_WIDTH => FLIT_WIDTH,
+        --CHANNELS   => CHANNELS
+      --)
+      --port map (
+        --clk => HRESETn,
+        --rst => HCLK,
+
+        --in_flit  => noc_ahb3_out_flit(t),
+        --in_last  => (others => '1'),
+        --in_valid => noc_ahb3_out_valid(t),
+        --in_ready => noc_ahb3_out_ready(t),
+
+        --out_flit  => mux_flit(t),
+        --out_last  => mux_last(t),
+        --out_valid => mux_valid(t),
+        --out_ready => mux_ready(t)
+      --);
+
+    --noc_demux : mpsoc_noc_demux
+      --generic map (
+        --FLIT_WIDTH => FLIT_WIDTH,
+        --CHANNELS   => CHANNELS,
+        --MAPPING    => MAPPING
+      --)
+      --port map (
+        --clk => HRESETn,
+        --rst => HCLK,
+
+        --in_flit  => demux_flit(t),
+        --in_last  => demux_last(t),
+        --in_valid => demux_valid(t),
+        --in_ready => demux_ready(t),
+
+        --out_flit  => noc_ahb3_in_flit(t),
+        --out_last  => open,
+        --out_valid => noc_ahb3_in_valid(t),
+        --out_ready => noc_ahb3_in_ready(t)
+      --);
+
+    noc_ahb3_in_req_flit(t)  <= noc_ahb3_in_flit(t)(0);
+    noc_ahb3_in_req_valid(t) <= noc_ahb3_in_valid(t)(0);
+
+    noc_ahb3_in_ready(t)(0) <= noc_ahb3_in_req_ready(t);
+
+
+    noc_ahb3_in_res_flit(t)  <= noc_ahb3_in_flit(t)(1);
+    noc_ahb3_in_res_valid(t) <= noc_ahb3_in_valid(t)(1);
+
+    noc_ahb3_in_ready(t)(1) <= noc_ahb3_in_res_ready(t);
+
+
+    noc_ahb3_out_flit(t)(0)  <= noc_ahb3_out_req_flit(t);
+    noc_ahb3_out_valid(t)(0) <= noc_ahb3_out_req_valid(t);
+
+    noc_ahb3_out_req_ready(t) <= noc_ahb3_out_ready(t)(0);
+
+
+    noc_ahb3_out_flit(t)(1)  <= noc_ahb3_out_res_flit(t);
+    noc_ahb3_out_valid(t)(1) <= noc_ahb3_out_res_valid(t);
+
+    noc_ahb3_out_res_ready(t) <= noc_ahb3_out_ready(t)(1);
+
+    --Instantiate RISC-V GPIO
+    gpio_bridge : mpsoc_peripheral_bridge
+      generic map (
+        HADDR_SIZE => PLEN,
+        HDATA_SIZE => XLEN,
+        PADDR_SIZE => PLEN,
+        PDATA_SIZE => XLEN,
+
+        SYNC_DEPTH => SYNC_DEPTH
+      )
+      port map (
+        --AHB Slave Interface
+        HRESETn => HRESETn,
+        HCLK    => HCLK,
+
+        HSEL      => mst_gpio_HSEL(t),
+        HADDR     => mst_gpio_HADDR(t),
+        HWDATA    => mst_gpio_HWDATA(t),
+        HRDATA    => mst_gpio_HRDATA(t),
+        HWRITE    => mst_gpio_HWRITE(t),
+        HSIZE     => mst_gpio_HSIZE(t),
+        HBURST    => mst_gpio_HBURST(t),
+        HPROT     => mst_gpio_HPROT(t),
+        HTRANS    => mst_gpio_HTRANS(t),
+        HMASTLOCK => mst_gpio_HMASTLOCK(t),
+        HREADYOUT => mst_gpio_HREADYOUT(t),
+        HREADY    => mst_gpio_HREADY(t),
+        HRESP     => mst_gpio_HRESP(t),
+
+        --APB Master Interface
+        PRESETn => HRESETn,
+        PCLK    => HCLK,
+
+        PSEL    => gpio_PSEL(t),
+        PENABLE => gpio_PENABLE(t),
+        PPROT   => open,
+        PWRITE  => gpio_PWRITE(t),
+        PSTRB   => gpio_PSTRB(t),
+        PADDR   => gpio_PADDR(t),
+        PWDATA  => gpio_PWDATA(t),
+        PRDATA  => gpio_PRDATA(t),
+        PREADY  => gpio_PREADY(t),
+        PSLVERR => gpio_PSLVERR(t)
+      );
+
+    gpio : mpsoc_gpio
+      generic map (
+        PADDR_SIZE => PLEN,
+        PDATA_SIZE => XLEN
+      )
+      port map (
+        PRESETn => HRESETn,
+        PCLK    => HCLK,
+
+        PSEL    => gpio_PSEL(t),
+        PENABLE => gpio_PENABLE(t),
+        PWRITE  => gpio_PWRITE(t),
+        PSTRB   => gpio_PSTRB(t),
+        PADDR   => gpio_PADDR(t),
+        PWDATA  => gpio_PWDATA(t),
+        PRDATA  => gpio_PRDATA(t),
+        PREADY  => gpio_PREADY(t),
+        PSLVERR => gpio_PSLVERR(t),
+
+        gpio_i  => gpio_i(t),
+        gpio_o  => gpio_o(t),
+        gpio_oe => gpio_oe(t)
+      );
+
+    spram : mpsoc_spram
+      generic map (
+        MEM_SIZE          => 0,
+        MEM_DEPTH         => 256,
+        PLEN              => PLEN,
+        XLEN              => XLEN,
+        TECHNOLOGY        => TECHNOLOGY,
+        REGISTERED_OUTPUT => "NO"
+      )
+      port map (
+        --AHB Slave Interface
+        HRESETn => HRESETn,
+        HCLK    => HCLK,
+
+        HSEL      => mst_sram_HSEL(t),
+        HADDR     => mst_sram_HADDR(t),
+        HWDATA    => mst_sram_HWDATA(t),
+        HRDATA    => mst_sram_HRDATA(t),
+        HWRITE    => mst_sram_HWRITE(t),
+        HSIZE     => mst_sram_HSIZE(t),
+        HBURST    => mst_sram_HBURST(t),
+        HPROT     => mst_sram_HPROT(t),
+        HTRANS    => mst_sram_HTRANS(t),
+        HMASTLOCK => mst_sram_HMASTLOCK(t),
+        HREADYOUT => mst_sram_HREADYOUT(t),
+        HREADY    => mst_sram_HREADY(t),
+        HRESP     => mst_sram_HRESP(t)
+      );
+
+    -- MST Connections
+    mst_HSEL(t)(0)      <= bus_ins_HSEL(t);
+    mst_HADDR(t)(0)     <= bus_ins_HADDR(t);
+    mst_HWDATA(t)(0)    <= bus_ins_HWDATA(t);
+    mst_HWRITE(t)(0)    <= bus_ins_HWRITE(t);
+    mst_HSIZE(t)(0)     <= bus_ins_HSIZE(t);
+    mst_HBURST(t)(0)    <= bus_ins_HBURST(t);
+    mst_HPROT(t)(0)     <= bus_ins_HPROT(t);
+    mst_HTRANS(t)(0)    <= bus_ins_HTRANS(t);
+    mst_HMASTLOCK(t)(0) <= bus_ins_HMASTLOCK(t);
+    mst_HREADY(t)(0)    <= bus_ins_HREADY(t);
+
+    mst_HREADYOUT(t)(0) <= '0';
+
+    bus_ins_HRDATA(t) <= mst_HRDATA(t)(0);
+    bus_ins_HRESP(t)  <= mst_HRESP(t)(0);
+
+    mst_HSEL(t)(1)      <= ahb3_if_hsel(t);
+    mst_HADDR(t)(1)     <= ahb3_if_haddr(t);
+    mst_HWDATA(t)(1)    <= ahb3_if_hwdata(t);
+    mst_HWRITE(t)(1)    <= ahb3_if_hwrite(t);
+    mst_HSIZE(t)(1)     <= "000";
+    mst_HBURST(t)(1)    <= "000";
+    mst_HPROT(t)(1)     <= "0000";
+    mst_HTRANS(t)(1)    <= "00";
+    mst_HMASTLOCK(t)(1) <= ahb3_if_hmastlock(t);
+    mst_HREADY(t)(1)    <= ahb3_if_hready(t);
+
+    mst_HREADYOUT(t)(1) <= '0';
+
+    ahb3_if_hrdata(t) <= mst_HRDATA(t)(1);
+    --assign ahb3_if_hresp  [t] = mst_HRESP  [t][1];
+
+    mst_HSEL(t)(2)      <= mst_gpio_HSEL(t);
+    mst_HADDR(t)(2)     <= mst_gpio_HADDR(t);
+    mst_HWDATA(t)(2)    <= mst_gpio_HWDATA(t);
+    mst_HWRITE(t)(2)    <= mst_gpio_HWRITE(t);
+    mst_HSIZE(t)(2)     <= mst_gpio_HSIZE(t);
+    mst_HBURST(t)(2)    <= mst_gpio_HBURST(t);
+    mst_HPROT(t)(2)     <= mst_gpio_HPROT(t);
+    mst_HTRANS(t)(2)    <= mst_gpio_HTRANS(t);
+    mst_HMASTLOCK(t)(2) <= mst_gpio_HMASTLOCK(t);
+    mst_HREADY(t)(2)    <= mst_gpio_HREADY(t);
+
+    mst_gpio_HRDATA(t)    <= mst_HRDATA(t)(2);
+    mst_gpio_HREADYOUT(t) <= mst_HREADYOUT(t)(2);
+    mst_gpio_HRESP(t)     <= mst_HRESP(t)(2);
+
+    mst_HSEL(t)(3)      <= mst_sram_HSEL(t);
+    mst_HADDR(t)(3)     <= mst_sram_HADDR(t);
+    mst_HWDATA(t)(3)    <= mst_sram_HWDATA(t);
+    mst_HWRITE(t)(3)    <= mst_sram_HWRITE(t);
+    mst_HSIZE(t)(3)     <= mst_sram_HSIZE(t);
+    mst_HBURST(t)(3)    <= mst_sram_HBURST(t);
+    mst_HPROT(t)(3)     <= mst_sram_HPROT(t);
+    mst_HTRANS(t)(3)    <= mst_sram_HTRANS(t);
+    mst_HMASTLOCK(t)(3) <= mst_sram_HMASTLOCK(t);
+    mst_HREADY(t)(3)    <= mst_sram_HREADY(t);
+
+    mst_sram_HRDATA(t)    <= mst_HRDATA(t)(3);
+    mst_sram_HREADYOUT(t) <= mst_HREADYOUT(t)(3);
+    mst_sram_HRESP(t)     <= mst_HRESP(t)(3);
+
+    mst_HSEL(t)(4)      <= mst_mram_HSEL(t);
+    mst_HADDR(t)(4)     <= mst_mram_HADDR(t);
+    mst_HWDATA(t)(4)    <= mst_mram_HWDATA(t);
+    mst_HWRITE(t)(4)    <= mst_mram_HWRITE(t);
+    mst_HSIZE(t)(4)     <= mst_mram_HSIZE(t);
+    mst_HBURST(t)(4)    <= mst_mram_HBURST(t);
+    mst_HPROT(t)(4)     <= mst_mram_HPROT(t);
+    mst_HTRANS(t)(4)    <= mst_mram_HTRANS(t);
+    mst_HMASTLOCK(t)(4) <= mst_mram_HMASTLOCK(t);
+    mst_HREADY(t)(4)    <= mst_mram_HREADY(t);
+
+    mst_mram_HRDATA(t)    <= mst_HRDATA(t)(4);
+    mst_mram_HREADYOUT(t) <= mst_HREADYOUT(t)(4);
+    mst_mram_HRESP(t)     <= mst_HRESP(t)(4);
+
+    -- SLV Connections
+    slv_HSEL(t)(0)      <= ahb3_hsel(t);
+    slv_HADDR(t)(0)     <= ahb3_haddr(t);
+    slv_HWDATA(t)(0)    <= ahb3_hwdata(t);
+    slv_HWRITE(t)(0)    <= ahb3_hwrite(t);
+    slv_HSIZE(t)(0)     <= ahb3_hsize(t);
+    slv_HBURST(t)(0)    <= ahb3_hburst(t);
+    slv_HPROT(t)(0)     <= ahb3_hprot(t);
+    slv_HTRANS(t)(0)    <= ahb3_htrans(t);
+    slv_HMASTLOCK(t)(0) <= ahb3_hmastlock(t);
+    slv_HREADY(t)(0)    <= ahb3_hready(t);
+
+    slv_HRDATA(t)(0) <= ahb3_hrdata(t);
+    slv_HRESP(t)(0)  <= '0';
   end generate;
 
   --get highest priority from selected masters
@@ -922,10 +1466,9 @@ begin
   processing_0 : process (HCLK, HRESETn)
   begin
     if (HRESETn = '0') then
-      granted_simd_master <= (0 => '1', others => '0');
+      granted_simd_master <= X"1";
     elsif (rising_edge(HCLK)) then
-      if (ins_HSEL_sgn = '0') then
-
+      if (bus_ins_HSEL(to_integer(unsigned(granted_simd_master_idx))) = '0') then
         granted_simd_master <= pending_simd_master;
       end if;
     end if;
@@ -935,9 +1478,9 @@ begin
   processing_1 : process (HCLK, HRESETn)
   begin
     if (HRESETn = '0') then
-      last_granted_simd_masters(to_integer(unsigned(requested_priority_lvl))) <= (0 => '1', others => '0');
+      last_granted_simd_masters(to_integer(unsigned(requested_priority_lvl))) <= X"1";
     elsif (rising_edge(HCLK)) then
-      if (ins_HSEL_sgn = '0') then
+      if (bus_ins_HSEL(to_integer(unsigned(granted_simd_master_idx))) = '0') then
         last_granted_simd_masters(to_integer(unsigned(requested_priority_lvl))) <= pending_simd_master;
       end if;
     end if;
@@ -947,10 +1490,10 @@ begin
   processing_2 : process (HCLK, HRESETn)
   begin
     if (HRESETn = '0') then
-      granted_simd_master_idx <= (others => '0');
+      granted_simd_master_idx <= X"0";
     elsif (rising_edge(HCLK)) then
-      if (ins_HSEL_sgn = '0') then
-        granted_simd_master_idx <= std_ulogic_vector(to_unsigned(onehot2int(pending_simd_master), SIMD_BITS));
+      if (bus_ins_HSEL(to_integer(unsigned(granted_simd_master_idx))) = '0') then
+        granted_simd_master_idx <= std_logic_vector(to_unsigned(onehot2int(pending_simd_master), SIMD_BITS));
       end if;
     end if;
   end process;
@@ -958,13 +1501,13 @@ begin
   processing_3 : process (HCLK)
   begin
     if (rising_edge(HCLK)) then
-      if (ins_HSEL_sgn = '1') then
+      if (bus_ins_HSEL(to_integer(unsigned(granted_simd_master_idx))) = '1') then
         granted_simd_master_idx_dly <= granted_simd_master_idx;
       end if;
     end if;
   end process;
 
-  ins_HSEL_sgn  <= bus_ins_HSEL(to_integer(unsigned(granted_simd_master_idx)));
+  ins_HSEL      <= bus_ins_HSEL(to_integer(unsigned(granted_simd_master_idx)));
   ins_HADDR     <= bus_ins_HADDR(to_integer(unsigned(granted_simd_master_idx)));
   ins_HWDATA    <= bus_ins_HWDATA(to_integer(unsigned(granted_simd_master_idx_dly)));
   ins_HWRITE    <= bus_ins_HWRITE(to_integer(unsigned(granted_simd_master_idx)));
@@ -974,443 +1517,122 @@ begin
   ins_HTRANS    <= bus_ins_HTRANS(to_integer(unsigned(granted_simd_master_idx)));
   ins_HMASTLOCK <= bus_ins_HMASTLOCK(to_integer(unsigned(granted_simd_master_idx)));
 
-  ins_HSEL <= ins_HSEL_sgn;
-
   generating_1 : for t in 0 to CORES_PER_SIMD - 1 generate
     bus_ins_HRDATA(t) <= ins_HRDATA;
     bus_ins_HREADY(t) <= ins_HREADY;
     bus_ins_HRESP(t)  <= ins_HRESP;
   end generate;
 
-  --AHB Master-Slave Relations
-  out_ins_HSEL      <= bus_ins_HSEL;
-  out_ins_HADDR     <= bus_ins_HADDR;
-  out_ins_HWDATA    <= bus_ins_HWDATA;
-  out_ins_HWRITE    <= bus_ins_HWRITE;
-  out_ins_HSIZE     <= bus_ins_HSIZE;
-  out_ins_HBURST    <= bus_ins_HBURST;
-  out_ins_HPROT     <= bus_ins_HPROT;
-  out_ins_HTRANS    <= bus_ins_HTRANS;
-  out_ins_HMASTLOCK <= bus_ins_HMASTLOCK;
-
-  bus_ins_HRDATA <= out_ins_HRDATA;
-  bus_ins_HREADY <= out_ins_HREADY;
-  bus_ins_HRESP  <= out_ins_HRESP;
-
-  dat_HSEL      <= out_dat_HSEL;
-  dat_HADDR     <= out_dat_HADDR;
-  dat_HWDATA    <= out_dat_HWDATA;
-  dat_HWRITE    <= out_dat_HWRITE;
-  dat_HSIZE     <= out_dat_HSIZE;
-  dat_HBURST    <= out_dat_HBURST;
-  dat_HPROT     <= out_dat_HPROT;
-  dat_HTRANS    <= out_dat_HTRANS;
-  dat_HMASTLOCK <= out_dat_HMASTLOCK;
-  --assign dat_HREADYOUT = out_dat_HREADYOUT;
-
-  out_dat_HRDATA <= dat_HRDATA;
-  out_dat_HREADY <= dat_HREADY;
-  out_dat_HRESP  <= dat_HRESP;
-
-  --AHB Master Interconnect
-  mst_HSEL(0)      <= mst_noc_HSEL;
-  mst_HADDR(0)     <= mst_noc_HADDR;
-  mst_HWDATA(0)    <= mst_noc_HWDATA;
-  mst_HWRITE(0)    <= mst_noc_HWRITE;
-  mst_HSIZE(0)     <= mst_noc_HSIZE;
-  mst_HBURST(0)    <= mst_noc_HBURST;
-  mst_HPROT(0)     <= mst_noc_HPROT;
-  mst_HTRANS(0)    <= mst_noc_HTRANS;
-  mst_HMASTLOCK(0) <= mst_noc_HMASTLOCK;
-
-  mst_HRDATA(0)    <= mst_noc_HRDATA;
-  mst_HREADYOUT(0) <= mst_noc_HREADYOUT;
-  mst_HRESP(0)     <= mst_noc_HRESP;
-
-  mst_HSEL(1)      <= mst_gpio_HSEL;
-  mst_HADDR(1)     <= mst_gpio_HADDR;
-  mst_HWDATA(1)    <= mst_gpio_HWDATA;
-  mst_HWRITE(1)    <= mst_gpio_HWRITE(0);
-  mst_HSIZE(1)     <= mst_gpio_HSIZE;
-  mst_HBURST(1)    <= mst_gpio_HBURST;
-  mst_HPROT(1)     <= mst_gpio_HPROT;
-  mst_HTRANS(1)    <= mst_gpio_HTRANS;
-  mst_HMASTLOCK(1) <= mst_gpio_HMASTLOCK;
-  mst_HREADY(1)    <= mst_gpio_HREADY;
-
-  mst_HRDATA(1)    <= mst_gpio_HRDATA;
-  mst_HREADYOUT(1) <= mst_gpio_HREADYOUT;
-  mst_HRESP(1)     <= mst_gpio_HRESP;
-
-  mst_HSEL(2)      <= mst_sram_HSEL;
-  mst_HADDR(2)     <= mst_sram_HADDR;
-  mst_HWDATA(2)    <= mst_sram_HWDATA;
-  mst_HWRITE(2)    <= mst_sram_HWRITE;
-  mst_HSIZE(2)     <= mst_sram_HSIZE;
-  mst_HBURST(2)    <= mst_sram_HBURST;
-  mst_HPROT(2)     <= mst_sram_HPROT;
-  mst_HTRANS(2)    <= mst_sram_HTRANS;
-  mst_HMASTLOCK(2) <= mst_sram_HMASTLOCK;
-  mst_HREADY(2)    <= mst_sram_HREADY;
-
-  mst_HRDATA(2)    <= mst_sram_HRDATA;
-  mst_HREADYOUT(2) <= mst_sram_HREADYOUT;
-  mst_HRESP(2)     <= mst_sram_HRESP;
-
-  --AHB Slave Interconnect
-  generating_2 : for t in 0 to CORES_PER_SIMD - 1 generate
-    out_ins_HSEL(t)      <= slv_HSEL(t);
-    out_ins_HADDR(t)     <= slv_HADDR(t);
-    out_ins_HWDATA(t)    <= slv_HWDATA(t);
-    out_ins_HWRITE(t)    <= slv_HWRITE(t);
-    out_ins_HSIZE(t)     <= slv_HSIZE(t);
-    out_ins_HBURST(t)    <= slv_HBURST(t);
-    out_ins_HPROT(t)     <= slv_HPROT(t);
-    out_ins_HTRANS(t)    <= slv_HTRANS(t);
-    out_ins_HMASTLOCK(t) <= slv_HMASTLOCK(t);
-  end generate;
-
-  generating_3 : for t in 0 to CORES_PER_SIMD - 1 generate
-    slv_HRDATA(t) <= out_ins_HRDATA(t);
-    slv_HREADY(t) <= out_ins_HREADY(t);
-    slv_HRESP(t)  <= out_ins_HRESP(t);
-  end generate;
-
-  slv_HSEL(CORES_PER_SIMD)      <= slv_noc_HSEL;
-  slv_HADDR(CORES_PER_SIMD)     <= slv_noc_HADDR;
-  slv_HWDATA(CORES_PER_SIMD)    <= slv_noc_HWDATA;
-  slv_HWRITE(CORES_PER_SIMD)    <= slv_noc_HWRITE;
-  slv_HSIZE(CORES_PER_SIMD)     <= slv_noc_HSIZE;
-  slv_HBURST(CORES_PER_SIMD)    <= slv_noc_HBURST;
-  slv_HPROT(CORES_PER_SIMD)     <= slv_noc_HPROT;
-  slv_HTRANS(CORES_PER_SIMD)    <= slv_noc_HTRANS;
-  slv_HMASTLOCK(CORES_PER_SIMD) <= slv_noc_HMASTLOCK;
-
-  slv_HRDATA(CORES_PER_SIMD) <= slv_noc_HRDATA;
-  slv_HREADY(CORES_PER_SIMD) <= slv_noc_HREADY;
-  slv_HRESP(CORES_PER_SIMD)  <= slv_noc_HRESP;
-
-  --Instantiate RISC-V Interconnect
-  simd_peripheral_interconnect : riscv_simd_peripheral_interconnect
-    port map (
-      --Common signals
-      HRESETn => HRESETn,
-      HCLK    => HCLK,
-
-      --Master Ports; AHB masters connect to these
-      --thus these are actually AHB Slave Interfaces
-      mst_priority => (others => (others => '0')),
-
-      mst_HSEL      => mst_HSEL,
-      mst_HADDR     => mst_HADDR,
-      mst_HWDATA    => mst_HWDATA,
-      mst_HRDATA    => mst_HRDATA,
-      mst_HWRITE    => mst_HWRITE,
-      mst_HSIZE     => mst_HSIZE,
-      mst_HBURST    => mst_HBURST,
-      mst_HPROT     => mst_HPROT,
-      mst_HTRANS    => mst_HTRANS,
-      mst_HMASTLOCK => mst_HMASTLOCK,
-      mst_HREADYOUT => mst_HREADYOUT,
-      mst_HREADY    => mst_HREADY,
-      mst_HRESP     => mst_HRESP,
-
-      --Slave Ports; AHB Slaves connect to these
-      --thus these are actually AHB Master Interfaces
-      slv_addr_mask => (others => (others => '0')),
-      slv_addr_base => (others => (others => '0')),
-
-
-      slv_HSEL      => slv_HSEL,
-      slv_HADDR     => slv_HADDR,
-      slv_HWDATA    => slv_HWDATA,
-      slv_HRDATA    => slv_HRDATA,
-      slv_HWRITE    => slv_HWRITE,
-      slv_HSIZE     => slv_HSIZE,
-      slv_HBURST    => slv_HBURST,
-      slv_HPROT     => slv_HPROT,
-      slv_HTRANS    => slv_HTRANS,
-      slv_HMASTLOCK => slv_HMASTLOCK,
-      slv_HREADYOUT => open,
-      slv_HREADY    => slv_HREADY,
-      slv_HRESP     => slv_HRESP
-    );
-
-  simd_memory_interconnect : riscv_simd_memory_interconnect
-    port map (
-      --Common signals
-      HRESETn => HRESETn,
-      HCLK    => HCLK,
-
-      --Master Ports; AHB masters connect to these
-      --thus these are actually AHB Slave Interfaces
-      mst_priority => (others => (others => '0')),
-
-      mst_HSEL      => mst_mram_HSEL,
-      mst_HADDR     => mst_mram_HADDR,
-      mst_HWDATA    => mst_mram_HWDATA,
-      mst_HRDATA    => mst_msi_mram_HRDATA,
-      mst_HWRITE    => mst_mram_HWRITE,
-      mst_HSIZE     => mst_mram_HSIZE,
-      mst_HBURST    => mst_mram_HBURST,
-      mst_HPROT     => mst_mram_HPROT,
-      mst_HTRANS    => mst_mram_HTRANS,
-      mst_HMASTLOCK => mst_mram_HMASTLOCK,
-      mst_HREADYOUT => mst_msi_mram_HREADYOUT,
-      mst_HREADY    => mst_mram_HREADY,
-      mst_HRESP     => mst_msi_mram_HRESP,
-
-      --Slave Ports; AHB Slaves connect to these
-      --thus these are actually AHB Master Interfaces
-      slv_addr_mask => (others => (others => '0')),
-      slv_addr_base => (others => (others => '0')),
-
-      slv_HSEL      => out_dat_HSEL,
-      slv_HADDR     => out_dat_HADDR,
-      slv_HWDATA    => out_dat_HWDATA,
-      slv_HRDATA    => out_dat_HRDATA,
-      slv_HWRITE    => out_dat_HWRITE,
-      slv_HSIZE     => out_dat_HSIZE,
-      slv_HBURST    => out_dat_HBURST,
-      slv_HPROT     => out_dat_HPROT,
-      slv_HTRANS    => out_dat_HTRANS,
-      slv_HMASTLOCK => out_dat_HMASTLOCK,
-      slv_HREADYOUT => out_dat_HREADYOUT,
-      slv_HREADY    => out_dat_HREADY,
-      slv_HRESP     => out_dat_HRESP
-    );
-
-  --Instantiate RISC-V NoC Adapter
-  noc_adapter : riscv_noc_adapter
-    generic map (
-      PLEN         => PLEN,
-      XLEN         => XLEN,
-      BUFFER_DEPTH => BUFFER_DEPTH,
-      CHANNELS     => CHANNELS
-    )
-    port map (
-      --Common signals
-      HCLK    => HCLK,
-      HRESETn => HRESETn,
-
-      --NoC Interface
-      noc_in_flit   => noc_in_flit,
-      noc_in_last   => noc_in_last,
-      noc_in_valid  => noc_in_valid,
-      noc_in_ready  => noc_in_ready,
-      noc_out_flit  => noc_out_flit,
-      noc_out_last  => noc_out_last,
-      noc_out_valid => noc_out_valid,
-      noc_out_ready => noc_out_ready,
-
-      --AHB master interface
-      mst_HSEL      => mst_noc_HSEL,
-      mst_HADDR     => mst_noc_HADDR,
-      mst_HWDATA    => mst_noc_HWDATA,
-      mst_HRDATA    => mst_noc_HRDATA,
-      mst_HWRITE    => mst_noc_HWRITE,
-      mst_HSIZE     => mst_noc_HSIZE,
-      mst_HBURST    => mst_noc_HBURST,
-      mst_HPROT     => mst_noc_HPROT,
-      mst_HTRANS    => mst_noc_HTRANS,
-      mst_HMASTLOCK => mst_noc_HMASTLOCK,
-      mst_HREADYOUT => mst_noc_HREADYOUT,
-      mst_HRESP     => mst_noc_HRESP,
-
-      --AHB slave interface
-      slv_HSEL      => slv_noc_HSEL,
-      slv_HADDR     => slv_noc_HADDR,
-      slv_HWDATA    => slv_noc_HWDATA,
-      slv_HRDATA    => slv_noc_HRDATA,
-      slv_HWRITE    => slv_noc_HWRITE,
-      slv_HSIZE     => slv_noc_HSIZE,
-      slv_HBURST    => slv_noc_HBURST,
-      slv_HPROT     => slv_noc_HPROT,
-      slv_HTRANS    => slv_noc_HTRANS,
-      slv_HMASTLOCK => slv_noc_HMASTLOCK,
-      slv_HREADY    => slv_noc_HREADY,
-      slv_HRESP     => slv_noc_HRESP
-    );
-
-  --Instantiate RISC-V GPIO
-  gpio_bridge : riscv_bridge
-    generic map (
-      HADDR_SIZE => PLEN,
-      HDATA_SIZE => XLEN,
-      PADDR_SIZE => PADDR_SIZE,
-      PDATA_SIZE => PDATA_SIZE,
-      SYNC_DEPTH => SYNC_DEPTH
-    )
-    port map (
-      --AHB Slave Interface
-      HRESETn => HRESETn,
-      HCLK    => HCLK,
-
-      HSEL      => mst_gpio_HSEL,
-      HADDR     => mst_gpio_HADDR,
-      HWDATA    => mst_gpio_HWDATA,
-      HRDATA    => mst_gpio_HRDATA,
-      HWRITE    => mst_gpio_HWRITE,
-      HSIZE     => mst_gpio_HSIZE,
-      HBURST    => mst_gpio_HBURST,
-      HPROT     => mst_gpio_HPROT,
-      HTRANS    => mst_gpio_HTRANS,
-      HMASTLOCK => mst_gpio_HMASTLOCK,
-      HREADYOUT => mst_gpio_HREADYOUT,
-      HREADY    => mst_gpio_HREADY,
-      HRESP     => mst_gpio_HRESP,
-
-      --APB Master Interface
-      PRESETn => HRESETn,
-      PCLK    => HCLK,
-
-      PSEL    => gpio_PSEL,
-      PENABLE => gpio_PENABLE,
-      PPROT   => open,
-      PWRITE  => gpio_PWRITE,
-      PSTRB   => gpio_PSTRB,
-      PADDR   => gpio_PADDR,
-      PWDATA  => gpio_PWDATA,
-      PRDATA  => gpio_PRDATA,
-      PREADY  => gpio_PREADY,
-      PSLVERR => gpio_PSLVERR
-    );
-
-  gpio : riscv_gpio
-    port map (
-      PRESETn => HRESETn,
-      PCLK    => HCLK,
-
-      PSEL    => gpio_PSEL,
-      PENABLE => gpio_PENABLE,
-      PWRITE  => gpio_PWRITE,
-      PSTRB   => gpio_PSTRB,
-      PADDR   => gpio_PADDR,
-      PWDATA  => gpio_PWDATA,
-      PRDATA  => gpio_PRDATA,
-      PREADY  => gpio_PREADY,
-      PSLVERR => gpio_PSLVERR,
-
-      gpio_i  => gpio_i,
-      gpio_o  => gpio_o,
-      gpio_oe => gpio_oe
-    );
-
   --Instantiate RISC-V RAM
-  simd_mpram : riscv_simd_mpram
-    generic map (
-      MEM_SIZE          => 0,
-      MEM_DEPTH         => 256,
-      PLEN              => PLEN,
-      XLEN              => XLEN,
-      TECHNOLOGY        => TECHNOLOGY,
-      REGISTERED_OUTPUT => "NO"
-    )
-    port map (
-      --AHB Slave Interface
-      HRESETn => HRESETn,
-      HCLK    => HCLK,
+  --simd_mpram : mpsoc_simd_mpram
+    --generic map (
+      --MEM_SIZE          => 0,
+      --MEM_DEPTH         => 256,
+      --PLEN              => PLEN,
+      --XLEN              => XLEN,
+      --TECHNOLOGY        => TECHNOLOGY,
+      --REGISTERED_OUTPUT => "NO"
+    --)
+    --port map (
+      ----AHB Slave Interface
+      --HRESETn => HRESETn,
+      --HCLK    => HCLK,
 
-      HSEL      => mst_mram_HSEL,
-      HADDR     => mst_mram_HADDR,
-      HWDATA    => mst_mram_HWDATA,
-      HRDATA    => mst_mram_HRDATA,
-      HWRITE    => mst_mram_HWRITE,
-      HSIZE     => mst_mram_HSIZE,
-      HBURST    => mst_mram_HBURST,
-      HPROT     => mst_mram_HPROT,
-      HTRANS    => mst_mram_HTRANS,
-      HMASTLOCK => mst_mram_HMASTLOCK,
-      HREADYOUT => mst_mram_HREADYOUT,
-      HREADY    => mst_mram_HREADY,
-      HRESP     => mst_mram_HRESP
-    );
+      --HSEL      => mst_mram_HSEL,
+      --HADDR     => mst_mram_HADDR,
+      --HWDATA    => mst_mram_HWDATA,
+      --HRDATA    => mst_mram_HRDATA,
+      --HWRITE    => mst_mram_HWRITE,
+      --HSIZE     => mst_mram_HSIZE,
+      --HBURST    => mst_mram_HBURST,
+      --HPROT     => mst_mram_HPROT,
+      --HTRANS    => mst_mram_HTRANS,
+      --HMASTLOCK => mst_mram_HMASTLOCK,
+      --HREADYOUT => mst_mram_HREADYOUT,
+      --HREADY    => mst_mram_HREADY,
+      --HRESP     => mst_mram_HRESP
+    --);
 
-  spram : riscv_spram
-    generic map (
-      MEM_SIZE          => 0,
-      MEM_DEPTH         => 256,
-      PLEN              => PLEN,
-      XLEN              => XLEN,
-      TECHNOLOGY        => TECHNOLOGY,
-      REGISTERED_OUTPUT => "NO"
-    )
-    port map (
-      --AHB Slave Interface
-      HRESETn => HRESETn,
-      HCLK    => HCLK,
+  --Instantiate LNKs
+  --noc_mux_lnk1 : mpsoc_noc_mux
+    --generic map (
+      --FLIT_WIDTH => FLIT_WIDTH,
+      --CHANNELS   => CORES_PER_SIMD
+    --)
+    --port map (
+      --clk => HRESETn,
+      --rst => HCLK,
 
-      HSEL      => mst_sram_HSEL,
-      HADDR     => mst_sram_HADDR,
-      HWDATA    => mst_sram_HWDATA,
-      HRDATA    => mst_sram_HRDATA,
-      HWRITE    => mst_sram_HWRITE,
-      HSIZE     => mst_sram_HSIZE,
-      HBURST    => mst_sram_HBURST,
-      HPROT     => mst_sram_HPROT,
-      HTRANS    => mst_sram_HTRANS,
-      HMASTLOCK => mst_sram_HMASTLOCK,
-      HREADYOUT => mst_sram_HREADYOUT,
-      HREADY    => mst_sram_HREADY,
-      HRESP     => mst_sram_HRESP
-    );
+      --in_flit  => (others => (others => '1')),  --noc_output_flit
+      --in_last  => (others => '1'),              --noc_output_last
+      --in_valid => (others => '1'),              --noc_output_valid
+      --in_ready => open,                         --noc_output_ready
 
-  --Instantiate RISC-V Debug
-  generating_4 : for t in 0 to CORES_PER_SIMD - 1 generate
-    osd_ctm_template : riscv_osd_ctm_template
-      port map (
-        clk => HCLK,
-        rst => HRESETn,
+      --out_flit  => linked1_flit,
+      --out_last  => linked1_last,
+      --out_valid => linked1_valid,
+      --out_ready => linked1_ready
+    --);
 
-        id => (others => '0'),
+  --noc_demux_lnk0 : mpsoc_noc_demux
+    --generic map (
+      --FLIT_WIDTH => FLIT_WIDTH,
+      --CHANNELS   => CORES_PER_SIMD,
+      --MAPPING    => MAPPING
+    --)
+    --port map (
+      --clk => HRESETn,
+      --rst => HCLK,
 
-        debug_in_data   => dii_out_data(2*t),
-        debug_in_last   => dii_out_last(2*t),
-        debug_in_valid  => dii_out_valid(2*t),
-        debug_in_ready  => dii_out_ready(2*t),
-        debug_out_data  => dii_in_data(2*t),
-        debug_out_last  => dii_in_last(2*t),
-        debug_out_valid => dii_in_valid(2*t),
-        debug_out_ready => dii_in_ready(2*t),
+      --in_flit  => linked0_flit,
+      --in_last  => linked0_last,
+      --in_valid => linked0_valid,
+      --in_ready => linked0_ready,
 
-        trace_port_insn     => trace_port_insn(t),
-        trace_port_pc       => trace_port_pc(t),
-        trace_port_jb       => trace_port_jb(t),
-        trace_port_jal      => trace_port_jal(t),
-        trace_port_jr       => trace_port_jr(t),
-        trace_port_jbtarget => trace_port_jbtarget(t),
-        trace_port_valid    => trace_port_valid(t),
-        trace_port_data     => trace_port_data(t),
-        trace_port_addr     => trace_port_addr(t),
-        trace_port_we       => trace_port_we(t)
-      );
+      --out_flit  => open,            --noc_input_flit
+      --out_last  => open,            --noc_input_last
+      --out_valid => open,            --noc_input_valid
+      --out_ready => (others => '1')  --noc_input_ready
+    --);
 
-    osd_stm_template : riscv_osd_stm_template
-      port map (
-        clk => HCLK,
-        rst => HRESETn,
+  --noc_mux_lnk0 : mpsoc_noc_mux
+    --generic map (
+      --FLIT_WIDTH => FLIT_WIDTH,
+      --CHANNELS   => CHANNELS
+    --)
+    --port map (
+      --clk => HRESETn,
+      --rst => HCLK,
 
-        id => (others => '0'),
+      --in_flit  => noc_in_flit,
+      --in_last  => noc_in_last,
+      --in_valid => noc_in_valid,
+      --in_ready => noc_in_ready,
 
-        debug_in_data   => dii_out_data(2*t+1),
-        debug_in_last   => dii_out_last(2*t+1),
-        debug_in_valid  => dii_out_valid(2*t+1),
-        debug_in_ready  => dii_out_ready(2*t+1),
-        debug_out_data  => dii_in_data(2*t+1),
-        debug_out_last  => dii_in_last(2*t+1),
-        debug_out_valid => dii_in_valid(2*t+1),
-        debug_out_ready => dii_in_ready(2*t+1),
+      --out_flit  => linked0_flit,
+      --out_last  => linked0_last,
+      --out_valid => linked0_valid,
+      --out_ready => linked0_ready
+    --);
 
-        trace_port_insn     => trace_port_insn(t),
-        trace_port_pc       => trace_port_pc(t),
-        trace_port_jb       => trace_port_jb(t),
-        trace_port_jal      => trace_port_jal(t),
-        trace_port_jr       => trace_port_jr(t),
-        trace_port_jbtarget => trace_port_jbtarget(t),
-        trace_port_valid    => trace_port_valid(t),
-        trace_port_data     => trace_port_data(t),
-        trace_port_addr     => trace_port_addr(t),
-        trace_port_we       => trace_port_we(t)
-      );
-  end generate;
+  --noc_demux_lnk1 : mpsoc_noc_demux
+    --generic map (
+      --FLIT_WIDTH => FLIT_WIDTH,
+      --CHANNELS   => CHANNELS,
+      --MAPPING    => MAPPING
+    --)
+    --port map (
+      --clk => HRESETn,
+      --rst => HCLK,
+
+      --in_flit  => linked1_flit,
+      --in_last  => linked1_last,
+      --in_valid => linked1_valid,
+      --in_ready => linked1_ready,
+
+      --out_flit  => noc_out_flit,
+      --out_last  => noc_out_last,
+      --out_valid => noc_out_valid,
+      --out_ready => noc_out_ready
+    --);
 end RTL;

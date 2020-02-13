@@ -494,10 +494,10 @@ network security.
 │   ├── bench
 │   │   ├── verilog
 │   │   │   └── regression
-│   │   │       └── riscv_noc_mesh_testbench.sv
+│   │   │       └── riscv_noc_testbench.sv
 │   │   └── vhdl
 │   │       └── regression
-│   │           └── riscv_noc_mesh_testbench.vhd
+│   │           └── riscv_noc_testbench.vhd
 │   ├── doc
 │   │   └── MPSoC-NoC.txt
 │   ├── rtl
@@ -520,7 +520,7 @@ network security.
 │   │   │   │   ├── riscv_noc_router_output.sv
 │   │   │   │   └── riscv_noc_router.sv
 │   │   │   └── topology
-│   │   │       └── riscv_noc_mesh.sv
+│   │   │       └── riscv_noc.sv
 │   │   └── vhdl
 │   │       ├── arbiter
 │   │       │   └── riscv_arb_rr.vhd
@@ -540,7 +540,7 @@ network security.
 │   │       │   ├── riscv_noc_router_output.vhd
 │   │       │   └── riscv_noc_router.vhd
 │   │       └── topology
-│   │           └── riscv_noc_mesh.vhd
+│   │           └── riscv_noc.vhd
 │   ├── sim
 │   │   ├── mixed
 │   │   │   └── regression

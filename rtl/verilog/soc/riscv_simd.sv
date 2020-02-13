@@ -10,7 +10,7 @@
 //                                                                            //
 //                                                                            //
 //              MPSoC-RISCV CPU                                               //
-//              Single Instruction Multiple Data                              //
+//              Multiple Instruction Single Data                              //
 //              AMBA3 AHB-Lite Bus Interface                                  //
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
@@ -43,9 +43,9 @@
 `include "riscv_mpsoc_pkg.sv"
 
 module riscv_simd #(
-  parameter            XLEN               = 32,
-  parameter            PLEN               = XLEN,
-  parameter [XLEN-1:0] PC_INIT            = 'h200,
+  parameter            XLEN               = 64,
+  parameter            PLEN               = 64,
+  parameter [XLEN-1:0] PC_INIT            = 'h8000_0000,
   parameter            HAS_USER           = 0,
   parameter            HAS_SUPER          = 0,
   parameter            HAS_HYPER          = 0,
@@ -61,7 +61,7 @@ module riscv_simd #(
 
   parameter            BREAKPOINTS        = 8,  //Number of hardware breakpoints
 
-  parameter            PMA_CNT            = 16,
+  parameter            PMA_CNT            = 4,
   parameter            PMP_CNT            = 16, //Number of Physical Memory Protection entries
 
   parameter            BP_GLOBAL_BITS     = 2,
@@ -82,11 +82,11 @@ module riscv_simd #(
 
   parameter            TECHNOLOGY         = "GENERIC",
 
-  parameter            MNMIVEC_DEFAULT    = PC_INIT - 'h004,
-  parameter            MTVEC_DEFAULT      = PC_INIT - 'h040,
-  parameter            HTVEC_DEFAULT      = PC_INIT - 'h080,
-  parameter            STVEC_DEFAULT      = PC_INIT - 'h0C0,
-  parameter            UTVEC_DEFAULT      = PC_INIT - 'h100,
+  parameter [XLEN-1:0] MNMIVEC_DEFAULT    = PC_INIT - 'h004,
+  parameter [XLEN-1:0] MTVEC_DEFAULT      = PC_INIT - 'h040,
+  parameter [XLEN-1:0] HTVEC_DEFAULT      = PC_INIT - 'h080,
+  parameter [XLEN-1:0] STVEC_DEFAULT      = PC_INIT - 'h0C0,
+  parameter [XLEN-1:0] UTVEC_DEFAULT      = PC_INIT - 'h100,
 
   parameter            JEDEC_BANK            = 10,
   parameter            JEDEC_MANUFACTURER_ID = 'h6e,
@@ -95,39 +95,23 @@ module riscv_simd #(
 
   parameter            PARCEL_SIZE        = 32,
 
-  parameter            HADDR_SIZE         = PLEN,
-  parameter            HDATA_SIZE         = XLEN,
+  parameter            HADDR_SIZE         = XLEN,
+  parameter            HDATA_SIZE         = PLEN,
   parameter            PADDR_SIZE         = PLEN,
   parameter            PDATA_SIZE         = XLEN,
 
+  parameter            FLIT_WIDTH         = 34,
+
   parameter            SYNC_DEPTH         = 3,
 
-  parameter            BUFFER_DEPTH       = 4,
+  parameter            CORES_PER_SIMD     = 4,
 
-  parameter            CORES_PER_SIMD     = 8,
-
-  parameter            CHANNELS           = 2,
-
-  parameter            ROUTER_BUFFER_SIZE = 2,
-  parameter            REG_ADDR_WIDTH     = 2,
-  parameter            VALWIDTH           = 2,
-  parameter            MAX_PKT_LEN        = 2
+  parameter            CHANNELS           = 2
 )
   (
     //Common signals
     input                                          HRESETn,
     input                                          HCLK,
-
-    //Debug
-    input       [CHANNELS -1:0][HDATA_SIZE   -1:0] debug_ring_in_data,
-    input       [CHANNELS -1:0]                    debug_ring_in_last,
-    input       [CHANNELS -1:0]                    debug_ring_in_valid,
-    output      [CHANNELS -1:0]                    debug_ring_in_ready,
-
-    output      [CHANNELS -1:0][HDATA_SIZE   -1:0] debug_ring_out_data,
-    output      [CHANNELS -1:0]                    debug_ring_out_last,
-    output      [CHANNELS -1:0]                    debug_ring_out_valid,
-    input       [CHANNELS -1:0]                    debug_ring_out_ready,
 
     //PMA configuration
     input logic [PMA_CNT  -1:0][             13:0] pma_cfg_i,
@@ -135,14 +119,14 @@ module riscv_simd #(
 
     //AHB instruction
     output                                         ins_HSEL,
-    output      [PLEN                        -1:0] ins_HADDR,
-    output      [XLEN                        -1:0] ins_HWDATA,
-    input       [XLEN                        -1:0] ins_HRDATA,
+    output                          [PLEN    -1:0] ins_HADDR,
+    output                          [XLEN    -1:0] ins_HWDATA,
+    input                           [XLEN    -1:0] ins_HRDATA,
     output                                         ins_HWRITE,
-    output      [                             2:0] ins_HSIZE,
-    output      [                             2:0] ins_HBURST,
-    output      [                             3:0] ins_HPROT,
-    output      [                             1:0] ins_HTRANS,
+    output                          [         2:0] ins_HSIZE,
+    output                          [         2:0] ins_HBURST,
+    output                          [         3:0] ins_HPROT,
+    output                          [         1:0] ins_HTRANS,
     output                                         ins_HMASTLOCK,
     input                                          ins_HREADY,
     input                                          ins_HRESP,
@@ -178,25 +162,40 @@ module riscv_simd #(
     output      [CORES_PER_SIMD-1:0]               dbg_bp,
 
     //GPIO Interface
-    input       [PDATA_SIZE                  -1:0] gpio_i,
-    output reg  [PDATA_SIZE                  -1:0] gpio_o,
-    output reg  [PDATA_SIZE                  -1:0] gpio_oe,
+    input       [CORES_PER_SIMD-1:0][PDATA_SIZE-1:0] gpio_i,
+    output reg  [CORES_PER_SIMD-1:0][PDATA_SIZE-1:0] gpio_o,
+    output reg  [CORES_PER_SIMD-1:0][PDATA_SIZE-1:0] gpio_oe,
 
     //NoC Interface
-    input       [CHANNELS -1:0][HADDR_SIZE   -1:0] noc_in_flit,
-    input       [CHANNELS -1:0]                    noc_in_last,
-    input       [CHANNELS -1:0]                    noc_in_valid,
-    output      [CHANNELS -1:0]                    noc_in_ready,
-    output      [CHANNELS -1:0][HADDR_SIZE   -1:0] noc_out_flit,
-    output      [CHANNELS -1:0]                    noc_out_last,
-    output      [CHANNELS -1:0]                    noc_out_valid,
-    input       [CHANNELS -1:0]                    noc_out_ready
+    input       [CHANNELS -1:0][FLIT_WIDTH-1:0] noc_in_flit,
+    input       [CHANNELS -1:0]                 noc_in_last,
+    input       [CHANNELS -1:0]                 noc_in_valid,
+    output      [CHANNELS -1:0]                 noc_in_ready,
+
+    output      [CHANNELS -1:0][FLIT_WIDTH-1:0] noc_out_flit,
+    output      [CHANNELS -1:0]                 noc_out_last,
+    output      [CHANNELS -1:0]                 noc_out_valid,
+    input       [CHANNELS -1:0]                 noc_out_ready
   );
 
   //////////////////////////////////////////////////////////////////
   //
   // Constants
   //
+  parameter MASTERS = 5;
+  parameter SLAVES  = 5;
+
+  parameter ADDR_WIDTH = 32;
+  parameter DATA_WIDTH = 32;
+
+  parameter APB_ADDR_WIDTH = 12;
+  parameter APB_DATA_WIDTH = 32;
+
+  parameter TABLE_ENTRIES = 4;
+  parameter TABLE_ENTRIES_PTRWIDTH = $clog2(4);
+  parameter TILEID = 0;
+  parameter NOC_PACKET_SIZE = 16;
+  parameter GENERATE_INTERRUPT = 1;
 
   localparam SIMD_BITS = $clog2(CORES_PER_SIMD);
 
@@ -211,7 +210,7 @@ module riscv_simd #(
   endfunction //onehot2int
 
   function [2:0] highest_requested_priority (
-    input [CORES_PER_SIMD-1:0] hsel
+    input [CORES_PER_SIMD-1:0] hsel       
   );
     logic [CORES_PER_SIMD-1:0][2:0] priorities;
     integer n;
@@ -260,57 +259,168 @@ module riscv_simd #(
 
   genvar t;
 
-  //AHB Bus Master Interfaces
-  wire                        mst_noc_HSEL;
-  wire  [PLEN           -1:0] mst_noc_HADDR;
-  wire  [XLEN           -1:0] mst_noc_HWDATA;
-  wire  [XLEN           -1:0] mst_noc_HRDATA;
-  wire                        mst_noc_HWRITE;
-  wire  [                2:0] mst_noc_HSIZE;
-  wire  [                2:0] mst_noc_HBURST;
-  wire  [                3:0] mst_noc_HPROT;
-  wire  [                1:0] mst_noc_HTRANS;
-  wire                        mst_noc_HMASTLOCK;
-  wire                        mst_noc_HREADYOUT;
-  wire                        mst_noc_HRESP;
+  // DMA
+  logic [CORES_PER_SIMD-1:0][FLIT_WIDTH -1:0] noc_ahb3_in_req_flit;
+  logic [CORES_PER_SIMD-1:0]                  noc_ahb3_in_req_valid;
+  logic [CORES_PER_SIMD-1:0]                  noc_ahb3_in_req_ready;
 
-  wire                        mst_gpio_HSEL;
-  wire  [PLEN           -1:0] mst_gpio_HADDR;
-  wire  [XLEN           -1:0] mst_gpio_HWDATA;
-  wire  [XLEN           -1:0] mst_gpio_HRDATA;
-  wire  [PDATA_SIZE/8   -1:0] mst_gpio_HWRITE;
-  wire  [                2:0] mst_gpio_HSIZE;
-  wire  [                2:0] mst_gpio_HBURST;
-  wire  [                3:0] mst_gpio_HPROT;
-  wire  [                1:0] mst_gpio_HTRANS;
-  wire                        mst_gpio_HMASTLOCK;
-  wire                        mst_gpio_HREADY;
-  wire                        mst_gpio_HREADYOUT;
-  wire                        mst_gpio_HRESP;
+  logic [CORES_PER_SIMD-1:0][FLIT_WIDTH -1:0] noc_ahb3_in_res_flit;
+  logic [CORES_PER_SIMD-1:0]                  noc_ahb3_in_res_valid;
+  logic [CORES_PER_SIMD-1:0]                  noc_ahb3_in_res_ready;
 
-  wire                        gpio_PSEL;
-  wire                        gpio_PENABLE;
-  wire  [PDATA_SIZE/8   -1:0] gpio_PWRITE;
-  wire  [PDATA_SIZE/8   -1:0] gpio_PSTRB;
-  wire  [PADDR_SIZE     -1:0] gpio_PADDR;
-  wire  [PDATA_SIZE     -1:0] gpio_PWDATA;
-  wire  [PDATA_SIZE     -1:0] gpio_PRDATA;
-  wire                        gpio_PREADY;
-  wire                        gpio_PSLVERR;
+  logic [CORES_PER_SIMD-1:0][FLIT_WIDTH -1:0] noc_ahb3_out_req_flit;
+  logic [CORES_PER_SIMD-1:0]                  noc_ahb3_out_req_valid;
+  logic [CORES_PER_SIMD-1:0]                  noc_ahb3_out_req_ready;
 
-  wire                        mst_sram_HSEL;
-  wire  [PLEN           -1:0] mst_sram_HADDR;
-  wire  [XLEN           -1:0] mst_sram_HWDATA;
-  wire  [XLEN           -1:0] mst_sram_HRDATA;
-  wire                        mst_sram_HWRITE;
-  wire  [                2:0] mst_sram_HSIZE;
-  wire  [                2:0] mst_sram_HBURST;
-  wire  [                3:0] mst_sram_HPROT;
-  wire  [                1:0] mst_sram_HTRANS;
-  wire                        mst_sram_HMASTLOCK;
-  wire                        mst_sram_HREADY;
-  wire                        mst_sram_HREADYOUT;
-  wire                        mst_sram_HRESP;
+  logic [CORES_PER_SIMD-1:0][FLIT_WIDTH -1:0] noc_ahb3_out_res_flit;
+  logic [CORES_PER_SIMD-1:0]                  noc_ahb3_out_res_valid;
+  logic [CORES_PER_SIMD-1:0]                  noc_ahb3_out_res_ready;
+
+  logic [CORES_PER_SIMD-1:0]                  ahb3_if_hsel;
+  logic [CORES_PER_SIMD-1:0][ADDR_WIDTH -1:0] ahb3_if_haddr;
+  logic [CORES_PER_SIMD-1:0][DATA_WIDTH -1:0] ahb3_if_hrdata;
+  logic [CORES_PER_SIMD-1:0][DATA_WIDTH -1:0] ahb3_if_hwdata;
+  logic [CORES_PER_SIMD-1:0]                  ahb3_if_hwrite;
+  logic [CORES_PER_SIMD-1:0]                  ahb3_if_hmastlock;
+  logic [CORES_PER_SIMD-1:0]                  ahb3_if_hready;
+  logic [CORES_PER_SIMD-1:0]                  ahb3_if_hresp;
+
+  logic [CORES_PER_SIMD-1:0]                  ahb3_hsel;
+  logic [CORES_PER_SIMD-1:0][ADDR_WIDTH -1:0] ahb3_haddr;
+  logic [CORES_PER_SIMD-1:0][DATA_WIDTH -1:0] ahb3_hwdata;
+  logic [CORES_PER_SIMD-1:0][DATA_WIDTH -1:0] ahb3_hrdata;
+  logic [CORES_PER_SIMD-1:0]                  ahb3_hwrite;
+  logic [CORES_PER_SIMD-1:0][            2:0] ahb3_hsize;
+  logic [CORES_PER_SIMD-1:0][            2:0] ahb3_hburst;
+  logic [CORES_PER_SIMD-1:0][            3:0] ahb3_hprot;
+  logic [CORES_PER_SIMD-1:0][            1:0] ahb3_htrans;
+  logic [CORES_PER_SIMD-1:0]                  ahb3_hmastlock;
+  logic [CORES_PER_SIMD-1:0]                  ahb3_hready;
+
+  logic [CORES_PER_SIMD-1:0][TABLE_ENTRIES-1:0] irq_ahb3;
+
+  logic [CORES_PER_SIMD-1:0][FLIT_WIDTH -1:0] mux_flit;
+  logic [CORES_PER_SIMD-1:0]                  mux_last;
+  logic [CORES_PER_SIMD-1:0]                  mux_valid;
+  logic [CORES_PER_SIMD-1:0]                  mux_ready;
+
+  logic [CORES_PER_SIMD-1:0][FLIT_WIDTH -1:0] demux_flit;
+  logic [CORES_PER_SIMD-1:0]                  demux_last;
+  logic [CORES_PER_SIMD-1:0]                  demux_valid;
+  logic [CORES_PER_SIMD-1:0]                  demux_ready;
+
+  // Connections DMA
+  logic [CORES_PER_SIMD-1:0][CHANNELS-1:0][FLIT_WIDTH -1:0] noc_ahb3_in_flit;
+  logic [CORES_PER_SIMD-1:0][CHANNELS-1:0]                  noc_ahb3_in_valid;
+  logic [CORES_PER_SIMD-1:0][CHANNELS-1:0]                  noc_ahb3_in_ready;
+
+  logic [CORES_PER_SIMD-1:0][CHANNELS-1:0][FLIT_WIDTH -1:0] noc_ahb3_out_flit;
+  logic [CORES_PER_SIMD-1:0][CHANNELS-1:0]                  noc_ahb3_out_valid;
+  logic [CORES_PER_SIMD-1:0][CHANNELS-1:0]                  noc_ahb3_out_ready;
+
+  // Connections SIMD
+  logic [CORES_PER_SIMD-1:0][FLIT_WIDTH -1:0] noc_input_flit;
+  logic [CORES_PER_SIMD-1:0]                  noc_input_last;
+  logic [CORES_PER_SIMD-1:0]                  noc_input_valid;
+  logic [CORES_PER_SIMD-1:0]                  noc_input_ready;
+
+  logic [CORES_PER_SIMD-1:0][FLIT_WIDTH -1:0] noc_output_flit;
+  logic [CORES_PER_SIMD-1:0]                  noc_output_last;
+  logic [CORES_PER_SIMD-1:0]                  noc_output_valid;
+  logic [CORES_PER_SIMD-1:0]                  noc_output_ready;
+
+  // Connections LNKs
+  logic [FLIT_WIDTH -1:0] linked0_flit;
+  logic                   linked0_last;
+  logic                   linked0_valid;
+  logic                   linked0_ready;
+
+  logic [FLIT_WIDTH -1:0] linked1_flit;
+  logic                   linked1_last;
+  logic                   linked1_valid;
+  logic                   linked1_ready;
+
+  // MSI
+  wire  [CORES_PER_SIMD-1:0][MASTERS-1:0]                      mst_HSEL;
+  wire  [CORES_PER_SIMD-1:0][MASTERS-1:0][PLEN           -1:0] mst_HADDR;
+  wire  [CORES_PER_SIMD-1:0][MASTERS-1:0][XLEN           -1:0] mst_HWDATA;
+  wire  [CORES_PER_SIMD-1:0][MASTERS-1:0][XLEN           -1:0] mst_HRDATA;
+  wire  [CORES_PER_SIMD-1:0][MASTERS-1:0]                      mst_HWRITE;
+  wire  [CORES_PER_SIMD-1:0][MASTERS-1:0][                2:0] mst_HSIZE;
+  wire  [CORES_PER_SIMD-1:0][MASTERS-1:0][                2:0] mst_HBURST;
+  wire  [CORES_PER_SIMD-1:0][MASTERS-1:0][                3:0] mst_HPROT;
+  wire  [CORES_PER_SIMD-1:0][MASTERS-1:0][                1:0] mst_HTRANS;
+  wire  [CORES_PER_SIMD-1:0][MASTERS-1:0]                      mst_HMASTLOCK;
+  wire  [CORES_PER_SIMD-1:0][MASTERS-1:0]                      mst_HREADY;
+  wire  [CORES_PER_SIMD-1:0][MASTERS-1:0]                      mst_HREADYOUT;
+  wire  [CORES_PER_SIMD-1:0][MASTERS-1:0]                      mst_HRESP;
+
+  wire  [CORES_PER_SIMD-1:0][SLAVES -1:0]                      slv_HSEL;
+  wire  [CORES_PER_SIMD-1:0][SLAVES -1:0][PLEN           -1:0] slv_HADDR;
+  wire  [CORES_PER_SIMD-1:0][SLAVES -1:0][XLEN           -1:0] slv_HWDATA;
+  wire  [CORES_PER_SIMD-1:0][SLAVES -1:0][XLEN           -1:0] slv_HRDATA;
+  wire  [CORES_PER_SIMD-1:0][SLAVES -1:0]                      slv_HWRITE;
+  wire  [CORES_PER_SIMD-1:0][SLAVES -1:0][                2:0] slv_HSIZE;
+  wire  [CORES_PER_SIMD-1:0][SLAVES -1:0][                2:0] slv_HBURST;
+  wire  [CORES_PER_SIMD-1:0][SLAVES -1:0][                3:0] slv_HPROT;
+  wire  [CORES_PER_SIMD-1:0][SLAVES -1:0][                1:0] slv_HTRANS;
+  wire  [CORES_PER_SIMD-1:0][SLAVES -1:0]                      slv_HMASTLOCK;
+  wire  [CORES_PER_SIMD-1:0][SLAVES -1:0]                      slv_HREADY;
+  wire  [CORES_PER_SIMD-1:0][SLAVES -1:0]                      slv_HRESP;
+
+  // GPIO
+  wire  [CORES_PER_SIMD-1:0]                      mst_gpio_HSEL;
+  wire  [CORES_PER_SIMD-1:0][PLEN           -1:0] mst_gpio_HADDR;
+  wire  [CORES_PER_SIMD-1:0][XLEN           -1:0] mst_gpio_HWDATA;
+  wire  [CORES_PER_SIMD-1:0][XLEN           -1:0] mst_gpio_HRDATA;
+  wire  [CORES_PER_SIMD-1:0]                      mst_gpio_HWRITE;
+  wire  [CORES_PER_SIMD-1:0][                2:0] mst_gpio_HSIZE;
+  wire  [CORES_PER_SIMD-1:0][                2:0] mst_gpio_HBURST;
+  wire  [CORES_PER_SIMD-1:0][                3:0] mst_gpio_HPROT;
+  wire  [CORES_PER_SIMD-1:0][                1:0] mst_gpio_HTRANS;
+  wire  [CORES_PER_SIMD-1:0]                      mst_gpio_HMASTLOCK;
+  wire  [CORES_PER_SIMD-1:0]                      mst_gpio_HREADY;
+  wire  [CORES_PER_SIMD-1:0]                      mst_gpio_HREADYOUT;
+  wire  [CORES_PER_SIMD-1:0]                      mst_gpio_HRESP;
+
+  wire  [CORES_PER_SIMD-1:0]                      gpio_PSEL;
+  wire  [CORES_PER_SIMD-1:0]                      gpio_PENABLE;
+  wire  [CORES_PER_SIMD-1:0]                      gpio_PWRITE;
+  wire  [CORES_PER_SIMD-1:0]                      gpio_PSTRB;
+  wire  [CORES_PER_SIMD-1:0][PADDR_SIZE     -1:0] gpio_PADDR;
+  wire  [CORES_PER_SIMD-1:0][PDATA_SIZE     -1:0] gpio_PWDATA;
+  wire  [CORES_PER_SIMD-1:0][PDATA_SIZE     -1:0] gpio_PRDATA;
+  wire  [CORES_PER_SIMD-1:0]                      gpio_PREADY;
+  wire  [CORES_PER_SIMD-1:0]                      gpio_PSLVERR;
+
+  logic [CORES_PER_SIMD-1:0]                      uart_PSEL;
+  logic [CORES_PER_SIMD-1:0]                      uart_PENABLE;
+  logic [CORES_PER_SIMD-1:0]                      uart_PWRITE;
+  logic [CORES_PER_SIMD-1:0][APB_ADDR_WIDTH -1:0] uart_PADDR;
+  logic [CORES_PER_SIMD-1:0][APB_DATA_WIDTH -1:0] uart_PWDATA;
+  logic [CORES_PER_SIMD-1:0][APB_DATA_WIDTH -1:0] uart_PRDATA;
+  logic [CORES_PER_SIMD-1:0]                      uart_PREADY;
+  logic [CORES_PER_SIMD-1:0]                      uart_PSLVERR;
+
+  logic [CORES_PER_SIMD-1:0]                      uart_rx_i;  // Receiver input
+  logic [CORES_PER_SIMD-1:0]                      uart_tx_o;  // Transmitter output
+
+  logic [CORES_PER_SIMD-1:0]                      uart_event_o;
+
+  // RAM
+  wire  [CORES_PER_SIMD-1:0]                      mst_sram_HSEL;
+  wire  [CORES_PER_SIMD-1:0][PLEN           -1:0] mst_sram_HADDR;
+  wire  [CORES_PER_SIMD-1:0][XLEN           -1:0] mst_sram_HWDATA;
+  wire  [CORES_PER_SIMD-1:0][XLEN           -1:0] mst_sram_HRDATA;
+  wire  [CORES_PER_SIMD-1:0]                      mst_sram_HWRITE;
+  wire  [CORES_PER_SIMD-1:0][                2:0] mst_sram_HSIZE;
+  wire  [CORES_PER_SIMD-1:0][                2:0] mst_sram_HBURST;
+  wire  [CORES_PER_SIMD-1:0][                3:0] mst_sram_HPROT;
+  wire  [CORES_PER_SIMD-1:0][                1:0] mst_sram_HTRANS;
+  wire  [CORES_PER_SIMD-1:0]                      mst_sram_HMASTLOCK;
+  wire  [CORES_PER_SIMD-1:0]                      mst_sram_HREADY;
+  wire  [CORES_PER_SIMD-1:0]                      mst_sram_HREADYOUT;
+  wire  [CORES_PER_SIMD-1:0]                      mst_sram_HRESP;
 
   wire  [CORES_PER_SIMD-1:0]                      mst_mram_HSEL;
   wire  [CORES_PER_SIMD-1:0][PLEN           -1:0] mst_mram_HADDR;
@@ -326,48 +436,7 @@ module riscv_simd #(
   wire  [CORES_PER_SIMD-1:0]                      mst_mram_HREADYOUT;
   wire  [CORES_PER_SIMD-1:0]                      mst_mram_HRESP;
 
-  wire  [2:0]                      mst_HSEL;
-  wire  [2:0][PLEN           -1:0] mst_HADDR;
-  wire  [2:0][XLEN           -1:0] mst_HWDATA;
-  wire  [2:0][XLEN           -1:0] mst_HRDATA;
-  wire  [2:0]                      mst_HWRITE;
-  wire  [2:0][                2:0] mst_HSIZE;
-  wire  [2:0][                2:0] mst_HBURST;
-  wire  [2:0][                3:0] mst_HPROT;
-  wire  [2:0][                1:0] mst_HTRANS;
-  wire  [2:0]                      mst_HMASTLOCK;
-  wire  [2:0]                      mst_HREADY;
-  wire  [2:0]                      mst_HREADYOUT;
-  wire  [2:0]                      mst_HRESP;
-
-  //AHB Bus Slaves Interfaces
-  wire  [CORES_PER_SIMD-1:0]                      out_ins_HSEL;
-  wire  [CORES_PER_SIMD-1:0][PLEN           -1:0] out_ins_HADDR;
-  wire  [CORES_PER_SIMD-1:0][XLEN           -1:0] out_ins_HWDATA;
-  wire  [CORES_PER_SIMD-1:0][XLEN           -1:0] out_ins_HRDATA;
-  wire  [CORES_PER_SIMD-1:0]                      out_ins_HWRITE;
-  wire  [CORES_PER_SIMD-1:0][                2:0] out_ins_HSIZE;
-  wire  [CORES_PER_SIMD-1:0][                2:0] out_ins_HBURST;
-  wire  [CORES_PER_SIMD-1:0][                3:0] out_ins_HPROT;
-  wire  [CORES_PER_SIMD-1:0][                1:0] out_ins_HTRANS;
-  wire  [CORES_PER_SIMD-1:0]                      out_ins_HMASTLOCK;
-  wire  [CORES_PER_SIMD-1:0]                      out_ins_HREADY;
-  wire  [CORES_PER_SIMD-1:0]                      out_ins_HRESP;
-
-  wire  [CORES_PER_SIMD-1:0]                      out_dat_HSEL;
-  wire  [CORES_PER_SIMD-1:0][PLEN           -1:0] out_dat_HADDR;
-  wire  [CORES_PER_SIMD-1:0][XLEN           -1:0] out_dat_HWDATA;
-  wire  [CORES_PER_SIMD-1:0][XLEN           -1:0] out_dat_HRDATA;
-  wire  [CORES_PER_SIMD-1:0]                      out_dat_HWRITE;
-  wire  [CORES_PER_SIMD-1:0][                2:0] out_dat_HSIZE;
-  wire  [CORES_PER_SIMD-1:0][                2:0] out_dat_HBURST;
-  wire  [CORES_PER_SIMD-1:0][                3:0] out_dat_HPROT;
-  wire  [CORES_PER_SIMD-1:0][                1:0] out_dat_HTRANS;
-  wire  [CORES_PER_SIMD-1:0]                      out_dat_HMASTLOCK;
-  wire  [CORES_PER_SIMD-1:0]                      out_dat_HREADY;
-  wire  [CORES_PER_SIMD-1:0]                      out_dat_HREADYOUT;
-  wire  [CORES_PER_SIMD-1:0]                      out_dat_HRESP;
-
+  // PU
   wire  [CORES_PER_SIMD-1:0]                      bus_ins_HSEL;
   wire  [CORES_PER_SIMD-1:0][PLEN           -1:0] bus_ins_HADDR;
   wire  [CORES_PER_SIMD-1:0][XLEN           -1:0] bus_ins_HWDATA;
@@ -380,32 +449,6 @@ module riscv_simd #(
   wire  [CORES_PER_SIMD-1:0]                      bus_ins_HMASTLOCK;
   wire  [CORES_PER_SIMD-1:0]                      bus_ins_HREADY;
   wire  [CORES_PER_SIMD-1:0]                      bus_ins_HRESP;
-
-  wire                        slv_noc_HSEL;
-  wire  [PLEN           -1:0] slv_noc_HADDR;
-  wire  [XLEN           -1:0] slv_noc_HWDATA;
-  wire  [XLEN           -1:0] slv_noc_HRDATA;
-  wire                        slv_noc_HWRITE;
-  wire  [                2:0] slv_noc_HSIZE;
-  wire  [                2:0] slv_noc_HBURST;
-  wire  [                3:0] slv_noc_HPROT;
-  wire  [                1:0] slv_noc_HTRANS;
-  wire                        slv_noc_HMASTLOCK;
-  wire                        slv_noc_HREADY;
-  wire                        slv_noc_HRESP;
-
-  wire  [CORES_PER_SIMD:0]                      slv_HSEL;
-  wire  [CORES_PER_SIMD:0][PLEN           -1:0] slv_HADDR;
-  wire  [CORES_PER_SIMD:0][XLEN           -1:0] slv_HWDATA;
-  wire  [CORES_PER_SIMD:0][XLEN           -1:0] slv_HRDATA;
-  wire  [CORES_PER_SIMD:0]                      slv_HWRITE;
-  wire  [CORES_PER_SIMD:0][                2:0] slv_HSIZE;
-  wire  [CORES_PER_SIMD:0][                2:0] slv_HBURST;
-  wire  [CORES_PER_SIMD:0][                3:0] slv_HPROT;
-  wire  [CORES_PER_SIMD:0][                1:0] slv_HTRANS;
-  wire  [CORES_PER_SIMD:0]                      slv_HMASTLOCK;
-  wire  [CORES_PER_SIMD:0]                      slv_HREADY;
-  wire  [CORES_PER_SIMD:0]                      slv_HRESP;
 
   logic [                2:0] requested_priority_lvl;        //requested priority level
   logic [CORES_PER_SIMD -1:0] priority_simd_masters;         //all masters at this priority level
@@ -420,27 +463,6 @@ module riscv_simd #(
 
   logic [CORES_PER_SIMD -1:0] granted_simd_master;
 
-  logic [2*CORES_PER_SIMD-1:0][XLEN -1:0] dii_in_data;
-  logic [2*CORES_PER_SIMD-1:0]            dii_in_last;
-  logic [2*CORES_PER_SIMD-1:0]            dii_in_valid;
-  logic [2*CORES_PER_SIMD-1:0]            dii_in_ready;
-
-  logic [2*CORES_PER_SIMD-1:0][XLEN -1:0] dii_out_data;
-  logic [2*CORES_PER_SIMD-1:0]            dii_out_last;
-  logic [2*CORES_PER_SIMD-1:0]            dii_out_valid;
-  logic [2*CORES_PER_SIMD-1:0]            dii_out_ready;
-
-  logic [CORES_PER_SIMD-1:0][XLEN    -1:0] trace_port_insn;
-  logic [CORES_PER_SIMD-1:0][XLEN    -1:0] trace_port_pc;
-  logic [CORES_PER_SIMD-1:0]               trace_port_jb;
-  logic [CORES_PER_SIMD-1:0]               trace_port_jal;
-  logic [CORES_PER_SIMD-1:0]               trace_port_jr;
-  logic [CORES_PER_SIMD-1:0][XLEN    -1:0] trace_port_jbtarget;
-  logic [CORES_PER_SIMD-1:0]               trace_port_valid;
-  logic [CORES_PER_SIMD-1:0][VALWIDTH-1:0] trace_port_data;
-  logic [CORES_PER_SIMD-1:0][         4:0] trace_port_addr;
-  logic [CORES_PER_SIMD-1:0]               trace_port_we;
-
   ////////////////////////////////////////////////////////////////
   //
   // Module Body
@@ -449,6 +471,7 @@ module riscv_simd #(
   //Instantiate RISC-V PU
   generate
     for (t=0; t < CORES_PER_SIMD; t=t+1) begin
+      //Instantiate RISC-V PU
       riscv_pu #(
         .XLEN                  ( XLEN ),
         .PLEN                  ( PLEN ),
@@ -505,7 +528,7 @@ module riscv_simd #(
       pu (
         //Common signals
         .HRESETn       ( HRESETn ),
-        .HCLK          ( HCLK ),
+        .HCLK          ( HCLK    ),
 
         //PMA configuration
         .pma_cfg_i     ( pma_cfg_i ),
@@ -555,6 +578,426 @@ module riscv_simd #(
         .dbg_ack       ( dbg_ack           [t] ),
         .dbg_bp        ( dbg_bp            [t] )
       );
+
+      mpsoc_msi_interface #(
+        .PLEN    ( PLEN    ),
+        .XLEN    ( XLEN    ),
+        .MASTERS ( MASTERS ),
+        .SLAVES  ( SLAVES  )
+      )
+      peripheral_interface (
+        //Common signals
+        .HRESETn       ( HRESETn ),
+        .HCLK          ( HCLK    ),
+
+        //Master Ports; AHB masters connect to these
+        //thus these are actually AHB Slave Interfaces
+        .mst_priority  (                   ),
+
+        .mst_HSEL      ( mst_HSEL      [t] ),
+        .mst_HADDR     ( mst_HADDR     [t] ),
+        .mst_HWDATA    ( mst_HWDATA    [t] ),
+        .mst_HRDATA    ( mst_HRDATA    [t] ),
+        .mst_HWRITE    ( mst_HWRITE    [t] ),
+        .mst_HSIZE     ( mst_HSIZE     [t] ),
+        .mst_HBURST    ( mst_HBURST    [t] ),
+        .mst_HPROT     ( mst_HPROT     [t] ),
+        .mst_HTRANS    ( mst_HTRANS    [t] ),
+        .mst_HMASTLOCK ( mst_HMASTLOCK [t] ),
+        .mst_HREADYOUT ( mst_HREADYOUT [t] ),
+        .mst_HREADY    ( mst_HREADY    [t] ),
+        .mst_HRESP     ( mst_HRESP     [t] ),
+
+        //Slave Ports; AHB Slaves connect to these
+        //thus these are actually AHB Master Interfaces
+        .slv_addr_mask (                   ),
+        .slv_addr_base (                   ),
+
+        .slv_HSEL      ( slv_HSEL      [t] ),
+        .slv_HADDR     ( slv_HADDR     [t] ),
+        .slv_HWDATA    ( slv_HWDATA    [t] ),
+        .slv_HRDATA    ( slv_HRDATA    [t] ),
+        .slv_HWRITE    ( slv_HWRITE    [t] ),
+        .slv_HSIZE     ( slv_HSIZE     [t] ),
+        .slv_HBURST    ( slv_HBURST    [t] ),
+        .slv_HPROT     ( slv_HPROT     [t] ),
+        .slv_HTRANS    ( slv_HTRANS    [t] ),
+        .slv_HMASTLOCK ( slv_HMASTLOCK [t] ),
+        .slv_HREADYOUT (                   ),
+        .slv_HREADY    ( slv_HREADY    [t] ),
+        .slv_HRESP     ( slv_HRESP     [t] )
+      );
+
+      //Instantiate RISC-V DMA
+      mpsoc_dma_ahb3_top #(
+        .ADDR_WIDTH ( ADDR_WIDTH ),
+        .DATA_WIDTH ( DATA_WIDTH ),
+
+        .TABLE_ENTRIES          ( TABLE_ENTRIES          ),
+        .TABLE_ENTRIES_PTRWIDTH ( TABLE_ENTRIES_PTRWIDTH ),
+        .TILEID                 ( TILEID                 ),
+        .NOC_PACKET_SIZE        ( NOC_PACKET_SIZE        ),
+        .GENERATE_INTERRUPT     ( GENERATE_INTERRUPT     )
+      )
+      ahb3_top (
+        .clk ( HCLK    ),
+        .rst ( HRESETn ),
+
+        .noc_in_req_flit  ( noc_ahb3_in_req_flit  [t] ),
+        .noc_in_req_valid ( noc_ahb3_in_req_valid [t] ),
+        .noc_in_req_ready ( noc_ahb3_in_req_ready [t] ),
+
+        .noc_in_res_flit  ( noc_ahb3_in_res_flit  [t] ),
+        .noc_in_res_valid ( noc_ahb3_in_res_valid [t] ),
+        .noc_in_res_ready ( noc_ahb3_in_res_ready [t] ),
+
+        .noc_out_req_flit  ( noc_ahb3_out_req_flit  [t] ),
+        .noc_out_req_valid ( noc_ahb3_out_req_valid [t] ),
+        .noc_out_req_ready ( noc_ahb3_out_req_ready [t] ),
+
+        .noc_out_res_flit  ( noc_ahb3_out_res_flit  [t] ),
+        .noc_out_res_valid ( noc_ahb3_out_res_valid [t] ),
+        .noc_out_res_ready ( noc_ahb3_out_res_ready [t] ),
+
+        .ahb3_if_haddr     ( ahb3_if_haddr     [t] ),
+        .ahb3_if_hrdata    ( ahb3_if_hrdata    [t] ),
+        .ahb3_if_hmastlock ( ahb3_if_hmastlock [t] ),
+        .ahb3_if_hsel      ( ahb3_if_hsel      [t] ),
+        .ahb3_if_hwrite    ( ahb3_if_hwrite    [t] ),
+        .ahb3_if_hwdata    ( ahb3_if_hwdata    [t] ),
+        .ahb3_if_hready    ( ahb3_if_hready    [t] ),
+        .ahb3_if_hresp     ( ahb3_if_hresp     [t] ),
+
+        .ahb3_haddr     ( ahb3_haddr     [t] ),
+        .ahb3_hwdata    ( ahb3_hwdata    [t] ),
+        .ahb3_hmastlock ( ahb3_hmastlock [t] ),
+        .ahb3_hsel      ( ahb3_hsel      [t] ),
+        .ahb3_hprot     ( ahb3_hprot     [t] ),
+        .ahb3_hwrite    ( ahb3_hwrite    [t] ),
+        .ahb3_hsize     ( ahb3_hsize     [t] ),
+        .ahb3_hburst    ( ahb3_hburst    [t] ),
+        .ahb3_htrans    ( ahb3_htrans    [t] ),
+        .ahb3_hrdata    ( ahb3_hrdata    [t] ),
+        .ahb3_hready    ( ahb3_hready    [t] ),
+
+        .irq ( irq_ahb3 [t] )
+      );
+
+      mpsoc_noc_buffer #(
+        .FLIT_WIDTH ( FLIT_WIDTH ),
+        .DEPTH      ()
+      )
+      mux_noc_buffer (
+       .clk          ( HRESETn ),
+       .rst          ( HCLK    ),
+
+        .in_flit     ( mux_flit  [t] ),
+        .in_last     ( mux_last  [t] ),
+        .in_valid    ( mux_valid [t] ),
+        .in_ready    ( mux_ready [t] ),
+
+        .out_flit    ( noc_output_flit  [t] ),
+        .out_last    ( noc_output_last  [t] ),
+        .out_valid   ( noc_output_valid [t] ),
+        .out_ready   ( noc_output_ready [t] ),
+
+        .packet_size ()
+      );
+
+      mpsoc_noc_buffer #(
+        .FLIT_WIDTH ( FLIT_WIDTH ),
+        .DEPTH      ()
+      )
+      demux_noc_buffer (
+       .clk          ( HRESETn ),
+       .rst          ( HCLK    ),
+
+        .in_flit     ( noc_input_flit  [t] ),
+        .in_last     ( noc_input_last  [t] ),
+        .in_valid    ( noc_input_valid [t] ),
+        .in_ready    ( noc_input_ready [t] ),
+
+        .out_flit    ( demux_flit  [t] ),
+        .out_last    ( demux_last  [t] ),
+        .out_valid   ( demux_valid [t] ),
+        .out_ready   ( demux_ready [t] ),
+
+        .packet_size ()
+      );
+
+      mpsoc_noc_mux #(
+        .FLIT_WIDTH ( FLIT_WIDTH ),
+        .CHANNELS   ( CHANNELS   )
+      )
+      noc_mux (
+       .clk ( HRESETn ),
+       .rst ( HCLK    ),
+
+       .in_flit   ( noc_ahb3_out_flit  [t] ),
+       .in_last   (                        ),
+       .in_valid  ( noc_ahb3_out_valid [t] ),
+       .in_ready  ( noc_ahb3_out_ready [t] ),
+
+       .out_flit  ( mux_flit  [t] ),
+       .out_last  ( mux_last  [t] ),
+       .out_valid ( mux_valid [t] ),
+       .out_ready ( mux_ready [t] )
+      );
+
+      mpsoc_noc_demux #(
+        .FLIT_WIDTH ( FLIT_WIDTH ),
+        .CHANNELS   ( CHANNELS   ),
+        .MAPPING    ()
+      )
+      noc_demux (
+       .clk ( HRESETn ),
+       .rst ( HCLK    ),
+
+       .in_flit   ( demux_flit  [t] ),
+       .in_last   ( demux_last  [t] ),
+       .in_valid  ( demux_valid [t] ),
+       .in_ready  ( demux_ready [t] ),
+
+       .out_flit  ( noc_ahb3_in_flit  [t] ),
+       .out_last  (                       ),
+       .out_valid ( noc_ahb3_in_valid [t] ),
+       .out_ready ( noc_ahb3_in_ready [t] )
+      );
+
+      assign noc_ahb3_in_req_flit  [t] = noc_ahb3_in_flit  [t][0];
+      assign noc_ahb3_in_req_valid [t] = noc_ahb3_in_valid [t][0];
+
+      assign noc_ahb3_in_ready [t][0] = noc_ahb3_in_req_ready [t];
+
+
+      assign noc_ahb3_in_res_flit  [t] = noc_ahb3_in_flit  [t][1];
+      assign noc_ahb3_in_res_valid [t] = noc_ahb3_in_valid [t][1];
+
+      assign noc_ahb3_in_ready [t][1] = noc_ahb3_in_res_ready [t];
+
+
+      assign noc_ahb3_out_flit  [t][0] = noc_ahb3_out_req_flit  [t];
+      assign noc_ahb3_out_valid [t][0] = noc_ahb3_out_req_valid [t];
+
+      assign noc_ahb3_out_req_ready [t] = noc_ahb3_out_ready [t][0];
+
+
+      assign noc_ahb3_out_flit  [t][1] = noc_ahb3_out_res_flit  [t];
+      assign noc_ahb3_out_valid [t][1] = noc_ahb3_out_res_valid [t];
+
+      assign noc_ahb3_out_res_ready [t] = noc_ahb3_out_ready [t][1];
+
+      //Instantiate RISC-V GPIO
+      mpsoc_peripheral_bridge #(
+        .HADDR_SIZE ( PLEN ),
+        .HDATA_SIZE ( XLEN ),
+        .PADDR_SIZE ( PLEN ),
+        .PDATA_SIZE ( XLEN ),
+
+        .SYNC_DEPTH ( SYNC_DEPTH )
+      )
+      gpio_bridge (
+        //AHB Slave Interface
+        .HRESETn   ( HRESETn ),
+        .HCLK      ( HCLK    ),
+
+        .HSEL      ( mst_gpio_HSEL      [t] ),
+        .HADDR     ( mst_gpio_HADDR     [t] ),
+        .HWDATA    ( mst_gpio_HWDATA    [t] ),
+        .HRDATA    ( mst_gpio_HRDATA    [t] ),
+        .HWRITE    ( mst_gpio_HWRITE    [t] ),
+        .HSIZE     ( mst_gpio_HSIZE     [t] ),
+        .HBURST    ( mst_gpio_HBURST    [t] ),
+        .HPROT     ( mst_gpio_HPROT     [t] ),
+        .HTRANS    ( mst_gpio_HTRANS    [t] ),
+        .HMASTLOCK ( mst_gpio_HMASTLOCK [t] ),
+        .HREADYOUT ( mst_gpio_HREADYOUT [t] ),
+        .HREADY    ( mst_gpio_HREADY    [t] ),
+        .HRESP     ( mst_gpio_HRESP     [t] ),
+
+        //APB Master Interface
+        .PRESETn ( HRESETn ),
+        .PCLK    ( HCLK    ),
+
+        .PSEL    ( gpio_PSEL    [t] ),
+        .PENABLE ( gpio_PENABLE [t] ),
+        .PPROT   (                  ),
+        .PWRITE  ( gpio_PWRITE  [t] ),
+        .PSTRB   ( gpio_PSTRB   [t] ),
+        .PADDR   ( gpio_PADDR   [t] ),
+        .PWDATA  ( gpio_PWDATA  [t] ),
+        .PRDATA  ( gpio_PRDATA  [t] ),
+        .PREADY  ( gpio_PREADY  [t] ),
+        .PSLVERR ( gpio_PSLVERR [t] )
+      );
+
+      mpsoc_gpio #(
+        .PADDR_SIZE ( PLEN ),
+        .PDATA_SIZE ( XLEN )
+      )
+      gpio (
+        .PRESETn ( HRESETn ),
+        .PCLK    ( HCLK    ),
+
+        .PSEL    ( gpio_PSEL    [t] ),
+        .PENABLE ( gpio_PENABLE [t] ),
+        .PWRITE  ( gpio_PWRITE  [t] ),
+        .PSTRB   ( gpio_PSTRB   [t] ),
+        .PADDR   ( gpio_PADDR   [t] ),
+        .PWDATA  ( gpio_PWDATA  [t] ),
+        .PRDATA  ( gpio_PRDATA  [t] ),
+        .PREADY  ( gpio_PREADY  [t] ),
+        .PSLVERR ( gpio_PSLVERR [t] ),
+
+        .gpio_i  ( gpio_i       [t] ),
+        .gpio_o  ( gpio_o       [t] ),
+        .gpio_oe ( gpio_oe      [t] )
+      );
+
+      mpsoc_spram #(
+        .MEM_SIZE          ( 0 ),
+        .MEM_DEPTH         ( 256 ),
+        .HADDR_SIZE        ( PLEN ),
+        .HDATA_SIZE        ( XLEN ),
+        .TECHNOLOGY        ( TECHNOLOGY ),
+        .REGISTERED_OUTPUT ( "NO" )
+      )
+      spram (
+        //AHB Slave Interface
+        .HRESETn   ( HRESETn ),
+        .HCLK      ( HCLK    ),
+
+        .HSEL      ( mst_sram_HSEL      [t] ),
+        .HADDR     ( mst_sram_HADDR     [t] ),
+        .HWDATA    ( mst_sram_HWDATA    [t] ),
+        .HRDATA    ( mst_sram_HRDATA    [t] ),
+        .HWRITE    ( mst_sram_HWRITE    [t] ),
+        .HSIZE     ( mst_sram_HSIZE     [t] ),
+        .HBURST    ( mst_sram_HBURST    [t] ),
+        .HPROT     ( mst_sram_HPROT     [t] ),
+        .HTRANS    ( mst_sram_HTRANS    [t] ),
+        .HMASTLOCK ( mst_sram_HMASTLOCK [t] ),
+        .HREADYOUT ( mst_sram_HREADYOUT [t] ),
+        .HREADY    ( mst_sram_HREADY    [t] ),
+        .HRESP     ( mst_sram_HRESP     [t] )
+      );
+
+      //Instantiate RISC-V UART
+      mpsoc_uart #(
+        .APB_ADDR_WIDTH ( APB_ADDR_WIDTH ),
+        .APB_DATA_WIDTH ( APB_DATA_WIDTH )
+      )
+      uart (
+        .RSTN ( HRESETn ),
+        .CLK  ( HCLK    ),
+
+        .PADDR   ( uart_PADDR    [t] ),
+        .PWDATA  ( uart_PWDATA   [t] ),
+        .PWRITE  ( uart_PWRITE   [t] ),
+        .PSEL    ( uart_PSEL     [t] ),
+        .PENABLE ( uart_PENABLE  [t] ),
+        .PRDATA  ( uart_PRDATA   [t] ),
+        .PREADY  ( uart_PREADY   [t] ),
+        .PSLVERR ( uart_PSLVERR  [t] ),
+
+        .rx_i ( uart_rx_i  [t] ),
+        .tx_o ( uart_tx_o  [t] ),
+
+        .event_o ( uart_event_o  [t] )
+      );
+
+      // MST Connections
+      assign mst_HSEL      [t][0] = bus_ins_HSEL      [t];
+      assign mst_HADDR     [t][0] = bus_ins_HADDR     [t];
+      assign mst_HWDATA    [t][0] = bus_ins_HWDATA    [t];
+      assign mst_HWRITE    [t][0] = bus_ins_HWRITE    [t];
+      assign mst_HSIZE     [t][0] = bus_ins_HSIZE     [t];
+      assign mst_HBURST    [t][0] = bus_ins_HBURST    [t];
+      assign mst_HPROT     [t][0] = bus_ins_HPROT     [t];
+      assign mst_HTRANS    [t][0] = bus_ins_HTRANS    [t];
+      assign mst_HMASTLOCK [t][0] = bus_ins_HMASTLOCK [t];
+      assign mst_HREADY    [t][0] = bus_ins_HREADY    [t];
+
+      assign mst_HREADYOUT [t][0] = 1'b0;
+
+      assign bus_ins_HRDATA [t] = mst_HRDATA [t][0];
+      assign bus_ins_HRESP  [t] = mst_HRESP  [t][0];
+
+      assign mst_HSEL      [t][1] = ahb3_if_hsel      [t];
+      assign mst_HADDR     [t][1] = ahb3_if_haddr     [t];
+      assign mst_HWDATA    [t][1] = ahb3_if_hwdata    [t];
+      assign mst_HWRITE    [t][1] = ahb3_if_hwrite    [t];
+      assign mst_HSIZE     [t][1] = 3'b0;
+      assign mst_HBURST    [t][1] = 3'b0;
+      assign mst_HPROT     [t][1] = 4'b0;
+      assign mst_HTRANS    [t][1] = 2'b0;
+      assign mst_HMASTLOCK [t][1] = ahb3_if_hmastlock [t];
+      assign mst_HREADY    [t][1] = ahb3_if_hready    [t];
+
+      assign mst_HREADYOUT [t][1] = 1'b0;
+
+      assign ahb3_if_hrdata [t] = mst_HRDATA [t][1];
+      //assign ahb3_if_hresp  [t] = mst_HRESP  [t][1];
+
+      assign mst_HSEL      [t][2] = mst_gpio_HSEL      [t];
+      assign mst_HADDR     [t][2] = mst_gpio_HADDR     [t];
+      assign mst_HWDATA    [t][2] = mst_gpio_HWDATA    [t];
+      assign mst_HWRITE    [t][2] = mst_gpio_HWRITE    [t];
+      assign mst_HSIZE     [t][2] = mst_gpio_HSIZE     [t];
+      assign mst_HBURST    [t][2] = mst_gpio_HBURST    [t];
+      assign mst_HPROT     [t][2] = mst_gpio_HPROT     [t];
+      assign mst_HTRANS    [t][2] = mst_gpio_HTRANS    [t];
+      assign mst_HMASTLOCK [t][2] = mst_gpio_HMASTLOCK [t];
+      assign mst_HREADY    [t][2] = mst_gpio_HREADY    [t];
+
+      assign mst_gpio_HRDATA    [t] = mst_HRDATA    [t][2];
+      assign mst_gpio_HREADYOUT [t] = mst_HREADYOUT [t][2];
+      assign mst_gpio_HRESP     [t] = mst_HRESP     [t][2];
+
+      assign mst_HSEL      [t][3] = mst_sram_HSEL      [t];
+      assign mst_HADDR     [t][3] = mst_sram_HADDR     [t];
+      assign mst_HWDATA    [t][3] = mst_sram_HWDATA    [t];
+      assign mst_HWRITE    [t][3] = mst_sram_HWRITE    [t];
+      assign mst_HSIZE     [t][3] = mst_sram_HSIZE     [t];
+      assign mst_HBURST    [t][3] = mst_sram_HBURST    [t];
+      assign mst_HPROT     [t][3] = mst_sram_HPROT     [t];
+      assign mst_HTRANS    [t][3] = mst_sram_HTRANS    [t];
+      assign mst_HMASTLOCK [t][3] = mst_sram_HMASTLOCK [t];
+      assign mst_HREADY    [t][3] = mst_sram_HREADY    [t];
+
+      assign mst_sram_HRDATA    [t] = mst_HRDATA    [t][3];
+      assign mst_sram_HREADYOUT [t] = mst_HREADYOUT [t][3];
+      assign mst_sram_HRESP     [t] = mst_HRESP     [t][3];
+
+      assign mst_HSEL      [t][4] = mst_mram_HSEL      [t];
+      assign mst_HADDR     [t][4] = mst_mram_HADDR     [t];
+      assign mst_HWDATA    [t][4] = mst_mram_HWDATA    [t];
+      assign mst_HWRITE    [t][4] = mst_mram_HWRITE    [t];
+      assign mst_HSIZE     [t][4] = mst_mram_HSIZE     [t];
+      assign mst_HBURST    [t][4] = mst_mram_HBURST    [t];
+      assign mst_HPROT     [t][4] = mst_mram_HPROT     [t];
+      assign mst_HTRANS    [t][4] = mst_mram_HTRANS    [t];
+      assign mst_HMASTLOCK [t][4] = mst_mram_HMASTLOCK [t];
+      assign mst_HREADY    [t][4] = mst_mram_HREADY    [t];
+
+      assign mst_mram_HRDATA    [t] = mst_HRDATA    [t][4];
+      assign mst_mram_HREADYOUT [t] = mst_HREADYOUT [t][4];
+      assign mst_mram_HRESP     [t] = mst_HRESP     [t][4];
+
+      // SLV Connections
+      assign slv_HSEL      [t][0] = ahb3_hsel      [t];
+      assign slv_HADDR     [t][0] = ahb3_haddr     [t];
+      assign slv_HWDATA    [t][0] = ahb3_hwdata    [t];
+      assign slv_HWRITE    [t][0] = ahb3_hwrite    [t];
+      assign slv_HSIZE     [t][0] = ahb3_hsize     [t];
+      assign slv_HBURST    [t][0] = ahb3_hburst    [t];
+      assign slv_HPROT     [t][0] = ahb3_hprot     [t];
+      assign slv_HTRANS    [t][0] = ahb3_htrans    [t];
+      assign slv_HMASTLOCK [t][0] = ahb3_hmastlock [t];
+      assign slv_HREADY    [t][0] = ahb3_hready    [t];
+
+      assign slv_HRDATA    [t][0] = ahb3_hrdata    [t];
+      assign slv_HRESP     [t][0] = 1'b0;
     end
   endgenerate
 
@@ -571,375 +1014,51 @@ module riscv_simd #(
   assign pending_simd_master = nxt_simd_master(priority_simd_masters, last_granted_simd_master, granted_simd_master);
 
   //select new master
-  always @(posedge HCLK, negedge HRESETn)
+  always @(posedge HCLK, negedge HRESETn) begin
     if      ( !HRESETn  ) granted_simd_master <= 'h1;
-    else if ( !ins_HSEL ) granted_simd_master <= pending_simd_master;
+    else if ( !dat_HSEL ) granted_simd_master <= pending_simd_master;
+  end
 
   //store current master (for this priority level)
-  always @(posedge HCLK, negedge HRESETn)
+  always @(posedge HCLK, negedge HRESETn) begin
     if      ( !HRESETn  ) last_granted_simd_masters[requested_priority_lvl] <= 'h1;
-    else if ( !ins_HSEL ) last_granted_simd_masters[requested_priority_lvl] <= pending_simd_master;
+    else if ( !dat_HSEL ) last_granted_simd_masters[requested_priority_lvl] <= pending_simd_master;
+  end
 
   //get signals from current requester
-  always @(posedge HCLK, negedge HRESETn)
+  always @(posedge HCLK, negedge HRESETn) begin
     if      ( !HRESETn  ) granted_simd_master_idx <= 'h0;
-    else if ( !ins_HSEL ) granted_simd_master_idx <= onehot2int(pending_simd_master);
+    else if ( !dat_HSEL ) granted_simd_master_idx <= onehot2int(pending_simd_master);
+  end
 
-  always @(posedge HCLK)
-    if (ins_HSEL) granted_simd_master_idx_dly <= granted_simd_master_idx;
+  always @(posedge HCLK) begin
+    if (dat_HSEL) granted_simd_master_idx_dly <= granted_simd_master_idx;
+  end
 
-  assign ins_HSEL      = bus_ins_HSEL      [granted_simd_master_idx];
-  assign ins_HADDR     = bus_ins_HADDR     [granted_simd_master_idx];
-  assign ins_HWDATA    = bus_ins_HWDATA    [granted_simd_master_idx_dly];
-  assign ins_HWRITE    = bus_ins_HWRITE    [granted_simd_master_idx];
-  assign ins_HSIZE     = bus_ins_HSIZE     [granted_simd_master_idx];
-  assign ins_HBURST    = bus_ins_HBURST    [granted_simd_master_idx];
-  assign ins_HPROT     = bus_ins_HPROT     [granted_simd_master_idx];
-  assign ins_HTRANS    = bus_ins_HTRANS    [granted_simd_master_idx];
-  assign ins_HMASTLOCK = bus_ins_HMASTLOCK [granted_simd_master_idx];
-
-  generate
-    for(t=0; t < CORES_PER_SIMD; t=t+1) begin
-      assign bus_ins_HRDATA [t] = ins_HRDATA;
-      assign bus_ins_HREADY [t] = ins_HREADY;
-      assign bus_ins_HRESP  [t] = ins_HRESP;
-    end
-  endgenerate
-
-  //AHB Master-Slave Relations
-  assign out_ins_HSEL      = bus_ins_HSEL;
-  assign out_ins_HADDR     = bus_ins_HADDR;
-  assign out_ins_HWDATA    = bus_ins_HWDATA;
-  assign out_ins_HWRITE    = bus_ins_HWRITE;
-  assign out_ins_HSIZE     = bus_ins_HSIZE;
-  assign out_ins_HBURST    = bus_ins_HBURST;
-  assign out_ins_HPROT     = bus_ins_HPROT;
-  assign out_ins_HTRANS    = bus_ins_HTRANS;
-  assign out_ins_HMASTLOCK = bus_ins_HMASTLOCK;
-
-  assign bus_ins_HREADY    = out_ins_HREADY;
-  assign bus_ins_HRDATA    = out_ins_HRDATA;
-  assign bus_ins_HRESP     = out_ins_HRESP;
-
-  assign out_dat_HSEL      = dat_HSEL;
-  assign out_dat_HADDR     = dat_HADDR;
-  assign out_dat_HWDATA    = dat_HWDATA;
-  assign out_dat_HWRITE    = dat_HWRITE;
-  assign out_dat_HSIZE     = dat_HSIZE;
-  assign out_dat_HBURST    = dat_HBURST;
-  assign out_dat_HPROT     = dat_HPROT;
-  assign out_dat_HTRANS    = dat_HTRANS;
-  assign out_dat_HMASTLOCK = dat_HMASTLOCK;
-//assign out_dat_HREADYOUT = dat_HREADYOUT;
-
-  assign out_dat_HRDATA    = dat_HRDATA;
-  assign out_dat_HREADY    = dat_HREADY;
-  assign out_dat_HRESP     = dat_HRESP;
-
-  //AHB Master Interconnect
-  assign mst_HSEL      [0] = mst_noc_HSEL;
-  assign mst_HADDR     [0] = mst_noc_HADDR;
-  assign mst_HWDATA    [0] = mst_noc_HWDATA;
-  assign mst_HWRITE    [0] = mst_noc_HWRITE;
-  assign mst_HSIZE     [0] = mst_noc_HSIZE;
-  assign mst_HBURST    [0] = mst_noc_HBURST;
-  assign mst_HPROT     [0] = mst_noc_HPROT;
-  assign mst_HTRANS    [0] = mst_noc_HTRANS;
-  assign mst_HMASTLOCK [0] = mst_noc_HMASTLOCK;
-
-  //assign mst_noc_HRDATA    = mst_HRDATA    [0];
-  //assign mst_noc_HREADYOUT = mst_HREADYOUT [0];
-  //assign mst_noc_HRESP     = mst_HRESP     [0];
-
-  assign mst_HSEL      [1] = mst_gpio_HSEL;
-  assign mst_HADDR     [1] = mst_gpio_HADDR;
-  assign mst_HWDATA    [1] = mst_gpio_HWDATA;
-  assign mst_HWRITE    [1] = mst_gpio_HWRITE [0];
-  assign mst_HSIZE     [1] = mst_gpio_HSIZE;
-  assign mst_HBURST    [1] = mst_gpio_HBURST;
-  assign mst_HPROT     [1] = mst_gpio_HPROT;
-  assign mst_HTRANS    [1] = mst_gpio_HTRANS;
-  assign mst_HMASTLOCK [1] = mst_gpio_HMASTLOCK;
-  assign mst_HREADY    [1] = mst_gpio_HREADY;
-
-  //assign mst_gpio_HRDATA    = mst_HRDATA    [1];
-  //assign mst_gpio_HREADYOUT = mst_HREADYOUT [1];
-  //assign mst_gpio_HRESP     = mst_HRESP     [1];
-
-  assign mst_HSEL      [2] = mst_sram_HSEL;
-  assign mst_HADDR     [2] = mst_sram_HADDR;
-  assign mst_HWDATA    [2] = mst_sram_HWDATA;
-  assign mst_HWRITE    [2] = mst_sram_HWRITE;
-  assign mst_HSIZE     [2] = mst_sram_HSIZE;
-  assign mst_HBURST    [2] = mst_sram_HBURST;
-  assign mst_HPROT     [2] = mst_sram_HPROT;
-  assign mst_HTRANS    [2] = mst_sram_HTRANS;
-  assign mst_HMASTLOCK [2] = mst_sram_HMASTLOCK;
-  assign mst_HREADY    [2] = mst_sram_HREADY;
-
-  //assign mst_sram_HRDATA    = mst_HRDATA    [2];
-  //assign mst_sram_HREADYOUT = mst_HREADYOUT [2];
-  //assign mst_sram_HRESP     = mst_HRESP     [2];
-
-  //AHB Slave Interconnect
-  generate
-    for(t=0; t < CORES_PER_SIMD; t=t+1) begin
-      assign out_ins_HSEL      [t] = slv_HSEL      [t];
-      assign out_ins_HADDR     [t] = slv_HADDR     [t];
-      assign out_ins_HWDATA    [t] = slv_HWDATA    [t];
-      assign out_ins_HWRITE    [t] = slv_HWRITE    [t];
-      assign out_ins_HSIZE     [t] = slv_HSIZE     [t];
-      assign out_ins_HBURST    [t] = slv_HBURST    [t];
-      assign out_ins_HPROT     [t] = slv_HPROT     [t];
-      assign out_ins_HTRANS    [t] = slv_HTRANS    [t];
-      assign out_ins_HMASTLOCK [t] = slv_HMASTLOCK [t];
-    end
-  endgenerate
+  assign dat_HSEL      = bus_ins_HSEL      [granted_simd_master_idx];
+  assign dat_HADDR     = bus_ins_HADDR     [granted_simd_master_idx];
+  assign dat_HWDATA    = bus_ins_HWDATA    [granted_simd_master_idx_dly];
+  assign dat_HWRITE    = bus_ins_HWRITE    [granted_simd_master_idx];
+  assign dat_HSIZE     = bus_ins_HSIZE     [granted_simd_master_idx];
+  assign dat_HBURST    = bus_ins_HBURST    [granted_simd_master_idx];
+  assign dat_HPROT     = bus_ins_HPROT     [granted_simd_master_idx];
+  assign dat_HTRANS    = bus_ins_HTRANS    [granted_simd_master_idx];
+  assign dat_HMASTLOCK = bus_ins_HMASTLOCK [granted_simd_master_idx];
 
   generate
     for(t=0; t < CORES_PER_SIMD; t=t+1) begin
-      assign slv_HRDATA [t] = out_ins_HRDATA [t];
-      assign slv_HREADY [t] = out_ins_HREADY [t];
-      assign slv_HRESP  [t] = out_ins_HRESP  [t];
+      assign bus_ins_HRDATA [t] = dat_HRDATA;
+      assign bus_ins_HREADY [t] = dat_HREADY;
+      assign bus_ins_HRESP  [t] = dat_HRESP;
     end
   endgenerate
-
-  //assign slv_noc_HSEL      = slv_HSEL      [CORES_PER_SIMD];
-  //assign slv_noc_HADDR     = slv_HADDR     [CORES_PER_SIMD];
-  //assign slv_noc_HWDATA    = slv_HWDATA    [CORES_PER_SIMD];
-  //assign slv_noc_HWRITE    = slv_HWRITE    [CORES_PER_SIMD];
-  //assign slv_noc_HSIZE     = slv_HSIZE     [CORES_PER_SIMD];
-  //assign slv_noc_HBURST    = slv_HBURST    [CORES_PER_SIMD];
-  //assign slv_noc_HPROT     = slv_HPROT     [CORES_PER_SIMD];
-  //assign slv_noc_HTRANS    = slv_HTRANS    [CORES_PER_SIMD];
-  //assign slv_noc_HMASTLOCK = slv_HMASTLOCK [CORES_PER_SIMD];
-
-  assign slv_HRDATA [CORES_PER_SIMD] = slv_noc_HRDATA;
-  assign slv_HREADY [CORES_PER_SIMD] = slv_noc_HREADY;
-  assign slv_HRESP  [CORES_PER_SIMD] = slv_noc_HRESP;
-
-  //Instantiate RISC-V Interconnect
-  riscv_interconnect #(
-    .PLEN    ( PLEN               ),
-    .XLEN    ( XLEN               ),
-    .MASTERS ( 3                  ),
-    .SLAVES  ( CORES_PER_SIMD + 1 )
-  )
-  peripheral_interconnect (
-    //Common signals
-    .HRESETn       ( HRESETn ),
-    .HCLK          ( HCLK    ),
-
-    //Master Ports; AHB masters connect to these
-    //thus these are actually AHB Slave Interfaces
-    .mst_priority  (               ),
-
-    .mst_HSEL      ( mst_HSEL      ),
-    .mst_HADDR     ( mst_HADDR     ),
-    .mst_HWDATA    ( mst_HWDATA    ),
-    .mst_HRDATA    ( mst_HRDATA    ),
-    .mst_HWRITE    ( mst_HWRITE    ),
-    .mst_HSIZE     ( mst_HSIZE     ),
-    .mst_HBURST    ( mst_HBURST    ),
-    .mst_HPROT     ( mst_HPROT     ),
-    .mst_HTRANS    ( mst_HTRANS    ),
-    .mst_HMASTLOCK ( mst_HMASTLOCK ),
-    .mst_HREADYOUT ( mst_HREADYOUT ),
-    .mst_HREADY    ( mst_HREADY    ),
-    .mst_HRESP     ( mst_HRESP     ),
-
-    //Slave Ports; AHB Slaves connect to these
-    //thus these are actually AHB Master Interfaces
-    .slv_addr_mask (               ),
-    .slv_addr_base (               ),
-
-    .slv_HSEL      ( slv_HSEL      ),
-    .slv_HADDR     ( slv_HADDR     ),
-    .slv_HWDATA    ( slv_HWDATA    ),
-    .slv_HRDATA    ( slv_HRDATA    ),
-    .slv_HWRITE    ( slv_HWRITE    ),
-    .slv_HSIZE     ( slv_HSIZE     ),
-    .slv_HBURST    ( slv_HBURST    ),
-    .slv_HPROT     ( slv_HPROT     ),
-    .slv_HTRANS    ( slv_HTRANS    ),
-    .slv_HMASTLOCK ( slv_HMASTLOCK ),
-    .slv_HREADYOUT (               ),
-    .slv_HREADY    ( slv_HREADY    ),
-    .slv_HRESP     ( slv_HRESP     )
-  );
-
-  riscv_interconnect #(
-    .PLEN    ( PLEN           ),
-    .XLEN    ( XLEN           ),
-    .MASTERS ( CORES_PER_SIMD ),
-    .SLAVES  ( CORES_PER_SIMD )
-  )
-  memory_interconnect (
-    //Common signals
-    .HRESETn       ( HRESETn ),
-    .HCLK          ( HCLK    ),
-
-    //Master Ports; AHB masters connect to these
-    //thus these are actually AHB Slave Interfaces
-    .mst_priority  (                    ),
-
-    .mst_HSEL      ( mst_mram_HSEL      ),
-    .mst_HADDR     ( mst_mram_HADDR     ),
-    .mst_HWDATA    ( mst_mram_HWDATA    ),
-    .mst_HRDATA    ( mst_mram_HRDATA    ),
-    .mst_HWRITE    ( mst_mram_HWRITE    ),
-    .mst_HSIZE     ( mst_mram_HSIZE     ),
-    .mst_HBURST    ( mst_mram_HBURST    ),
-    .mst_HPROT     ( mst_mram_HPROT     ),
-    .mst_HTRANS    ( mst_mram_HTRANS    ),
-    .mst_HMASTLOCK ( mst_mram_HMASTLOCK ),
-    .mst_HREADYOUT ( mst_mram_HREADYOUT ),
-    .mst_HREADY    ( mst_mram_HREADY    ),
-    .mst_HRESP     ( mst_mram_HRESP     ),
-
-    //Slave Ports; AHB Slaves connect to these
-    //thus these are actually AHB Master Interfaces
-    .slv_addr_mask (                    ),
-    .slv_addr_base (                    ),
-
-    .slv_HSEL      ( out_dat_HSEL       ),
-    .slv_HADDR     ( out_dat_HADDR      ),
-    .slv_HWDATA    ( out_dat_HWDATA     ),
-    .slv_HRDATA    ( out_dat_HRDATA     ),
-    .slv_HWRITE    ( out_dat_HWRITE     ),
-    .slv_HSIZE     ( out_dat_HSIZE      ),
-    .slv_HBURST    ( out_dat_HBURST     ),
-    .slv_HPROT     ( out_dat_HPROT      ),
-    .slv_HTRANS    ( out_dat_HTRANS     ),
-    .slv_HMASTLOCK ( out_dat_HMASTLOCK  ),
-    .slv_HREADYOUT ( out_dat_HREADYOUT  ),
-    .slv_HREADY    ( out_dat_HREADY     ),
-    .slv_HRESP     ( out_dat_HRESP      )
-  );
-
-  //Instantiate RISC-V NoC Adapter
-  riscv_noc_adapter #(
-    .HADDR_SIZE   ( HADDR_SIZE   ),
-    .HDATA_SIZE   ( HDATA_SIZE   ),
-    .BUFFER_DEPTH ( BUFFER_DEPTH ),
-    .CHANNELS     ( CHANNELS     )
-  )
-  noc_adapter (
-    //Common signals
-    .HCLK          ( HCLK               ),
-    .HRESETn       ( HRESETn            ),
-
-    //NoC Interface
-    .noc_in_flit   ( noc_in_flit        ),
-    .noc_in_last   ( noc_in_last        ),
-    .noc_in_valid  ( noc_in_valid       ),
-    .noc_in_ready  ( noc_in_ready       ),
-    .noc_out_flit  ( noc_out_flit       ),
-    .noc_out_last  ( noc_out_last       ),
-    .noc_out_valid ( noc_out_valid      ),
-    .noc_out_ready ( noc_out_ready      ),
-
-    //AHB master interface
-    .mst_HSEL      ( mst_noc_HSEL      ),
-    .mst_HADDR     ( mst_noc_HADDR     ),
-    .mst_HWDATA    ( mst_noc_HWDATA    ),
-    .mst_HRDATA    ( mst_noc_HRDATA    ),
-    .mst_HWRITE    ( mst_noc_HWRITE    ),
-    .mst_HSIZE     ( mst_noc_HSIZE     ),
-    .mst_HBURST    ( mst_noc_HBURST    ),
-    .mst_HPROT     ( mst_noc_HPROT     ),
-    .mst_HTRANS    ( mst_noc_HTRANS    ),
-    .mst_HMASTLOCK ( mst_noc_HMASTLOCK ),
-    .mst_HREADYOUT ( mst_noc_HREADYOUT ),
-    .mst_HRESP     ( mst_noc_HRESP     ),
-
-    //AHB slave interface
-    .slv_HSEL      ( slv_noc_HSEL      ),
-    .slv_HADDR     ( slv_noc_HADDR     ),
-    .slv_HWDATA    ( slv_noc_HWDATA    ),
-    .slv_HRDATA    ( slv_noc_HRDATA    ),
-    .slv_HWRITE    ( slv_noc_HWRITE    ),
-    .slv_HSIZE     ( slv_noc_HSIZE     ),
-    .slv_HBURST    ( slv_noc_HBURST    ),
-    .slv_HPROT     ( slv_noc_HPROT     ),
-    .slv_HTRANS    ( slv_noc_HTRANS    ),
-    .slv_HMASTLOCK ( slv_noc_HMASTLOCK ),
-    .slv_HREADY    ( slv_noc_HREADY    ),
-    .slv_HRESP     ( slv_noc_HRESP     )
-  );
-
-  //Instantiate RISC-V GPIO
-  riscv_bridge #(
-    .HADDR_SIZE ( HADDR_SIZE ),
-    .HDATA_SIZE ( HDATA_SIZE ),
-    .PADDR_SIZE ( PADDR_SIZE ),
-    .PDATA_SIZE ( PDATA_SIZE ),
-    .SYNC_DEPTH ( SYNC_DEPTH )
-  )
-  gpio_bridge (
-    //AHB Slave Interface
-    .HRESETn   ( HRESETn ),
-    .HCLK      ( HCLK    ),
-
-    .HSEL      ( mst_gpio_HSEL      ),
-    .HADDR     ( mst_gpio_HADDR     ),
-    .HWDATA    ( mst_gpio_HWDATA    ),
-    .HRDATA    ( mst_gpio_HRDATA    ),
-    .HWRITE    ( mst_gpio_HWRITE    ),
-    .HSIZE     ( mst_gpio_HSIZE     ),
-    .HBURST    ( mst_gpio_HBURST    ),
-    .HPROT     ( mst_gpio_HPROT     ),
-    .HTRANS    ( mst_gpio_HTRANS    ),
-    .HMASTLOCK ( mst_gpio_HMASTLOCK ),
-    .HREADYOUT ( mst_gpio_HREADYOUT ),
-    .HREADY    ( mst_gpio_HREADY    ),
-    .HRESP     ( mst_gpio_HRESP     ),
-
-    //APB Master Interface
-    .PRESETn ( HRESETn ),
-    .PCLK    ( HCLK    ),
-
-    .PSEL    ( gpio_PSEL    ),
-    .PENABLE ( gpio_PENABLE ),
-    .PPROT   (              ),
-    .PWRITE  ( gpio_PWRITE  ),
-    .PSTRB   ( gpio_PSTRB   ),
-    .PADDR   ( gpio_PADDR   ),
-    .PWDATA  ( gpio_PWDATA  ),
-    .PRDATA  ( gpio_PRDATA  ),
-    .PREADY  ( gpio_PREADY  ),
-    .PSLVERR ( gpio_PSLVERR )
-  );
-
-  riscv_gpio #(
-    .PADDR_SIZE (HADDR_SIZE),
-    .PDATA_SIZE (HDATA_SIZE)
-  )
-  gpio (
-    .PRESETn ( HRESETn ),
-    .PCLK    ( HCLK    ),
-
-    .PSEL    ( gpio_PSEL    ),
-    .PENABLE ( gpio_PENABLE ),
-    .PWRITE  ( gpio_PWRITE  ),
-    .PSTRB   ( gpio_PSTRB   ),
-    .PADDR   ( gpio_PADDR   ),
-    .PWDATA  ( gpio_PWDATA  ),
-    .PRDATA  ( gpio_PRDATA  ),
-    .PREADY  ( gpio_PREADY  ),
-    .PSLVERR ( gpio_PSLVERR ),
-
-    .gpio_i  ( gpio_i       ),
-    .gpio_o  ( gpio_o       ),
-    .gpio_oe ( gpio_oe      )
-  );
 
   //Instantiate RISC-V RAM
-  riscv_mpram #(
+  mpsoc_mpram #(
     .MEM_SIZE          ( 0 ),
     .MEM_DEPTH         ( 256 ),
-    .HADDR_SIZE        ( HADDR_SIZE ),
-    .HDATA_SIZE        ( HDATA_SIZE ),
+    .HADDR_SIZE        ( PLEN ),
+    .HDATA_SIZE        ( XLEN ),
     .CORES_PER_TILE    ( CORES_PER_SIMD ),
     .TECHNOLOGY        ( TECHNOLOGY ),
     .REGISTERED_OUTPUT ( "NO" )
@@ -964,133 +1083,82 @@ module riscv_simd #(
     .HRESP     ( mst_mram_HRESP     )
   );
 
-  riscv_spram #(
-    .MEM_SIZE          ( 0 ),
-    .MEM_DEPTH         ( 256 ),
-    .HADDR_SIZE        ( HADDR_SIZE ),
-    .HDATA_SIZE        ( HDATA_SIZE ),
-    .TECHNOLOGY        ( TECHNOLOGY ),
-    .REGISTERED_OUTPUT ( "NO" )
+  //Instantiate LNKs
+  mpsoc_noc_mux #(
+    .FLIT_WIDTH ( FLIT_WIDTH     ),
+    .CHANNELS   ( CORES_PER_SIMD )
   )
-  spram (
-    //AHB Slave Interface
-    .HRESETn   ( HRESETn ),
-    .HCLK      ( HCLK    ),
+  noc_mux_lnk1 (
+    .clk ( HRESETn ),
+    .rst ( HCLK    ),
 
-    .HSEL      ( mst_sram_HSEL      ),
-    .HADDR     ( mst_sram_HADDR     ),
-    .HWDATA    ( mst_sram_HWDATA    ),
-    .HRDATA    ( mst_sram_HRDATA    ),
-    .HWRITE    ( mst_sram_HWRITE    ),
-    .HSIZE     ( mst_sram_HSIZE     ),
-    .HBURST    ( mst_sram_HBURST    ),
-    .HPROT     ( mst_sram_HPROT     ),
-    .HTRANS    ( mst_sram_HTRANS    ),
-    .HMASTLOCK ( mst_sram_HMASTLOCK ),
-    .HREADYOUT ( mst_sram_HREADYOUT ),
-    .HREADY    ( mst_sram_HREADY    ),
-    .HRESP     ( mst_sram_HRESP     )
+    .in_flit   ( noc_output_flit  ),
+    .in_last   ( noc_output_last  ),
+    .in_valid  ( noc_output_valid ),
+    .in_ready  ( noc_output_ready ),
+
+    .out_flit  ( linked1_flit  ),
+    .out_last  ( linked1_last  ),
+    .out_valid ( linked1_valid ),
+    .out_ready ( linked1_ready )
   );
 
-  //Instantiate RISC-V Debug
-  riscv_debug_simd_expand #(
-    .XLEN (XLEN),
-    .CHANNELS (CHANNELS),
-    .CORES_PER_SIMD (CORES_PER_SIMD)
+  mpsoc_noc_demux #(
+    .FLIT_WIDTH ( FLIT_WIDTH     ),
+    .CHANNELS   ( CORES_PER_SIMD ),
+    .MAPPING    ()
   )
-  debug_ring_expand (
-    .clk           ( HCLK    ),
-    .rst           ( HRESETn ),
+  noc_demux_lnk0 (
+    .clk ( HRESETn ),
+    .rst ( HCLK    ),
 
-    .id_map        (),
-    .dii_in_data   ( dii_in_data          ),
-    .dii_in_last   ( dii_in_last          ),
-    .dii_in_valid  ( dii_in_valid         ),
-    .dii_in_ready  ( dii_in_ready         ),
-    .dii_out_data  ( dii_out_data         ),
-    .dii_out_last  ( dii_out_last         ),
-    .dii_out_valid ( dii_out_valid        ),
-    .dii_out_ready ( dii_out_ready        ),
-    .ext_in_data   ( debug_ring_in_data   ),
-    .ext_in_last   ( debug_ring_in_last   ),
-    .ext_in_valid  ( debug_ring_in_valid  ),
-    .ext_in_ready  ( debug_ring_in_ready  ),
-    .ext_out_data  ( debug_ring_out_data  ),
-    .ext_out_last  ( debug_ring_out_last  ),
-    .ext_out_valid ( debug_ring_out_valid ),
-    .ext_out_ready ( debug_ring_out_ready )
+    .in_flit   ( linked0_flit  ),
+    .in_last   ( linked0_last  ),
+    .in_valid  ( linked0_valid ),
+    .in_ready  ( linked0_ready ),
+
+    .out_flit  ( noc_input_flit  ),
+    .out_last  ( noc_input_last  ),
+    .out_valid ( noc_input_valid ),
+    .out_ready ( noc_input_ready )
   );
 
-  generate
-    for(t=0; t < CORES_PER_SIMD; t=t+1) begin
-      riscv_osd_ctm_template #(
-        .XLEN (XLEN),
-        .PLEN (PLEN),
+  mpsoc_noc_mux #(
+    .FLIT_WIDTH ( FLIT_WIDTH ),
+    .CHANNELS   ( CHANNELS   )
+  )
+  noc_mux_lnk0 (
+    .clk ( HRESETn ),
+    .rst ( HCLK    ),
 
-        .MAX_REG_SIZE (64),
+    .in_flit   ( noc_in_flit  ),
+    .in_last   ( noc_in_last  ),
+    .in_valid  ( noc_in_valid ),
+    .in_ready  ( noc_in_ready ),
 
-        .ADDR_WIDTH (PLEN),
-        .DATA_WIDTH (XLEN),
+    .out_flit  ( linked0_flit  ),
+    .out_last  ( linked0_last  ),
+    .out_valid ( linked0_valid ),
+    .out_ready ( linked0_ready )
+  );
 
-        .VALWIDTH (VALWIDTH)
-      )
-      osd_ctm_template (
-        .clk             ( HCLK    ),
-        .rst             ( HRESETn ),
+  mpsoc_noc_demux #(
+    .FLIT_WIDTH ( FLIT_WIDTH ),
+    .CHANNELS   ( CHANNELS   ),
+    .MAPPING    ()
+  )
+  noc_demux_lnk1 (
+    .clk ( HRESETn ),
+    .rst ( HCLK    ),
 
-        .id              (),
+    .in_flit   ( linked1_flit  ),
+    .in_last   ( linked1_last  ),
+    .in_valid  ( linked1_valid ),
+    .in_ready  ( linked1_ready ),
 
-        .debug_in_data   ( dii_out_data  [2*t] ),
-        .debug_in_last   ( dii_out_last  [2*t] ),
-        .debug_in_valid  ( dii_out_valid [2*t] ),
-        .debug_in_ready  ( dii_out_ready [2*t] ),
-        .debug_out_data  ( dii_in_data   [2*t] ),
-        .debug_out_last  ( dii_in_last   [2*t] ),
-        .debug_out_valid ( dii_in_valid  [2*t] ),
-        .debug_out_ready ( dii_in_ready  [2*t] ),
-
-        .trace_port_insn     ( trace_port_insn     [t] ),
-        .trace_port_pc       ( trace_port_pc       [t] ),
-        .trace_port_jb       ( trace_port_jb       [t] ),
-        .trace_port_jal      ( trace_port_jal      [t] ),
-        .trace_port_jr       ( trace_port_jr       [t] ),
-        .trace_port_jbtarget ( trace_port_jbtarget [t] ),
-        .trace_port_valid    ( trace_port_valid    [t] ),
-        .trace_port_data     ( trace_port_data     [t] ),
-        .trace_port_addr     ( trace_port_addr     [t] ),
-        .trace_port_we       ( trace_port_we       [t] )
-      );
-
-      riscv_osd_stm_template #(
-        .XLEN     (XLEN),
-        .VALWIDTH (VALWIDTH)
-      )
-      osd_stm_template (
-        .clk             ( HCLK    ),
-        .rst             ( HRESETn ),
-
-        .id              (),
-
-        .debug_in_data   ( dii_out_data  [2*t+1] ),
-        .debug_in_last   ( dii_out_last  [2*t+1] ),
-        .debug_in_valid  ( dii_out_valid [2*t+1] ),
-        .debug_in_ready  ( dii_out_ready [2*t+1] ),
-        .debug_out_data  ( dii_in_data   [2*t+1] ),
-        .debug_out_last  ( dii_in_last   [2*t+1] ),
-        .debug_out_valid ( dii_in_valid  [2*t+1] ),
-        .debug_out_ready ( dii_in_ready  [2*t+1] ),
-
-        .trace_port_insn     ( trace_port_insn     [t] ),
-        .trace_port_pc       ( trace_port_pc       [t] ),
-        .trace_port_jb       ( trace_port_jb       [t] ),
-        .trace_port_jal      ( trace_port_jal      [t] ),
-        .trace_port_jr       ( trace_port_jr       [t] ),
-        .trace_port_jbtarget ( trace_port_jbtarget [t] ),
-        .trace_port_valid    ( trace_port_valid    [t] ),
-        .trace_port_data     ( trace_port_data     [t] ),
-        .trace_port_addr     ( trace_port_addr     [t] ),
-        .trace_port_we       ( trace_port_we       [t] )
-      );
-    end
-  endgenerate
+    .out_flit  ( noc_out_flit  ),
+    .out_last  ( noc_out_last  ),
+    .out_valid ( noc_out_valid ),
+    .out_ready ( noc_out_ready )
+  );
 endmodule

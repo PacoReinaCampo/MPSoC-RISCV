@@ -51,9 +51,17 @@ rm -rf noc/system.vvp
 rm -rf pu/system.vvp
 rm -rf system.vvp
 
+rm -rf dbg/obj_dir
+rm -rf dma/obj_dir
+rm -rf msi/obj_dir
+rm -rf noc/obj_dir
+rm -rf pu/obj_dir
+rm -rf obj_dir
+
 rm -rf dbg/riscv_dbg_testbench.tree
 rm -rf dma/riscv_dma_testbench.tree
 rm -rf msi/riscv_msi_testbench.tree
 rm -rf noc/riscv_noc_testbench.tree
 rm -rf pu/riscv_pu_testbench.tree
-rm -rf riscv_mpsoc_testbench.tree
+
+rm -rf riscv_mpsoc.tree

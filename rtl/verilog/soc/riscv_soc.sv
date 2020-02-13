@@ -43,9 +43,9 @@
 `include "riscv_mpsoc_pkg.sv"
 
 module riscv_soc #(
-  parameter            XLEN               = 32,
-  parameter            PLEN               = XLEN,
-  parameter [XLEN-1:0] PC_INIT            = 'h200,
+  parameter            XLEN               = 64,
+  parameter            PLEN               = 64,
+  parameter [XLEN-1:0] PC_INIT            = 'h8000_0000,
   parameter            HAS_USER           = 0,
   parameter            HAS_SUPER          = 0,
   parameter            HAS_HYPER          = 0,
@@ -61,7 +61,7 @@ module riscv_soc #(
 
   parameter            BREAKPOINTS        = 8,  //Number of hardware breakpoints
 
-  parameter            PMA_CNT            = 16,
+  parameter            PMA_CNT            = 4,
   parameter            PMP_CNT            = 16, //Number of Physical Memory Protection entries
 
   parameter            BP_GLOBAL_BITS     = 2,
@@ -82,11 +82,11 @@ module riscv_soc #(
 
   parameter            TECHNOLOGY         = "GENERIC",
 
-  parameter            MNMIVEC_DEFAULT    = PC_INIT - 'h004,
-  parameter            MTVEC_DEFAULT      = PC_INIT - 'h040,
-  parameter            HTVEC_DEFAULT      = PC_INIT - 'h080,
-  parameter            STVEC_DEFAULT      = PC_INIT - 'h0C0,
-  parameter            UTVEC_DEFAULT      = PC_INIT - 'h100,
+  parameter [XLEN-1:0] MNMIVEC_DEFAULT    = PC_INIT - 'h004,
+  parameter [XLEN-1:0] MTVEC_DEFAULT      = PC_INIT - 'h040,
+  parameter [XLEN-1:0] HTVEC_DEFAULT      = PC_INIT - 'h080,
+  parameter [XLEN-1:0] STVEC_DEFAULT      = PC_INIT - 'h0C0,
+  parameter [XLEN-1:0] UTVEC_DEFAULT      = PC_INIT - 'h100,
 
   parameter            JEDEC_BANK            = 10,
   parameter            JEDEC_MANUFACTURER_ID = 'h6e,
@@ -100,22 +100,16 @@ module riscv_soc #(
   parameter            PADDR_SIZE         = PLEN,
   parameter            PDATA_SIZE         = XLEN,
 
-  parameter            SYNC_DEPTH         = 3,
+  parameter            FLIT_WIDTH         = 34,
 
-  parameter            BUFFER_DEPTH       = 4,
+  parameter            SYNC_DEPTH         = 3,
 
   parameter            CORES_PER_SIMD     = 8,
   parameter            CORES_PER_MISD     = 8,
 
   parameter            CORES_PER_TILE     = CORES_PER_SIMD + CORES_PER_MISD,
 
-  parameter            FLIT_WIDTH         = PLEN,
-  parameter            CHANNELS           = 2,
-
-  parameter            ROUTER_BUFFER_SIZE = 2,
-  parameter            REG_ADDR_WIDTH     = 2,
-  parameter            VALWIDTH           = 2,
-  parameter            MAX_PKT_LEN        = 2
+  parameter            CHANNELS           = 2
 )
   (
     //Common signals
@@ -125,27 +119,6 @@ module riscv_soc #(
     //PMA configuration
     input logic [PMA_CNT  -1:0][             13:0] pma_cfg_i,
     input logic [PMA_CNT  -1:0][XLEN         -1:0] pma_adr_i,
-
-    //Debug
-    input       [CHANNELS -1:0][HDATA_SIZE   -1:0] debug_misd_ring_in_data,
-    input       [CHANNELS -1:0]                    debug_misd_ring_in_last,
-    input       [CHANNELS -1:0]                    debug_misd_ring_in_valid,
-    output      [CHANNELS -1:0]                    debug_misd_ring_in_ready,
-
-    output      [CHANNELS -1:0][HDATA_SIZE   -1:0] debug_misd_ring_out_data,
-    output      [CHANNELS -1:0]                    debug_misd_ring_out_last,
-    output      [CHANNELS -1:0]                    debug_misd_ring_out_valid,
-    input       [CHANNELS -1:0]                    debug_misd_ring_out_ready,
-
-    input       [CHANNELS -1:0][HDATA_SIZE   -1:0] debug_simd_ring_in_data,
-    input       [CHANNELS -1:0]                    debug_simd_ring_in_last,
-    input       [CHANNELS -1:0]                    debug_simd_ring_in_valid,
-    output      [CHANNELS -1:0]                    debug_simd_ring_in_ready,
-
-    output      [CHANNELS -1:0][HDATA_SIZE   -1:0] debug_simd_ring_out_data,
-    output      [CHANNELS -1:0]                    debug_simd_ring_out_last,
-    output      [CHANNELS -1:0]                    debug_simd_ring_out_valid,
-    input       [CHANNELS -1:0]                    debug_simd_ring_out_ready,
 
     //AHB instruction - Single Port
     output                                         sins_simd_HSEL,
@@ -233,33 +206,33 @@ module riscv_soc #(
     output      [CORES_PER_SIMD-1:0]                                   dbg_simd_ack,
     output      [CORES_PER_SIMD-1:0]                                   dbg_simd_bp,
 
-    //NoC Interface
-    input       [CHANNELS -1:0][HADDR_SIZE   -1:0] noc_misd_in_flit,
-    input       [CHANNELS -1:0]                    noc_misd_in_last,
-    input       [CHANNELS -1:0]                    noc_misd_in_valid,
-    output      [CHANNELS -1:0]                    noc_misd_in_ready,
-    output      [CHANNELS -1:0][HADDR_SIZE   -1:0] noc_misd_out_flit,
-    output      [CHANNELS -1:0]                    noc_misd_out_last,
-    output      [CHANNELS -1:0]                    noc_misd_out_valid,
-    input       [CHANNELS -1:0]                    noc_misd_out_ready,
-
-    input       [CHANNELS -1:0][HADDR_SIZE   -1:0] noc_simd_in_flit,
-    input       [CHANNELS -1:0]                    noc_simd_in_last,
-    input       [CHANNELS -1:0]                    noc_simd_in_valid,
-    output      [CHANNELS -1:0]                    noc_simd_in_ready,
-    output      [CHANNELS -1:0][HADDR_SIZE   -1:0] noc_simd_out_flit,
-    output      [CHANNELS -1:0]                    noc_simd_out_last,
-    output      [CHANNELS -1:0]                    noc_simd_out_valid,
-    input       [CHANNELS -1:0]                    noc_simd_out_ready,
-
     //GPIO Interface
-    input       [PDATA_SIZE                  -1:0] gpio_simd_i,
-    output reg  [PDATA_SIZE                  -1:0] gpio_simd_o,
-    output reg  [PDATA_SIZE                  -1:0] gpio_simd_oe,
+    input       [CORES_PER_MISD-1:0][PDATA_SIZE-1:0] gpio_misd_i,
+    output reg  [CORES_PER_MISD-1:0][PDATA_SIZE-1:0] gpio_misd_o,
+    output reg  [CORES_PER_MISD-1:0][PDATA_SIZE-1:0] gpio_misd_oe,
 
-    input       [PDATA_SIZE                  -1:0] gpio_misd_i,
-    output reg  [PDATA_SIZE                  -1:0] gpio_misd_o,
-    output reg  [PDATA_SIZE                  -1:0] gpio_misd_oe
+    input       [CORES_PER_SIMD-1:0][PDATA_SIZE-1:0] gpio_simd_i,
+    output reg  [CORES_PER_SIMD-1:0][PDATA_SIZE-1:0] gpio_simd_o,
+    output reg  [CORES_PER_SIMD-1:0][PDATA_SIZE-1:0] gpio_simd_oe,
+
+    //NoC Interface
+    input       [CHANNELS -1:0][FLIT_WIDTH-1:0] noc_misd_in_flit,
+    input       [CHANNELS -1:0]                 noc_misd_in_last,
+    input       [CHANNELS -1:0]                 noc_misd_in_valid,
+    output      [CHANNELS -1:0]                 noc_misd_in_ready,
+    output      [CHANNELS -1:0][FLIT_WIDTH-1:0] noc_misd_out_flit,
+    output      [CHANNELS -1:0]                 noc_misd_out_last,
+    output      [CHANNELS -1:0]                 noc_misd_out_valid,
+    input       [CHANNELS -1:0]                 noc_misd_out_ready,
+
+    input       [CHANNELS -1:0][FLIT_WIDTH-1:0] noc_simd_in_flit,
+    input       [CHANNELS -1:0]                 noc_simd_in_last,
+    input       [CHANNELS -1:0]                 noc_simd_in_valid,
+    output      [CHANNELS -1:0]                 noc_simd_in_ready,
+    output      [CHANNELS -1:0][FLIT_WIDTH-1:0] noc_simd_out_flit,
+    output      [CHANNELS -1:0]                 noc_simd_out_last,
+    output      [CHANNELS -1:0]                 noc_simd_out_valid,
+    input       [CHANNELS -1:0]                 noc_simd_out_ready
   );
 
   ////////////////////////////////////////////////////////////////
@@ -327,32 +300,14 @@ module riscv_soc #(
 
       .SYNC_DEPTH            ( SYNC_DEPTH ),
 
-      .PARCEL_SIZE           ( PARCEL_SIZE ),
-
       .CORES_PER_MISD        ( CORES_PER_MISD ),
 
-      .CHANNELS              ( CHANNELS ),
-
-      .ROUTER_BUFFER_SIZE    ( ROUTER_BUFFER_SIZE ),
-      .REG_ADDR_WIDTH        ( REG_ADDR_WIDTH ),
-      .VALWIDTH              ( VALWIDTH ),
-      .MAX_PKT_LEN           ( MAX_PKT_LEN )
+      .CHANNELS              ( CHANNELS )
     )
     misd_soc (
       //Common signals
       .HRESETn ( HRESETn ),
       .HCLK    ( HCLK    ),
-
-      //Debug
-      .debug_ring_in_data  ( debug_misd_ring_in_data   ),
-      .debug_ring_in_last  ( debug_misd_ring_in_last   ),
-      .debug_ring_in_valid ( debug_misd_ring_in_valid  ),
-      .debug_ring_in_ready ( debug_misd_ring_in_ready  ),
-
-      .debug_ring_out_data  ( debug_misd_ring_out_data  ),
-      .debug_ring_out_last  ( debug_misd_ring_out_last  ),
-      .debug_ring_out_valid ( debug_misd_ring_out_valid ),
-      .debug_ring_out_ready ( debug_misd_ring_out_ready ),
 
       //PMA configuration
       .pma_cfg_i     ( pma_cfg_i ),
@@ -478,32 +433,14 @@ module riscv_soc #(
 
       .SYNC_DEPTH            ( SYNC_DEPTH ),
 
-      .PARCEL_SIZE           ( PARCEL_SIZE ),
-
       .CORES_PER_SIMD        ( CORES_PER_SIMD ),
 
-      .CHANNELS              ( CHANNELS ),
-
-      .ROUTER_BUFFER_SIZE    ( ROUTER_BUFFER_SIZE ),
-      .REG_ADDR_WIDTH        ( REG_ADDR_WIDTH ),
-      .VALWIDTH              ( VALWIDTH ),
-      .MAX_PKT_LEN           ( MAX_PKT_LEN )
+      .CHANNELS              ( CHANNELS )
     )
     simd_soc (
       //Common signals
       .HRESETn ( HRESETn ),
       .HCLK    ( HCLK    ),
-
-      //Debug
-      .debug_ring_in_data  ( debug_simd_ring_in_data   ),
-      .debug_ring_in_last  ( debug_simd_ring_in_last   ),
-      .debug_ring_in_valid ( debug_simd_ring_in_valid  ),
-      .debug_ring_in_ready ( debug_simd_ring_in_ready  ),
-
-      .debug_ring_out_data  ( debug_simd_ring_out_data  ),
-      .debug_ring_out_last  ( debug_simd_ring_out_last  ),
-      .debug_ring_out_valid ( debug_simd_ring_out_valid ),
-      .debug_ring_out_ready ( debug_simd_ring_out_ready ),
 
       //PMA configuration
       .pma_cfg_i     ( pma_cfg_i ),

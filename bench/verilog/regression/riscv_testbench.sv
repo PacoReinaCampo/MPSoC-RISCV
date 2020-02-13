@@ -71,13 +71,13 @@ module riscv_testbench;
 
   parameter PMA_CNT            = 4;
 
-  parameter CORES_PER_SIMD     = 8;
-  parameter CORES_PER_MISD     = 8;
+  parameter CORES_PER_SIMD     = 4;
+  parameter CORES_PER_MISD     = 4;
 
   //noc parameters
-  parameter CHANNELS           = 2;
-  parameter PCHANNELS          = 2;
-  parameter VCHANNELS          = 2;
+  parameter CHANNELS           = 7;
+  parameter PCHANNELS          = 1;
+  parameter VCHANNELS          = 7;
 
   parameter X                  = 2;
   parameter Y                  = 2;
@@ -92,14 +92,11 @@ module riscv_testbench;
   parameter PADDR_SIZE         = PLEN;
   parameter PDATA_SIZE         = XLEN;
 
-  parameter STDOUT_FILENAME    = "stdout";
-  parameter TRACEFILE_FILENAME = "trace";
-  parameter ENABLE_TRACE       = 0;
-  parameter TERM_CROSS_NUM     = NODES;
-
-  parameter GLIP_WIDTH         = XLEN;
-  parameter GLIP_PORT          = 23000;
-  parameter GLIP_UART_LIKE     = 0;
+  parameter ADDR_WIDTH     = 32;
+  parameter DATA_WIDTH     = 32;
+  parameter CPU_ADDR_WIDTH = 32;
+  parameter CPU_DATA_WIDTH = 32;
+  parameter DATAREG_LEN    = 64;
 
   //////////////////////////////////////////////////////////////////
   //
@@ -224,57 +221,6 @@ module riscv_testbench;
 
   logic                       HCLK,
                               HRESETn;
-
-  logic                       com_misd_rst,
-                              logic_misd_rst;
-
-  logic                       com_simd_rst,
-                              logic_simd_rst;
-
-  //GLIP host connection
-  logic [GLIP_WIDTH     -1:0] glip_misd_in_data;
-  logic                       glip_misd_in_valid;
-  logic                       glip_misd_in_ready;
-
-  logic [GLIP_WIDTH     -1:0] glip_misd_out_data;
-  logic                       glip_misd_out_valid;
-  logic                       glip_misd_out_ready;
-
-  logic [GLIP_WIDTH     -1:0] glip_simd_in_data;
-  logic                       glip_simd_in_valid;
-  logic                       glip_simd_in_ready;
-
-  logic [GLIP_WIDTH     -1:0] glip_simd_out_data;
-  logic                       glip_simd_out_valid;
-  logic                       glip_simd_out_ready;
-
-  logic [X-1:0][Y-1:0][Z-1:0][XLEN           -1:0] trace_misd_insn;
-  logic [X-1:0][Y-1:0][Z-1:0][XLEN           -1:0] trace_misd_pc;
-  logic [X-1:0][Y-1:0][Z-1:0]                      trace_misd_jb;
-  logic [X-1:0][Y-1:0][Z-1:0]                      trace_misd_jal;
-  logic [X-1:0][Y-1:0][Z-1:0]                      trace_misd_jr;
-  logic [X-1:0][Y-1:0][Z-1:0][XLEN           -1:0] trace_misd_jbtarget;
-  logic [X-1:0][Y-1:0][Z-1:0]                      trace_misd_valid;
-  logic [X-1:0][Y-1:0][Z-1:0][XLEN           -1:0] trace_misd_data;
-  logic [X-1:0][Y-1:0][Z-1:0][                4:0] trace_misd_addr;
-  logic [X-1:0][Y-1:0][Z-1:0]                      trace_misd_we;
-
-  logic [X-1:0][Y-1:0][Z-1:0][XLEN           -1:0] trace_simd_insn;
-  logic [X-1:0][Y-1:0][Z-1:0][XLEN           -1:0] trace_simd_pc;
-  logic [X-1:0][Y-1:0][Z-1:0]                      trace_simd_jb;
-  logic [X-1:0][Y-1:0][Z-1:0]                      trace_simd_jal;
-  logic [X-1:0][Y-1:0][Z-1:0]                      trace_simd_jr;
-  logic [X-1:0][Y-1:0][Z-1:0][XLEN           -1:0] trace_simd_jbtarget;
-  logic [X-1:0][Y-1:0][Z-1:0]                      trace_simd_valid;
-  logic [X-1:0][Y-1:0][Z-1:0][XLEN           -1:0] trace_simd_data;
-  logic [X-1:0][Y-1:0][Z-1:0][                4:0] trace_simd_addr;
-  logic [X-1:0][Y-1:0][Z-1:0]                      trace_simd_we;
-
-  logic [X-1:0][Y-1:0][Z-1:0][XLEN           -1:0] trace_r3_misd;
-  logic [X-1:0][Y-1:0][Z-1:0][XLEN           -1:0] trace_r3_simd;
-
-  logic [NODES          -1:0] termination_misd;
-  logic [NODES          -1:0] termination_simd;
 
   //PMA configuration
   logic [PMA_CNT-1:0][    13:0] pma_cfg;
@@ -416,13 +362,13 @@ module riscv_testbench;
   logic [X-1:0][Y-1:0][Z-1:0][CORES_PER_SIMD-1:0][                3:0] ext_simd_int;
 
   //GPIO
-  logic [X-1:0][Y-1:0][Z-1:0][PDATA_SIZE     -1:0] gpio_misd_i,
-                                                   gpio_misd_o,
-                                                   gpio_misd_oe;
+  logic [X-1:0][Y-1:0][Z-1:0][CORES_PER_MISD-1:0][PDATA_SIZE     -1:0] gpio_misd_i;
+  logic [X-1:0][Y-1:0][Z-1:0][CORES_PER_MISD-1:0][PDATA_SIZE     -1:0] gpio_misd_o;
+  logic [X-1:0][Y-1:0][Z-1:0][CORES_PER_MISD-1:0][PDATA_SIZE     -1:0] gpio_misd_oe;
 
-  logic [X-1:0][Y-1:0][Z-1:0][PDATA_SIZE     -1:0] gpio_simd_i,
-                                                   gpio_simd_o,
-                                                   gpio_simd_oe;
+  logic [X-1:0][Y-1:0][Z-1:0][CORES_PER_SIMD-1:0][PDATA_SIZE     -1:0] gpio_simd_i;
+  logic [X-1:0][Y-1:0][Z-1:0][CORES_PER_MISD-1:0][PDATA_SIZE     -1:0] gpio_simd_o;
+  logic [X-1:0][Y-1:0][Z-1:0][CORES_PER_MISD-1:0][PDATA_SIZE     -1:0] gpio_simd_oe;
 
   //Host Interface
   logic                       host_csr_req,
@@ -431,10 +377,105 @@ module riscv_testbench;
   logic [XLEN           -1:0] host_csr_tohost,
                               host_csr_fromhost;
 
-  logic [NODES-1:0][XLEN -1:0] dii_out_data;
-  logic [NODES-1:0]            dii_out_last;
-  logic [NODES-1:0]            dii_out_valid;
-  logic [NODES-1:0]            dii_out_ready;
+  // JTAG signals
+  logic                    ahb3_misd_tck_i;
+  logic                    ahb3_misd_tdi_i;
+  logic                    ahb3_misd_tdo_o;
+
+  logic                    ahb3_simd_tck_i;
+  logic                    ahb3_simd_tdi_i;
+  logic                    ahb3_simd_tdo_o;
+
+  // TAP states
+  logic                    ahb3_misd_tlr_i;
+  logic                    ahb3_misd_shift_dr_i;
+  logic                    ahb3_misd_pause_dr_i;
+  logic                    ahb3_misd_update_dr_i;
+  logic                    ahb3_misd_capture_dr_i;
+
+  logic                    ahb3_simd_tlr_i;
+  logic                    ahb3_simd_shift_dr_i;
+  logic                    ahb3_simd_pause_dr_i;
+  logic                    ahb3_simd_update_dr_i;
+  logic                    ahb3_simd_capture_dr_i;
+
+  // Instructions
+  logic                    ahb3_misd_debug_select_i;
+
+  logic                    ahb3_simd_debug_select_i;
+
+  // AHB Master Interface Signals
+
+  logic                    dbg_misd_HSEL;
+  logic [ADDR_WIDTH  -1:0] dbg_misd_HADDR;
+  logic [DATA_WIDTH  -1:0] dbg_misd_HWDATA;
+  logic [DATA_WIDTH  -1:0] dbg_misd_HRDATA;
+  logic                    dbg_misd_HWRITE;
+  logic [             2:0] dbg_misd_HSIZE;
+  logic [             2:0] dbg_misd_HBURST;
+  logic [             3:0] dbg_misd_HPROT;
+  logic [             1:0] dbg_misd_HTRANS;
+  logic                    dbg_misd_HMASTLOCK;
+  logic                    dbg_misd_HREADY;
+  logic                    dbg_misd_HRESP;
+
+  logic                    dbg_simd_HSEL;
+  logic [ADDR_WIDTH  -1:0] dbg_simd_HADDR;
+  logic [DATA_WIDTH  -1:0] dbg_simd_HWDATA;
+  logic [DATA_WIDTH  -1:0] dbg_simd_HRDATA;
+  logic                    dbg_simd_HWRITE;
+  logic [             2:0] dbg_simd_HSIZE;
+  logic [             2:0] dbg_simd_HBURST;
+  logic [             3:0] dbg_simd_HPROT;
+  logic [             1:0] dbg_simd_HTRANS;
+  logic                    dbg_simd_HMASTLOCK;
+  logic                    dbg_simd_HREADY;
+  logic                    dbg_simd_HRESP;
+
+  // APB Slave Interface Signals (JTAG Serial Port)
+  logic                    PRESETn;
+  logic                    PCLK;
+
+  logic                    jsp_misd_PSEL;
+  logic                    jsp_misd_PENABLE;
+  logic                    jsp_misd_PWRITE;
+  logic [             2:0] jsp_misd_PADDR;
+  logic [             7:0] jsp_misd_PWDATA;
+  logic [             7:0] jsp_misd_PRDATA;
+  logic                    jsp_misd_PREADY;
+  logic                    jsp_misd_PSLVERR;
+
+  logic                    jsp_simd_PSEL;
+  logic                    jsp_simd_PENABLE;
+  logic                    jsp_simd_PWRITE;
+  logic [             2:0] jsp_simd_PADDR;
+  logic [             7:0] jsp_simd_PWDATA;
+  logic [             7:0] jsp_simd_PRDATA;
+  logic                    jsp_simd_PREADY;
+  logic                    jsp_simd_PSLVERR;
+
+  logic                    int_misd_o;
+
+  logic                    int_simd_o;
+
+  // CPU/Thread debug ports
+  logic [X-1:0][Y-1:0][Z-1:0][CORES_PER_MISD-1:0][CPU_ADDR_WIDTH-1:0] ahb3_misd_cpu_addr_o;
+  logic [X-1:0][Y-1:0][Z-1:0][CORES_PER_MISD-1:0][CPU_DATA_WIDTH-1:0] ahb3_misd_cpu_data_i;
+  logic [X-1:0][Y-1:0][Z-1:0][CORES_PER_MISD-1:0][CPU_DATA_WIDTH-1:0] ahb3_misd_cpu_data_o;
+  logic [X-1:0][Y-1:0][Z-1:0][CORES_PER_MISD-1:0]                     ahb3_misd_cpu_bp_i;
+  logic [X-1:0][Y-1:0][Z-1:0][CORES_PER_MISD-1:0]                     ahb3_misd_cpu_stall_o;
+  logic [X-1:0][Y-1:0][Z-1:0][CORES_PER_MISD-1:0]                     ahb3_misd_cpu_stb_o;
+  logic [X-1:0][Y-1:0][Z-1:0][CORES_PER_MISD-1:0]                     ahb3_misd_cpu_we_o;
+  logic [X-1:0][Y-1:0][Z-1:0][CORES_PER_MISD-1:0]                     ahb3_misd_cpu_ack_i;
+
+  logic [X-1:0][Y-1:0][Z-1:0][CORES_PER_SIMD-1:0][CPU_ADDR_WIDTH-1:0] ahb3_simd_cpu_addr_o;
+  logic [X-1:0][Y-1:0][Z-1:0][CORES_PER_SIMD-1:0][CPU_DATA_WIDTH-1:0] ahb3_simd_cpu_data_i;
+  logic [X-1:0][Y-1:0][Z-1:0][CORES_PER_SIMD-1:0][CPU_DATA_WIDTH-1:0] ahb3_simd_cpu_data_o;
+  logic [X-1:0][Y-1:0][Z-1:0][CORES_PER_SIMD-1:0]                     ahb3_simd_cpu_bp_i;
+  logic [X-1:0][Y-1:0][Z-1:0][CORES_PER_SIMD-1:0]                     ahb3_simd_cpu_stall_o;
+  logic [X-1:0][Y-1:0][Z-1:0][CORES_PER_SIMD-1:0]                     ahb3_simd_cpu_stb_o;
+  logic [X-1:0][Y-1:0][Z-1:0][CORES_PER_SIMD-1:0]                     ahb3_simd_cpu_we_o;
+  logic [X-1:0][Y-1:0][Z-1:0][CORES_PER_SIMD-1:0]                     ahb3_simd_cpu_ack_i;
 
   //Unified memory interface
   logic [1:0][X-1:0][Y-1:0][Z-1:0][CORES_PER_TILE-1:0][                1:0] mem_htrans;
@@ -572,148 +613,6 @@ module riscv_testbench;
     .*
   );
 
-  riscv_debug_ring #(
-    .XLEN ( XLEN ),
-    .CHANNELS ( CHANNELS ),
-    .NODES ( NODES )
-  )
-  debug_ring (
-    .rst ( HRESETn ),
-    .clk ( HCLK    ),
-
-    .id_map        (),
-
-    .dii_in_data   (),
-    .dii_in_last   (),
-    .dii_in_valid  (),
-    .dii_in_ready  (),
-
-    .dii_out_data  (dii_out_data),
-    .dii_out_last  (dii_out_last),
-    .dii_out_valid (dii_out_valid),
-    .dii_out_ready (dii_out_ready)
-  );
-
-  riscv_glip_tcp #(
-    .XLEN (XLEN)
-  )
-  glip_tcp_misd (
-    .clk_io    ( HCLK    ),
-    .clk_logic ( HCLK    ),
-    .rst       ( HRESETn ),
-
-    //GLIP FIFO Interface
-    .fifo_in_data   ( glip_misd_in_data  ),
-    .fifo_in_valid  ( glip_misd_in_valid ),
-    .fifo_in_ready  ( glip_misd_in_ready ),
-
-    .fifo_out_data  ( glip_misd_out_data  ),
-    .fifo_out_valid ( glip_misd_out_valid ),
-    .fifo_out_ready ( glip_misd_out_ready ),
-
-    //GLIP Control Interface
-    .logic_rst ( logic_misd_rst ),
-    .com_rst   ( com_misd_rst   )
-  );
-
-  riscv_glip_tcp #(
-    .XLEN (XLEN)
-  )
-  glip_tcp_simd (
-    .clk_io    ( HCLK    ),
-    .clk_logic ( HCLK    ),
-    .rst       ( HRESETn ),
-
-    //GLIP FIFO Interface
-    .fifo_in_data   ( glip_simd_in_data  ),
-    .fifo_in_valid  ( glip_simd_in_valid ),
-    .fifo_in_ready  ( glip_simd_in_ready ),
-
-    .fifo_out_data  ( glip_simd_out_data  ),
-    .fifo_out_valid ( glip_simd_out_valid ),
-    .fifo_out_ready ( glip_simd_out_ready ),
-
-    //GLIP Control Interface
-    .logic_rst ( logic_simd_rst ),
-    .com_rst   ( com_simd_rst   )
-  );
-
-  generate
-    for (i=0; i < X; i++) begin
-      for (j=0; j < Y; j++) begin
-        for (k=0; k < Z; k++) begin
-          riscv_r3_checker #(
-            .XLEN (XLEN)
-          )
-          r3_checker_misd (
-            .clk   ( HCLK),
-
-            .valid ( trace_misd_valid [i][j][k] ),
-            .we    ( trace_misd_we    [i][j][k] ),
-            .addr  ( trace_misd_addr  [i][j][k] ),
-            .data  ( trace_misd_data  [i][j][k] ),
-            .r3    ( trace_r3_misd    [i][j][k] )
-          );
-
-          riscv_trace_monitor #(
-            .XLEN           ( XLEN ),
-            .TERM_CROSS_NUM ( NODES ),
-            .ID             ( (i-1)*(j-1)*(k-1)-1 )
-          )
-          trace_monitor_misd (
-            .termination     (                            ),
-            .termination_all ( termination_misd           ),
-
-            .clk             ( HCLK ),
-
-            .enable          ( trace_misd_valid [i][j][k] ),
-            .wb_pc           ( trace_misd_pc    [i][j][k] ),
-            .wb_insn         ( trace_misd_insn  [i][j][k] ),
-            .r3              ( trace_r3_misd    [i][j][k] )
-          );
-        end
-      end
-    end
-  endgenerate
-
-  generate
-    for (i=0; i < X; i++) begin
-      for (j=0; j < Y; j++) begin
-        for (k=0; k < Z; k++) begin
-          riscv_r3_checker #(
-            .XLEN (XLEN)
-          )
-          r3_checker_simd (
-            .clk   ( HCLK ),
-
-            .valid ( trace_simd_valid [i][j][k] ),
-            .we    ( trace_simd_we    [i][j][k] ),
-            .addr  ( trace_simd_addr  [i][j][k] ),
-            .data  ( trace_simd_data  [i][j][k] ),
-            .r3    ( trace_r3_simd    [i][j][k] )
-          );
-
-          riscv_trace_monitor #(
-            .XLEN           ( XLEN ),
-            .TERM_CROSS_NUM ( NODES ),
-            .ID             ( (i-1)*(j-1)*(k-1)-1 )
-          )
-          trace_monitor_simd (
-            .termination     (                            ),
-            .termination_all ( termination_simd           ),
-
-            .clk             ( HCLK ),
-
-            .enable          ( trace_simd_valid [i][j][k] ),
-            .wb_pc           ( trace_simd_pc    [i][j][k] ),
-            .wb_insn         ( trace_simd_insn  [i][j][k] ),
-            .r3              ( trace_r3_simd    [i][j][k] )
-          );
-        end
-      end
-    end
-  endgenerate
-
   //Hookup Debug Unit
   riscv_dbg_bfm #(
     .XLEN ( XLEN ),
@@ -737,6 +636,148 @@ module riscv_testbench;
     .cpu_dat_o   ( dbg_dati  ),
     .cpu_dat_i   ( dbg_dato  ),
     .cpu_ack_i   ( dbg_ack   )
+  );
+
+  //DBG MISD AHB3
+  mpsoc_dbg_top_ahb3 #(
+    .X              ( X              ),
+    .Y              ( Y              ),
+    .Z              ( Z              ),
+    .CORES_PER_TILE ( CORES_PER_MISD ),
+    .ADDR_WIDTH     ( 32             ),
+    .DATA_WIDTH     ( 32             ),
+    .CPU_ADDR_WIDTH ( 32             ),
+    .CPU_DATA_WIDTH ( 32             ),
+    .DATAREG_LEN    ( DATAREG_LEN    )
+  )
+  top_misd_ahb3 (
+    // JTAG signals
+    .tck_i ( ahb3_misd_tck_i ),
+    .tdi_i ( ahb3_misd_tdi_i ),
+    .tdo_o ( ahb3_misd_tdo_i ),
+
+    // TAP states
+    .tlr_i        ( ahb3_misd_tlr_i        ),
+    .shift_dr_i   ( ahb3_misd_shift_dr_i   ),
+    .pause_dr_i   ( ahb3_misd_pause_dr_i   ),
+    .update_dr_i  ( ahb3_misd_update_dr_i  ),
+    .capture_dr_i ( ahb3_misd_capture_dr_i ),
+
+    // Instructions
+    .debug_select_i ( ahb3_misd_debug_select_i ),
+
+    // AHB Master Interface Signals
+    .HCLK          ( HCLK               ),
+    .HRESETn       ( HRESETn            ),
+    .dbg_HSEL      ( dbg_misd_HSEL      ),
+    .dbg_HADDR     ( dbg_misd_HADDR     ),
+    .dbg_HWDATA    ( dbg_misd_HWDATA    ),
+    .dbg_HRDATA    ( dbg_misd_HRDATA    ),
+    .dbg_HWRITE    ( dbg_misd_HWRITE    ),
+    .dbg_HSIZE     ( dbg_misd_HSIZE     ),
+    .dbg_HBURST    ( dbg_misd_HBURST    ),
+    .dbg_HPROT     ( dbg_misd_HPROT     ),
+    .dbg_HTRANS    ( dbg_misd_HTRANS    ),
+    .dbg_HMASTLOCK ( dbg_misd_HMASTLOCK ),
+    .dbg_HREADY    ( dbg_misd_HREADY    ),
+    .dbg_HRESP     ( dbg_misd_HRESP     ),
+
+    // APB Slave Interface Signals (JTAG Serial Port)
+    .PRESETn     ( PRESETn          ),
+    .PCLK        ( PCLK             ),
+    .jsp_PSEL    ( jsp_misd_PSEL    ),
+    .jsp_PENABLE ( jsp_misd_PENABLE ),
+    .jsp_PWRITE  ( jsp_misd_PWRITE  ),
+    .jsp_PADDR   ( jsp_misd_PADDR   ),
+    .jsp_PWDATA  ( jsp_misd_PWDATA  ),
+    .jsp_PRDATA  ( jsp_misd_PRDATA  ),
+    .jsp_PREADY  ( jsp_misd_PREADY  ),
+    .jsp_PSLVERR ( jsp_misd_PSLVERR ),
+  
+    .int_o ( int_misd_o ),
+
+    //CPU/Thread debug ports
+    .cpu_clk_i   ( ahb3_misd_cpu_clk_i   ),
+    .cpu_rstn_i  ( ahb3_misd_cpu_rstn_i  ),
+    .cpu_addr_o  ( ahb3_misd_cpu_addr_o  ),
+    .cpu_data_i  ( ahb3_misd_cpu_data_i  ),
+    .cpu_data_o  ( ahb3_misd_cpu_data_o  ),
+    .cpu_bp_i    ( ahb3_misd_cpu_bp_i    ),
+    .cpu_stall_o ( ahb3_misd_cpu_stall_o ),
+    .cpu_stb_o   ( ahb3_misd_cpu_stb_o   ),
+    .cpu_we_o    ( ahb3_misd_cpu_we_o    ),
+    .cpu_ack_i   ( ahb3_misd_cpu_ack_i   )
+  );
+
+  //DBG SIMD AHB3
+  mpsoc_dbg_top_ahb3 #(
+    .X              ( X              ),
+    .Y              ( Y              ),
+    .Z              ( Z              ),
+    .CORES_PER_TILE ( CORES_PER_SIMD ),
+    .ADDR_WIDTH     ( 32             ),
+    .DATA_WIDTH     ( 32             ),
+    .CPU_ADDR_WIDTH ( 32             ),
+    .CPU_DATA_WIDTH ( 32             ),
+    .DATAREG_LEN    ( DATAREG_LEN    )
+  )
+  top_simd_ahb3 (
+    // JTAG signals
+    .tck_i ( ahb3_simd_tck_i ),
+    .tdi_i ( ahb3_simd_tdi_i ),
+    .tdo_o ( ahb3_simd_tdo_i ),
+
+    // TAP states
+    .tlr_i        ( ahb3_simd_tlr_i        ),
+    .shift_dr_i   ( ahb3_simd_shift_dr_i   ),
+    .pause_dr_i   ( ahb3_simd_pause_dr_i   ),
+    .update_dr_i  ( ahb3_simd_update_dr_i  ),
+    .capture_dr_i ( ahb3_simd_capture_dr_i ),
+
+    // Instructions
+    .debug_select_i ( ahb3_simd_debug_select_i ),
+
+    // AHB Master Interface Signals
+    .HCLK          ( HCLK               ),
+    .HRESETn       ( HRESETn            ),
+    .dbg_HSEL      ( dbg_simd_HSEL      ),
+    .dbg_HADDR     ( dbg_simd_HADDR     ),
+    .dbg_HWDATA    ( dbg_simd_HWDATA    ),
+    .dbg_HRDATA    ( dbg_simd_HRDATA    ),
+    .dbg_HWRITE    ( dbg_simd_HWRITE    ),
+    .dbg_HSIZE     ( dbg_simd_HSIZE     ),
+    .dbg_HBURST    ( dbg_simd_HBURST    ),
+    .dbg_HPROT     ( dbg_simd_HPROT     ),
+    .dbg_HTRANS    ( dbg_simd_HTRANS    ),
+    .dbg_HMASTLOCK ( dbg_simd_HMASTLOCK ),
+    .dbg_HREADY    ( dbg_simd_HREADY    ),
+    .dbg_HRESP     ( dbg_simd_HRESP     ),
+
+    // APB Slave Interface Signals (JTAG Serial Port)
+    .PRESETn     ( PRESETn          ),
+    .PCLK        ( PCLK             ),
+    .jsp_PSEL    ( jsp_simd_PSEL    ),
+    .jsp_PENABLE ( jsp_simd_PENABLE ),
+    .jsp_PWRITE  ( jsp_simd_PWRITE  ),
+    .jsp_PADDR   ( jsp_simd_PADDR   ),
+    .jsp_PWDATA  ( jsp_simd_PWDATA  ),
+    .jsp_PRDATA  ( jsp_simd_PRDATA  ),
+    .jsp_PREADY  ( jsp_simd_PREADY  ),
+    .jsp_PSLVERR ( jsp_simd_PSLVERR ),
+  
+    .int_o ( int_simd_o ),
+
+    //CPU/Thread debug ports
+    .cpu_clk_i   ( ahb3_simd_cpu_clk_i   ),
+    .cpu_rstn_i  ( ahb3_simd_cpu_rstn_i  ),
+    .cpu_addr_o  ( ahb3_simd_cpu_addr_o  ),
+    .cpu_data_i  ( ahb3_simd_cpu_data_i  ),
+    .cpu_data_o  ( ahb3_simd_cpu_data_o  ),
+    .cpu_bp_i    ( ahb3_simd_cpu_bp_i    ),
+    .cpu_stall_o ( ahb3_simd_cpu_stall_o ),
+    .cpu_stb_o   ( ahb3_simd_cpu_stb_o   ),
+    .cpu_we_o    ( ahb3_simd_cpu_we_o    ),
+    .cpu_ack_i   ( ahb3_simd_cpu_ack_i   )
   );
 
   generate

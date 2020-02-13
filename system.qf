@@ -72,7 +72,7 @@ mkdir synthesis/riscv_mpsoc/layout
 #cp noc/rtl/verilog/router/riscv_noc_router_lookup.sv       synthesis/riscv_mpsoc/source
 #cp noc/rtl/verilog/router/riscv_noc_router_output.sv       synthesis/riscv_mpsoc/source
 #cp noc/rtl/verilog/router/riscv_noc_router.sv              synthesis/riscv_mpsoc/source
-#cp noc/rtl/verilog/topology/riscv_noc_mesh.sv              synthesis/riscv_mpsoc/source
+#cp noc/rtl/verilog/topology/riscv_noc.sv                   synthesis/riscv_mpsoc/source
 
 #cp pu/rtl/verilog/core/cache/riscv_dcache_core.sv    synthesis/riscv_mpsoc/source
 #cp pu/rtl/verilog/core/cache/riscv_dext.sv           synthesis/riscv_mpsoc/source
