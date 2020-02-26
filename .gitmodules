@@ -19,12 +19,6 @@
 [submodule "spram"]
 	path = spram
 	url = https://github.com/PacoReinaCampo/MPSoC-SPRAM.git
-[submodule "uart"]
-	path = uart
-	url = https://github.com/PacoReinaCampo/MPSoC-GPIO.git
-[submodule "gpio"]
-	path = gpio
-	url = https://github.com/PacoReinaCampo/MPSoC-UART.git
 [submodule "mpi"]
 	path = mpi
 	url = https://github.com/PacoReinaCampo/MPSoC-MPI.git
