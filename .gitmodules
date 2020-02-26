@@ -22,3 +22,9 @@
 [submodule "mpi"]
 	path = mpi
 	url = https://github.com/PacoReinaCampo/MPSoC-MPI.git
+[submodule "gpio"]
+	path = gpio
+	url = https://github.com/PacoReinaCampo/MPSoC-GPIO.git
+[submodule "uart"]
+	path = uart
+	url = https://github.com/PacoReinaCampo/MPSoC-UART.git
