@@ -30,6 +30,26 @@ rm -rf noc/sim/mixed/regression/bin/work
 rm -rf noc/sim/verilog/regression/bin/work
 rm -rf noc/sim/vhdl/regression/bin/work
 
+rm -rf gpio/sim/mixed/regression/bin/work
+rm -rf gpio/sim/verilog/regression/bin/work
+rm -rf gpio/sim/vhdl/regression/bin/work
+
+rm -rf uart/sim/mixed/regression/bin/work
+rm -rf uart/sim/verilog/regression/bin/work
+rm -rf uart/sim/vhdl/regression/bin/work
+
+rm -rf mpram/sim/mixed/regression/bin/work
+rm -rf mpram/sim/verilog/regression/bin/work
+rm -rf mpram/sim/vhdl/regression/bin/work
+
+rm -rf spram/sim/mixed/regression/bin/work
+rm -rf spram/sim/verilog/regression/bin/work
+rm -rf spram/sim/vhdl/regression/bin/work
+
+rm -rf mpi/sim/mixed/regression/bin/work
+rm -rf mpi/sim/verilog/regression/bin/work
+rm -rf mpi/sim/vhdl/regression/bin/work
+
 rm -rf dbg/synthesis
 rm -rf dma/synthesis
 rm -rf msi/synthesis
