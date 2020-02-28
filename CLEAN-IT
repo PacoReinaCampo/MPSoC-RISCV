@@ -84,4 +84,5 @@ rm -rf msi/riscv_msi_testbench.tree
 rm -rf noc/riscv_noc_testbench.tree
 rm -rf pu/riscv_pu_testbench.tree
 
+rm -rf riscv_soc.tree
 rm -rf riscv_mpsoc.tree

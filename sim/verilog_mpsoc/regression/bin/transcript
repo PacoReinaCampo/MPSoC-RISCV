@@ -1,5 +1,5 @@
 # vsim -c -do "run.do" work.riscv_mpsoc 
-# Start time: 01:09:52 on Feb 27,2020
+# Start time: 00:45:00 on Feb 29,2020
 # Loading sv_std.std
 # Loading work.riscv_mpsoc
 # Loading work.mpsoc_noc_mesh
@@ -72,5 +72,5 @@
 # ** Warning: Design size of 10316 statements exceeds ModelSim-Intel FPGA Starter Edition recommended capacity.
 # Expect performance to be adversely affected.
 # do run.do
-# End time: 01:09:59 on Feb 27,2020, Elapsed time: 0:00:07
+# End time: 00:45:06 on Feb 29,2020, Elapsed time: 0:00:06
 # Errors: 0, Warnings: 1

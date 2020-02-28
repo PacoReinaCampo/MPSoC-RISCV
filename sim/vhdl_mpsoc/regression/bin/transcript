@@ -1,5 +1,5 @@
 # vsim -c -do "run.do" work.riscv_misd 
-# Start time: 01:50:26 on Feb 27,2020
+# Start time: 00:47:09 on Feb 29,2020
 # Loading std.standard
 # Loading std.textio(body)
 # Loading ieee.std_logic_1164(body)
@@ -45,8 +45,8 @@
 # Loading work.mpsoc_dma_ahb3_top(rtl)
 # Loading work.mpsoc_dma_ahb3_interface(rtl)
 # ** Fatal: (vsim-3348) Port length (32) does not match actual length (64) for port "/riscv_misd/generating_0(0)/ahb3_top/ahb3_interface/ahb3_if_haddr".
-#    Time: 0 ps  Iteration: 0  Instance: /riscv_misd/generating_0(0)/ahb3_top/ahb3_interface File: ../../../../dma/rtl/vhdl/ahb3/mpsoc_dma_ahb3_interface.vhd Line: 64
+#    Time: 0 ps  Iteration: 0  Instance: /riscv_misd/generating_0(0)/ahb3_top/ahb3_interface File: ../../../../soc/dma/rtl/vhdl/ahb3/mpsoc_dma_ahb3_interface.vhd Line: 64
 # FATAL ERROR while loading design
 # Error loading design
-# End time: 01:50:26 on Feb 27,2020, Elapsed time: 0:00:00
+# End time: 00:47:09 on Feb 29,2020, Elapsed time: 0:00:00
 # Errors: 1, Warnings: 0

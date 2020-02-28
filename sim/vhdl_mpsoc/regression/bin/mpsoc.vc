@@ -40,49 +40,49 @@
  *   Francisco Javier Reina Campo <frareicam@gmail.com>
  */
 
-../../../../rtl/vhdl/pkg/riscv_mpsoc_pkg.vhd
-../../../../rtl/vhdl/pkg/mpsoc_pkg.vhd
-../../../../rtl/vhdl/pkg/mpsoc_dbg_pkg.vhd
-../../../../rtl/vhdl/pkg/mpsoc_dma_pkg.vhd
-../../../../rtl/vhdl/pkg/mpsoc_msi_pkg.vhd
-../../../../rtl/vhdl/pkg/mpsoc_noc_pkg.vhd
+../../../../soc/rtl/vhdl/pkg/riscv_mpsoc_pkg.vhd
+../../../../soc/rtl/vhdl/pkg/mpsoc_pkg.vhd
+../../../../soc/rtl/vhdl/pkg/mpsoc_dbg_pkg.vhd
+../../../../soc/rtl/vhdl/pkg/mpsoc_dma_pkg.vhd
+../../../../soc/rtl/vhdl/pkg/mpsoc_msi_pkg.vhd
+../../../../soc/rtl/vhdl/pkg/mpsoc_noc_pkg.vhd
 
-../../../../pu/rtl/vhdl/core/cache/riscv_dcache_core.vhd
-../../../../pu/rtl/vhdl/core/cache/riscv_dext.vhd
-../../../../pu/rtl/vhdl/core/cache/riscv_icache_core.vhd
-../../../../pu/rtl/vhdl/core/cache/riscv_noicache_core.vhd
-../../../../pu/rtl/vhdl/core/execution/riscv_alu.vhd
-../../../../pu/rtl/vhdl/core/execution/riscv_bu.vhd
-../../../../pu/rtl/vhdl/core/execution/riscv_div.vhd
-../../../../pu/rtl/vhdl/core/execution/riscv_lsu.vhd
-../../../../pu/rtl/vhdl/core/execution/riscv_mul.vhd
-../../../../pu/rtl/vhdl/core/memory/riscv_dmem_ctrl.vhd
-../../../../pu/rtl/vhdl/core/memory/riscv_imem_ctrl.vhd
-../../../../pu/rtl/vhdl/core/memory/riscv_membuf.vhd
-../../../../pu/rtl/vhdl/core/memory/riscv_memmisaligned.vhd
-../../../../pu/rtl/vhdl/core/memory/riscv_mmu.vhd
-../../../../pu/rtl/vhdl/core/memory/riscv_mux.vhd
-../../../../pu/rtl/vhdl/core/memory/riscv_pmachk.vhd
-../../../../pu/rtl/vhdl/core/memory/riscv_pmpchk.vhd
-../../../../pu/rtl/vhdl/core/riscv_bp.vhd
-../../../../pu/rtl/vhdl/core/riscv_core.vhd
-../../../../pu/rtl/vhdl/core/riscv_du.vhd
-../../../../pu/rtl/vhdl/core/riscv_execution.vhd
-../../../../pu/rtl/vhdl/core/riscv_id.vhd
-../../../../pu/rtl/vhdl/core/riscv_if.vhd
-../../../../pu/rtl/vhdl/core/riscv_memory.vhd
-../../../../pu/rtl/vhdl/core/riscv_rf.vhd
-../../../../pu/rtl/vhdl/core/riscv_state.vhd
-../../../../pu/rtl/vhdl/core/riscv_wb.vhd
+../../../../soc/pu/rtl/vhdl/core/cache/riscv_dcache_core.vhd
+../../../../soc/pu/rtl/vhdl/core/cache/riscv_dext.vhd
+../../../../soc/pu/rtl/vhdl/core/cache/riscv_icache_core.vhd
+../../../../soc/pu/rtl/vhdl/core/cache/riscv_noicache_core.vhd
+../../../../soc/pu/rtl/vhdl/core/execution/riscv_alu.vhd
+../../../../soc/pu/rtl/vhdl/core/execution/riscv_bu.vhd
+../../../../soc/pu/rtl/vhdl/core/execution/riscv_div.vhd
+../../../../soc/pu/rtl/vhdl/core/execution/riscv_lsu.vhd
+../../../../soc/pu/rtl/vhdl/core/execution/riscv_mul.vhd
+../../../../soc/pu/rtl/vhdl/core/memory/riscv_dmem_ctrl.vhd
+../../../../soc/pu/rtl/vhdl/core/memory/riscv_imem_ctrl.vhd
+../../../../soc/pu/rtl/vhdl/core/memory/riscv_membuf.vhd
+../../../../soc/pu/rtl/vhdl/core/memory/riscv_memmisaligned.vhd
+../../../../soc/pu/rtl/vhdl/core/memory/riscv_mmu.vhd
+../../../../soc/pu/rtl/vhdl/core/memory/riscv_mux.vhd
+../../../../soc/pu/rtl/vhdl/core/memory/riscv_pmachk.vhd
+../../../../soc/pu/rtl/vhdl/core/memory/riscv_pmpchk.vhd
+../../../../soc/pu/rtl/vhdl/core/riscv_bp.vhd
+../../../../soc/pu/rtl/vhdl/core/riscv_core.vhd
+../../../../soc/pu/rtl/vhdl/core/riscv_du.vhd
+../../../../soc/pu/rtl/vhdl/core/riscv_execution.vhd
+../../../../soc/pu/rtl/vhdl/core/riscv_id.vhd
+../../../../soc/pu/rtl/vhdl/core/riscv_if.vhd
+../../../../soc/pu/rtl/vhdl/core/riscv_memory.vhd
+../../../../soc/pu/rtl/vhdl/core/riscv_rf.vhd
+../../../../soc/pu/rtl/vhdl/core/riscv_state.vhd
+../../../../soc/pu/rtl/vhdl/core/riscv_wb.vhd
 
-../../../../pu/rtl/vhdl/memory/riscv_ram_1r1w.vhd
-../../../../pu/rtl/vhdl/memory/riscv_ram_1r1w_generic.vhd
-../../../../pu/rtl/vhdl/memory/riscv_ram_1rw.vhd
-../../../../pu/rtl/vhdl/memory/riscv_ram_1rw_generic.vhd
-../../../../pu/rtl/vhdl/memory/riscv_ram_queue.vhd
+../../../../soc/pu/rtl/vhdl/memory/riscv_ram_1r1w.vhd
+../../../../soc/pu/rtl/vhdl/memory/riscv_ram_1r1w_generic.vhd
+../../../../soc/pu/rtl/vhdl/memory/riscv_ram_1rw.vhd
+../../../../soc/pu/rtl/vhdl/memory/riscv_ram_1rw_generic.vhd
+../../../../soc/pu/rtl/vhdl/memory/riscv_ram_queue.vhd
 
-../../../../pu/rtl/vhdl/pu/riscv_biu.vhd
-../../../../pu/rtl/vhdl/pu/riscv_pu.vhd
+../../../../soc/pu/rtl/vhdl/pu/riscv_biu.vhd
+../../../../soc/pu/rtl/vhdl/pu/riscv_pu.vhd
 
 
 ../../../../dbg/rtl/vhdl/core/mpsoc_dbg_bus_module_core.vhd
@@ -108,66 +108,66 @@
 ../../../../dbg/rtl/vhdl/wb/mpsoc_dbg_wb_module.vhd
 
 
-../../../../dma/rtl/vhdl/core/mpsoc_dma_arbitrer_rr.vhd
-../../../../dma/rtl/vhdl/core/mpsoc_dma_initiator_nocreq.vhd
-../../../../dma/rtl/vhdl/core/mpsoc_dma_packet_buffer.vhd
-../../../../dma/rtl/vhdl/core/mpsoc_dma_request_table.vhd
+../../../../soc/dma/rtl/vhdl/core/mpsoc_dma_arbitrer_rr.vhd
+../../../../soc/dma/rtl/vhdl/core/mpsoc_dma_initiator_nocreq.vhd
+../../../../soc/dma/rtl/vhdl/core/mpsoc_dma_packet_buffer.vhd
+../../../../soc/dma/rtl/vhdl/core/mpsoc_dma_request_table.vhd
 
-../../../../dma/rtl/vhdl/ahb3/mpsoc_dma_ahb3_initiator_nocres.vhd
-../../../../dma/rtl/vhdl/ahb3/mpsoc_dma_ahb3_initiator_req.vhd
-../../../../dma/rtl/vhdl/ahb3/mpsoc_dma_ahb3_initiator.vhd
-../../../../dma/rtl/vhdl/ahb3/mpsoc_dma_ahb3_interface.vhd
-../../../../dma/rtl/vhdl/ahb3/mpsoc_dma_ahb3_target.vhd
-../../../../dma/rtl/vhdl/ahb3/mpsoc_dma_ahb3_top.vhd
+../../../../soc/dma/rtl/vhdl/ahb3/mpsoc_dma_ahb3_initiator_nocres.vhd
+../../../../soc/dma/rtl/vhdl/ahb3/mpsoc_dma_ahb3_initiator_req.vhd
+../../../../soc/dma/rtl/vhdl/ahb3/mpsoc_dma_ahb3_initiator.vhd
+../../../../soc/dma/rtl/vhdl/ahb3/mpsoc_dma_ahb3_interface.vhd
+../../../../soc/dma/rtl/vhdl/ahb3/mpsoc_dma_ahb3_target.vhd
+../../../../soc/dma/rtl/vhdl/ahb3/mpsoc_dma_ahb3_top.vhd
 
-../../../../dma/rtl/vhdl/wb/mpsoc_dma_wb_initiator_nocres.vhd
-../../../../dma/rtl/vhdl/wb/mpsoc_dma_wb_initiator_req.vhd
-../../../../dma/rtl/vhdl/wb/mpsoc_dma_wb_initiator.vhd
-../../../../dma/rtl/vhdl/wb/mpsoc_dma_wb_interface.vhd
-../../../../dma/rtl/vhdl/wb/mpsoc_dma_wb_target.vhd
-../../../../dma/rtl/vhdl/wb/mpsoc_dma_wb_top.vhd
-
-
-../../../../gpio/rtl/vhdl/ahb3/mpsoc_ahb3_peripheral_bridge.vhd
-../../../../gpio/rtl/vhdl/core/mpsoc_apb_gpio.vhd
-
-../../../../msi/rtl/vhdl/generic/ahb3/mpsoc_msi_ahb3_interface.vhd
-../../../../msi/rtl/vhdl/generic/ahb3/mpsoc_msi_ahb3_master_port.vhd
-../../../../msi/rtl/vhdl/generic/ahb3/mpsoc_msi_ahb3_slave_port.vhd
-
-../../../../msi/rtl/vhdl/misd/ahb3/mpsoc_misd_memory_ahb3_interface.vhd
-../../../../msi/rtl/vhdl/misd/ahb3/mpsoc_misd_memory_ahb3_master_port.vhd
-../../../../msi/rtl/vhdl/misd/ahb3/mpsoc_misd_memory_ahb3_slave_port.vhd
-
-../../../../msi/rtl/vhdl/simd/ahb3/mpsoc_simd_memory_ahb3_interface.vhd
-../../../../msi/rtl/vhdl/simd/ahb3/mpsoc_simd_memory_ahb3_master_port.vhd
-../../../../msi/rtl/vhdl/simd/ahb3/mpsoc_simd_memory_ahb3_slave_port.vhd
-
-../../../../mpram/rtl/vhdl/ahb3/mpsoc_misd_ahb3_mpram.vhd
-../../../../mpram/rtl/vhdl/ahb3/mpsoc_simd_ahb3_mpram.vhd
-../../../../spram/rtl/vhdl/ahb3/mpsoc_ahb3_spram.vhd
-../../../../spram/rtl/vhdl/core/mpsoc_ram_1r1w.vhd
-../../../../spram/rtl/vhdl/core/mpsoc_ram_1r1w_generic.vhd
+../../../../soc/dma/rtl/vhdl/wb/mpsoc_dma_wb_initiator_nocres.vhd
+../../../../soc/dma/rtl/vhdl/wb/mpsoc_dma_wb_initiator_req.vhd
+../../../../soc/dma/rtl/vhdl/wb/mpsoc_dma_wb_initiator.vhd
+../../../../soc/dma/rtl/vhdl/wb/mpsoc_dma_wb_interface.vhd
+../../../../soc/dma/rtl/vhdl/wb/mpsoc_dma_wb_target.vhd
+../../../../soc/dma/rtl/vhdl/wb/mpsoc_dma_wb_top.vhd
 
 
-../../../../noc/rtl/vhdl/core/mpsoc_noc_arbitrer_rr.vhd
-../../../../noc/rtl/vhdl/core/mpsoc_noc_buffer.vhd
-../../../../noc/rtl/vhdl/core/mpsoc_noc_demux.vhd
-../../../../noc/rtl/vhdl/core/mpsoc_noc_mux.vhd
-../../../../noc/rtl/vhdl/core/mpsoc_noc_vchannel_mux.vhd
+../../../../soc/gpio/rtl/vhdl/ahb3/mpsoc_ahb3_peripheral_bridge.vhd
+../../../../soc/gpio/rtl/vhdl/core/mpsoc_apb_gpio.vhd
 
-../../../../noc/rtl/vhdl/router/mpsoc_noc_router_input.vhd
-../../../../noc/rtl/vhdl/router/mpsoc_noc_router_lookup_slice.vhd
-../../../../noc/rtl/vhdl/router/mpsoc_noc_router_lookup.vhd
-../../../../noc/rtl/vhdl/router/mpsoc_noc_router_output.vhd
-../../../../noc/rtl/vhdl/router/mpsoc_noc_router.vhd
+../../../../soc/msi/rtl/vhdl/generic/ahb3/mpsoc_msi_ahb3_interface.vhd
+../../../../soc/msi/rtl/vhdl/generic/ahb3/mpsoc_msi_ahb3_master_port.vhd
+../../../../soc/msi/rtl/vhdl/generic/ahb3/mpsoc_msi_ahb3_slave_port.vhd
 
-../../../../noc/rtl/vhdl/topology/mpsoc_noc_mesh.vhd
+../../../../soc/msi/rtl/vhdl/misd/ahb3/mpsoc_misd_memory_ahb3_interface.vhd
+../../../../soc/msi/rtl/vhdl/misd/ahb3/mpsoc_misd_memory_ahb3_master_port.vhd
+../../../../soc/msi/rtl/vhdl/misd/ahb3/mpsoc_misd_memory_ahb3_slave_port.vhd
+
+../../../../soc/msi/rtl/vhdl/simd/ahb3/mpsoc_simd_memory_ahb3_interface.vhd
+../../../../soc/msi/rtl/vhdl/simd/ahb3/mpsoc_simd_memory_ahb3_master_port.vhd
+../../../../soc/msi/rtl/vhdl/simd/ahb3/mpsoc_simd_memory_ahb3_slave_port.vhd
+
+../../../../soc/mpram/rtl/vhdl/ahb3/mpsoc_misd_ahb3_mpram.vhd
+../../../../soc/mpram/rtl/vhdl/ahb3/mpsoc_simd_ahb3_mpram.vhd
+../../../../soc/spram/rtl/vhdl/ahb3/mpsoc_ahb3_spram.vhd
+../../../../soc/spram/rtl/vhdl/core/mpsoc_ram_1r1w.vhd
+../../../../soc/spram/rtl/vhdl/core/mpsoc_ram_1r1w_generic.vhd
 
 
-../../../../rtl/vhdl/soc/riscv_misd.vhd
-../../../../rtl/vhdl/soc/riscv_simd.vhd
+../../../../soc/noc/rtl/vhdl/core/mpsoc_noc_arbitrer_rr.vhd
+../../../../soc/noc/rtl/vhdl/core/mpsoc_noc_buffer.vhd
+../../../../soc/noc/rtl/vhdl/core/mpsoc_noc_demux.vhd
+../../../../soc/noc/rtl/vhdl/core/mpsoc_noc_mux.vhd
+../../../../soc/noc/rtl/vhdl/core/mpsoc_noc_vchannel_mux.vhd
 
-../../../../rtl/vhdl/soc/riscv_soc.vhd
+../../../../soc/noc/rtl/vhdl/router/mpsoc_noc_router_input.vhd
+../../../../soc/noc/rtl/vhdl/router/mpsoc_noc_router_lookup_slice.vhd
+../../../../soc/noc/rtl/vhdl/router/mpsoc_noc_router_lookup.vhd
+../../../../soc/noc/rtl/vhdl/router/mpsoc_noc_router_output.vhd
+../../../../soc/noc/rtl/vhdl/router/mpsoc_noc_router.vhd
+
+../../../../soc/noc/rtl/vhdl/topology/mpsoc_noc_mesh.vhd
+
+
+../../../../soc/rtl/vhdl/soc/riscv_misd.vhd
+../../../../soc/rtl/vhdl/soc/riscv_simd.vhd
+
+../../../../soc/rtl/vhdl/soc/riscv_soc.vhd
 
 ../../../../rtl/vhdl/mpsoc/riscv_mpsoc.vhd
