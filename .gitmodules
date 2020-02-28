@@ -1,6 +1,3 @@
 [submodule "dbg"]
 	path = dbg
 	url = https://github.com/PacoReinaCampo/MPSoC-DBG.git
-[submodule "soc"]
-	path = soc
-	url = https://github.com/PacoReinaCampo/SoC-RISCV.git
