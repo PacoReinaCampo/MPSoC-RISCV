@@ -81,17 +81,17 @@ RTL_VLOG = $(DUT_SRC_DIR)/mpsoc/riscv_mpsoc.sv \
            $(ROOT_DIR)/soc/msi/rtl/verilog/ahb3/mpsoc_msi_ahb3_interface.sv \
            $(ROOT_DIR)/soc/msi/rtl/verilog/ahb3/mpsoc_msi_ahb3_master_port.sv \
            $(ROOT_DIR)/soc/msi/rtl/verilog/ahb3/mpsoc_msi_ahb3_slave_port.sv \
-           $(ROOT_DIR)/noc/rtl/verilog/core/mpsoc_noc_arbitrer_rr.sv \
-           $(ROOT_DIR)/noc/rtl/verilog/core/mpsoc_noc_buffer.sv \
-           $(ROOT_DIR)/noc/rtl/verilog/core/mpsoc_noc_demux.sv \
-           $(ROOT_DIR)/noc/rtl/verilog/core/mpsoc_noc_mux.sv \
-           $(ROOT_DIR)/noc/rtl/verilog/core/mpsoc_noc_vchannel_mux.sv \
-           $(ROOT_DIR)/noc/rtl/verilog/router/mpsoc_noc_router_input.sv \
-           $(ROOT_DIR)/noc/rtl/verilog/router/mpsoc_noc_router_lookup_slice.sv \
-           $(ROOT_DIR)/noc/rtl/verilog/router/mpsoc_noc_router_lookup.sv \
-           $(ROOT_DIR)/noc/rtl/verilog/router/mpsoc_noc_router_output.sv \
-           $(ROOT_DIR)/noc/rtl/verilog/router/mpsoc_noc_router.sv \
-           $(ROOT_DIR)/noc/rtl/verilog/topology/mpsoc_noc_mesh.sv \
+           $(ROOT_DIR)/soc/noc/rtl/verilog/core/mpsoc_noc_arbitrer_rr.sv \
+           $(ROOT_DIR)/soc/noc/rtl/verilog/core/mpsoc_noc_buffer.sv \
+           $(ROOT_DIR)/soc/noc/rtl/verilog/core/mpsoc_noc_demux.sv \
+           $(ROOT_DIR)/soc/noc/rtl/verilog/core/mpsoc_noc_mux.sv \
+           $(ROOT_DIR)/soc/noc/rtl/verilog/core/mpsoc_noc_vchannel_mux.sv \
+           $(ROOT_DIR)/soc/noc/rtl/verilog/router/mpsoc_noc_router_input.sv \
+           $(ROOT_DIR)/soc/noc/rtl/verilog/router/mpsoc_noc_router_lookup_slice.sv \
+           $(ROOT_DIR)/soc/noc/rtl/verilog/router/mpsoc_noc_router_lookup.sv \
+           $(ROOT_DIR)/soc/noc/rtl/verilog/router/mpsoc_noc_router_output.sv \
+           $(ROOT_DIR)/soc/noc/rtl/verilog/router/mpsoc_noc_router.sv \
+           $(ROOT_DIR)/soc/noc/rtl/verilog/topology/mpsoc_noc_mesh.sv \
            $(ROOT_DIR)/soc/pu/rtl/verilog/core/cache/riscv_dcache_core.sv \
            $(ROOT_DIR)/soc/pu/rtl/verilog/core/cache/riscv_dext.sv \
            $(ROOT_DIR)/soc/pu/rtl/verilog/core/cache/riscv_icache_core.sv \
