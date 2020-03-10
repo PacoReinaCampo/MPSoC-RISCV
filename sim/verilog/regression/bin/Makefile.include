@@ -48,23 +48,23 @@
 RTL_TOP  = riscv_mpsoc
 DUT_SRC_DIR=$(ROOT_DIR)/rtl/verilog
 RTL_VLOG = $(DUT_SRC_DIR)/mpsoc/riscv_mpsoc.sv \
-           $(DUT_SRC_DIR)/soc/riscv_misd.sv \
-           $(DUT_SRC_DIR)/soc/riscv_simd.sv \
-           $(DUT_SRC_DIR)/soc/riscv_soc.sv \
-           $(ROOT_DIR)/dbg/rtl/verilog/ahb3/mpsoc_dbg_ahb3_biu.sv \
-           $(ROOT_DIR)/dbg/rtl/verilog/ahb3/mpsoc_dbg_ahb3_module.sv \
-           $(ROOT_DIR)/dbg/rtl/verilog/ahb3/mpsoc_dbg_jsp_apb_biu.sv \
-           $(ROOT_DIR)/dbg/rtl/verilog/ahb3/mpsoc_dbg_jsp_apb_module.sv \
-           $(ROOT_DIR)/dbg/rtl/verilog/ahb3/mpsoc_dbg_top_ahb3.sv \
-           $(ROOT_DIR)/dbg/rtl/verilog/core/mpsoc_dbg_bus_module_core.sv \
-           $(ROOT_DIR)/dbg/rtl/verilog/core/mpsoc_dbg_bytefifo.sv \
-           $(ROOT_DIR)/dbg/rtl/verilog/core/mpsoc_dbg_crc32.sv \
-           $(ROOT_DIR)/dbg/rtl/verilog/core/mpsoc_dbg_jsp_module_core.sv \
-           $(ROOT_DIR)/dbg/rtl/verilog/core/mpsoc_dbg_or1k_biu.sv \
-           $(ROOT_DIR)/dbg/rtl/verilog/core/mpsoc_dbg_or1k_module.sv \
-           $(ROOT_DIR)/dbg/rtl/verilog/core/mpsoc_dbg_or1k_status_reg.sv \
-           $(ROOT_DIR)/dbg/rtl/verilog/core/mpsoc_dbg_syncflop.sv \
-           $(ROOT_DIR)/dbg/rtl/verilog/core/mpsoc_dbg_syncreg.sv \
+           $(ROOT_DIR)/soc/rtl/verilog/soc/riscv_misd.sv \
+           $(ROOT_DIR)/soc/rtl/verilog/soc/riscv_simd.sv \
+           $(ROOT_DIR)/soc/rtl/verilog/soc/riscv_soc.sv \
+           $(ROOT_DIR)/dbg/rtl/verilog/riscv/ahb3/mpsoc_dbg_ahb3_biu.sv \
+           $(ROOT_DIR)/dbg/rtl/verilog/riscv/ahb3/mpsoc_dbg_ahb3_module.sv \
+           $(ROOT_DIR)/dbg/rtl/verilog/riscv/ahb3/mpsoc_dbg_jsp_apb_biu.sv \
+           $(ROOT_DIR)/dbg/rtl/verilog/riscv/ahb3/mpsoc_dbg_jsp_apb_module.sv \
+           $(ROOT_DIR)/dbg/rtl/verilog/riscv/ahb3/mpsoc_dbg_top_ahb3.sv \
+           $(ROOT_DIR)/dbg/rtl/verilog/riscv/core/mpsoc_dbg_bus_module_core.sv \
+           $(ROOT_DIR)/dbg/rtl/verilog/riscv/core/mpsoc_dbg_bytefifo.sv \
+           $(ROOT_DIR)/dbg/rtl/verilog/riscv/core/mpsoc_dbg_crc32.sv \
+           $(ROOT_DIR)/dbg/rtl/verilog/riscv/core/mpsoc_dbg_jsp_module_core.sv \
+           $(ROOT_DIR)/dbg/rtl/verilog/riscv/core/mpsoc_dbg_or1k_biu.sv \
+           $(ROOT_DIR)/dbg/rtl/verilog/riscv/core/mpsoc_dbg_or1k_module.sv \
+           $(ROOT_DIR)/dbg/rtl/verilog/riscv/core/mpsoc_dbg_or1k_status_reg.sv \
+           $(ROOT_DIR)/dbg/rtl/verilog/riscv/core/mpsoc_dbg_syncflop.sv \
+           $(ROOT_DIR)/dbg/rtl/verilog/riscv/core/mpsoc_dbg_syncreg.sv \
            $(ROOT_DIR)/soc/dma/rtl/verilog/ahb3/mpsoc_dma_ahb3_initiator_nocres.sv \
            $(ROOT_DIR)/soc/dma/rtl/verilog/ahb3/mpsoc_dma_ahb3_initiator_req.sv \
            $(ROOT_DIR)/soc/dma/rtl/verilog/ahb3/mpsoc_dma_ahb3_initiator.sv \

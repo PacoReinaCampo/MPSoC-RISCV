@@ -85,27 +85,27 @@
 ../../../../soc/pu/rtl/vhdl/pu/riscv_pu.vhd
 
 
-../../../../dbg/rtl/vhdl/core/mpsoc_dbg_bus_module_core.vhd
-../../../../dbg/rtl/vhdl/core/mpsoc_dbg_bytefifo.vhd
-../../../../dbg/rtl/vhdl/core/mpsoc_dbg_crc32.vhd
-../../../../dbg/rtl/vhdl/core/mpsoc_dbg_jsp_module_core.vhd
-../../../../dbg/rtl/vhdl/core/mpsoc_dbg_or1k_biu.vhd
-../../../../dbg/rtl/vhdl/core/mpsoc_dbg_or1k_module.vhd
-../../../../dbg/rtl/vhdl/core/mpsoc_dbg_or1k_status_reg.vhd
-../../../../dbg/rtl/vhdl/core/mpsoc_dbg_syncflop.vhd
-../../../../dbg/rtl/vhdl/core/mpsoc_dbg_syncreg.vhd
+../../../../dbg/rtl/vhdl/riscv/core/mpsoc_dbg_bus_module_core.vhd
+../../../../dbg/rtl/vhdl/riscv/core/mpsoc_dbg_bytefifo.vhd
+../../../../dbg/rtl/vhdl/riscv/core/mpsoc_dbg_crc32.vhd
+../../../../dbg/rtl/vhdl/riscv/core/mpsoc_dbg_jsp_module_core.vhd
+../../../../dbg/rtl/vhdl/riscv/core/mpsoc_dbg_or1k_biu.vhd
+../../../../dbg/rtl/vhdl/riscv/core/mpsoc_dbg_or1k_module.vhd
+../../../../dbg/rtl/vhdl/riscv/core/mpsoc_dbg_or1k_status_reg.vhd
+../../../../dbg/rtl/vhdl/riscv/core/mpsoc_dbg_syncflop.vhd
+../../../../dbg/rtl/vhdl/riscv/core/mpsoc_dbg_syncreg.vhd
 
-../../../../dbg/rtl/vhdl/ahb3/mpsoc_dbg_ahb3_biu.vhd
-../../../../dbg/rtl/vhdl/ahb3/mpsoc_dbg_ahb3_module.vhd
-../../../../dbg/rtl/vhdl/ahb3/mpsoc_dbg_jsp_apb_biu.vhd
-../../../../dbg/rtl/vhdl/ahb3/mpsoc_dbg_jsp_apb_module.vhd
-../../../../dbg/rtl/vhdl/ahb3/mpsoc_dbg_top_ahb3.vhd
+../../../../dbg/rtl/vhdl/riscv/ahb3/mpsoc_dbg_ahb3_biu.vhd
+../../../../dbg/rtl/vhdl/riscv/ahb3/mpsoc_dbg_ahb3_module.vhd
+../../../../dbg/rtl/vhdl/riscv/ahb3/mpsoc_dbg_jsp_apb_biu.vhd
+../../../../dbg/rtl/vhdl/riscv/ahb3/mpsoc_dbg_jsp_apb_module.vhd
+../../../../dbg/rtl/vhdl/riscv/ahb3/mpsoc_dbg_top_ahb3.vhd
 
-../../../../dbg/rtl/vhdl/wb/mpsoc_dbg_jsp_wb_biu.vhd
-../../../../dbg/rtl/vhdl/wb/mpsoc_dbg_jsp_wb_module.vhd
-../../../../dbg/rtl/vhdl/wb/mpsoc_dbg_top_wb.vhd
-../../../../dbg/rtl/vhdl/wb/mpsoc_dbg_wb_biu.vhd
-../../../../dbg/rtl/vhdl/wb/mpsoc_dbg_wb_module.vhd
+../../../../dbg/rtl/vhdl/riscv/wb/mpsoc_dbg_jsp_wb_biu.vhd
+../../../../dbg/rtl/vhdl/riscv/wb/mpsoc_dbg_jsp_wb_module.vhd
+../../../../dbg/rtl/vhdl/riscv/wb/mpsoc_dbg_top_wb.vhd
+../../../../dbg/rtl/vhdl/riscv/wb/mpsoc_dbg_wb_biu.vhd
+../../../../dbg/rtl/vhdl/riscv/wb/mpsoc_dbg_wb_module.vhd
 
 
 ../../../../soc/dma/rtl/vhdl/core/mpsoc_dma_arbitrer_rr.vhd
@@ -146,8 +146,8 @@
 ../../../../soc/mpram/rtl/vhdl/ahb3/mpsoc_misd_ahb3_mpram.vhd
 ../../../../soc/mpram/rtl/vhdl/ahb3/mpsoc_simd_ahb3_mpram.vhd
 ../../../../soc/spram/rtl/vhdl/ahb3/mpsoc_ahb3_spram.vhd
-../../../../soc/spram/rtl/vhdl/core/mpsoc_ram_1r1w.vhd
-../../../../soc/spram/rtl/vhdl/core/mpsoc_ram_1r1w_generic.vhd
+../../../../soc/spram/rtl/vhdl/ahb3/mpsoc_ram_1r1w.vhd
+../../../../soc/spram/rtl/vhdl/ahb3/mpsoc_ram_1r1w_generic.vhd
 
 
 ../../../../soc/noc/rtl/vhdl/core/mpsoc_noc_arbitrer_rr.vhd

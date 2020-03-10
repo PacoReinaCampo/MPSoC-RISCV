@@ -43,27 +43,27 @@ ghdl -i soc/pu/rtl/vhdl/pu/riscv_biu.vhd
 ghdl -i soc/pu/rtl/vhdl/pu/riscv_pu.vhd
 
 
-ghdl -i dbg/rtl/vhdl/core/mpsoc_dbg_bus_module_core.vhd
-ghdl -i dbg/rtl/vhdl/core/mpsoc_dbg_bytefifo.vhd
-ghdl -i dbg/rtl/vhdl/core/mpsoc_dbg_crc32.vhd
-ghdl -i dbg/rtl/vhdl/core/mpsoc_dbg_jsp_module_core.vhd
-ghdl -i dbg/rtl/vhdl/core/mpsoc_dbg_or1k_biu.vhd
-ghdl -i dbg/rtl/vhdl/core/mpsoc_dbg_or1k_module.vhd
-ghdl -i dbg/rtl/vhdl/core/mpsoc_dbg_or1k_status_reg.vhd
-ghdl -i dbg/rtl/vhdl/core/mpsoc_dbg_syncflop.vhd
-ghdl -i dbg/rtl/vhdl/core/mpsoc_dbg_syncreg.vhd
+ghdl -i dbg/rtl/vhdl/riscv/core/mpsoc_dbg_bus_module_core.vhd
+ghdl -i dbg/rtl/vhdl/riscv/core/mpsoc_dbg_bytefifo.vhd
+ghdl -i dbg/rtl/vhdl/riscv/core/mpsoc_dbg_crc32.vhd
+ghdl -i dbg/rtl/vhdl/riscv/core/mpsoc_dbg_jsp_module_core.vhd
+ghdl -i dbg/rtl/vhdl/riscv/core/mpsoc_dbg_or1k_biu.vhd
+ghdl -i dbg/rtl/vhdl/riscv/core/mpsoc_dbg_or1k_module.vhd
+ghdl -i dbg/rtl/vhdl/riscv/core/mpsoc_dbg_or1k_status_reg.vhd
+ghdl -i dbg/rtl/vhdl/riscv/core/mpsoc_dbg_syncflop.vhd
+ghdl -i dbg/rtl/vhdl/riscv/core/mpsoc_dbg_syncreg.vhd
 
-ghdl -i dbg/rtl/vhdl/ahb3/mpsoc_dbg_ahb3_biu.vhd
-ghdl -i dbg/rtl/vhdl/ahb3/mpsoc_dbg_ahb3_module.vhd
-ghdl -i dbg/rtl/vhdl/ahb3/mpsoc_dbg_jsp_apb_biu.vhd
-ghdl -i dbg/rtl/vhdl/ahb3/mpsoc_dbg_jsp_apb_module.vhd
-ghdl -i dbg/rtl/vhdl/ahb3/mpsoc_dbg_top_ahb3.vhd
+ghdl -i dbg/rtl/vhdl/riscv/ahb3/mpsoc_dbg_ahb3_biu.vhd
+ghdl -i dbg/rtl/vhdl/riscv/ahb3/mpsoc_dbg_ahb3_module.vhd
+ghdl -i dbg/rtl/vhdl/riscv/ahb3/mpsoc_dbg_jsp_apb_biu.vhd
+ghdl -i dbg/rtl/vhdl/riscv/ahb3/mpsoc_dbg_jsp_apb_module.vhd
+ghdl -i dbg/rtl/vhdl/riscv/ahb3/mpsoc_dbg_top_ahb3.vhd
 
-ghdl -i dbg/rtl/vhdl/wb/mpsoc_dbg_jsp_wb_biu.vhd
-ghdl -i dbg/rtl/vhdl/wb/mpsoc_dbg_jsp_wb_module.vhd
-ghdl -i dbg/rtl/vhdl/wb/mpsoc_dbg_top_wb.vhd
-ghdl -i dbg/rtl/vhdl/wb/mpsoc_dbg_wb_biu.vhd
-ghdl -i dbg/rtl/vhdl/wb/mpsoc_dbg_wb_module.vhd
+ghdl -i dbg/rtl/vhdl/riscv/wb/mpsoc_dbg_jsp_wb_biu.vhd
+ghdl -i dbg/rtl/vhdl/riscv/wb/mpsoc_dbg_jsp_wb_module.vhd
+ghdl -i dbg/rtl/vhdl/riscv/wb/mpsoc_dbg_top_wb.vhd
+ghdl -i dbg/rtl/vhdl/riscv/wb/mpsoc_dbg_wb_biu.vhd
+ghdl -i dbg/rtl/vhdl/riscv/wb/mpsoc_dbg_wb_module.vhd
 
 
 ghdl -i soc/dma/rtl/vhdl/core/mpsoc_dma_arbitrer_rr.vhd
@@ -104,8 +104,8 @@ ghdl -i soc/msi/rtl/vhdl/simd/ahb3/mpsoc_simd_memory_ahb3_slave_port.vhd
 ghdl -i soc/mpram/rtl/vhdl/ahb3/mpsoc_misd_ahb3_mpram.vhd
 ghdl -i soc/mpram/rtl/vhdl/ahb3/mpsoc_simd_ahb3_mpram.vhd
 ghdl -i soc/spram/rtl/vhdl/ahb3/mpsoc_ahb3_spram.vhd
-ghdl -i soc/spram/rtl/vhdl/core/mpsoc_ram_1r1w.vhd
-ghdl -i soc/spram/rtl/vhdl/core/mpsoc_ram_1r1w_generic.vhd
+ghdl -i soc/spram/rtl/vhdl/ahb3/mpsoc_ram_1r1w.vhd
+ghdl -i soc/spram/rtl/vhdl/ahb3/mpsoc_ram_1r1w_generic.vhd
 
 
 ghdl -i soc/noc/rtl/vhdl/core/mpsoc_noc_arbitrer_rr.vhd
