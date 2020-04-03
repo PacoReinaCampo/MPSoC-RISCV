@@ -134,104 +134,103 @@ entity riscv_mpsoc is
     HCLK    : in std_logic;
 
     --PMA configuration
-    pma_cfg_i : in M_PMA_CNT_13;
-    pma_adr_i : in M_PMA_CNT_PLEN;
+    pma_cfg_i : in std_logic_matrix(PMA_CNT-1 downto 0)(13 downto 0);
+    pma_adr_i : in std_logic_matrix(PMA_CNT-1 downto 0)(PLEN-1 downto 0);
 
     --AHB instruction - Single Port
-    sins_simd_HSEL      : out M_XYZ;
-    sins_simd_HADDR     : out M_XYZ_PLEN;
-    sins_simd_HWDATA    : out M_XYZ_XLEN;
-    sins_simd_HRDATA    : in  M_XYZ_XLEN;
-    sins_simd_HWRITE    : out M_XYZ;
-    sins_simd_HSIZE     : out M_XYZ_2;
-    sins_simd_HBURST    : out M_XYZ_2;
-    sins_simd_HPROT     : out M_XYZ_3;
-    sins_simd_HTRANS    : out M_XYZ_1;
-    sins_simd_HMASTLOCK : out M_XYZ;
-    sins_simd_HREADY    : in  M_XYZ;
-    sins_simd_HRESP     : in  M_XYZ;
+    sins_simd_HSEL      : out xyz_std_logic       (X-1 downto 0, Y-1 downto 0, Z-1 downto 0);
+    sins_simd_HADDR     : out xyz_std_logic_vector(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(PLEN-1 downto 0);
+    sins_simd_HWDATA    : out xyz_std_logic_vector(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(XLEN-1 downto 0);
+    sins_simd_HRDATA    : in  xyz_std_logic_vector(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(XLEN-1 downto 0);
+    sins_simd_HWRITE    : out xyz_std_logic       (X-1 downto 0, Y-1 downto 0, Z-1 downto 0);
+    sins_simd_HSIZE     : out xyz_std_logic_vector(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(2 downto 0);
+    sins_simd_HBURST    : out xyz_std_logic_vector(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(2 downto 0);
+    sins_simd_HPROT     : out xyz_std_logic_vector(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(3 downto 0);
+    sins_simd_HTRANS    : out xyz_std_logic_vector(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(1 downto 0);
+    sins_simd_HMASTLOCK : out xyz_std_logic       (X-1 downto 0, Y-1 downto 0, Z-1 downto 0);
+    sins_simd_HREADY    : in  xyz_std_logic       (X-1 downto 0, Y-1 downto 0, Z-1 downto 0);
+    sins_simd_HRESP     : in  xyz_std_logic       (X-1 downto 0, Y-1 downto 0, Z-1 downto 0);
 
     --AHB data - Single Port
-    sdat_misd_HSEL      : out M_XYZ;
-    sdat_misd_HADDR     : out M_XYZ_PLEN;
-    sdat_misd_HWDATA    : out M_XYZ_XLEN;
-    sdat_misd_HRDATA    : in  M_XYZ_XLEN;
-    sdat_misd_HWRITE    : out M_XYZ;
-    sdat_misd_HSIZE     : out M_XYZ_2;
-    sdat_misd_HBURST    : out M_XYZ_2;
-    sdat_misd_HPROT     : out M_XYZ_3;
-    sdat_misd_HTRANS    : out M_XYZ_1;
-    sdat_misd_HMASTLOCK : out M_XYZ;
-    sdat_misd_HREADY    : in  M_XYZ;
-    sdat_misd_HRESP     : in  M_XYZ;
+    sdat_misd_HSEL      : out xyz_std_logic       (X-1 downto 0, Y-1 downto 0, Z-1 downto 0);
+    sdat_misd_HADDR     : out xyz_std_logic_vector(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(PLEN-1 downto 0);
+    sdat_misd_HWDATA    : out xyz_std_logic_vector(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(XLEN-1 downto 0);
+    sdat_misd_HRDATA    : in  xyz_std_logic_vector(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(XLEN-1 downto 0);
+    sdat_misd_HWRITE    : out xyz_std_logic       (X-1 downto 0, Y-1 downto 0, Z-1 downto 0);
+    sdat_misd_HSIZE     : out xyz_std_logic_vector(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(2 downto 0);
+    sdat_misd_HBURST    : out xyz_std_logic_vector(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(2 downto 0);
+    sdat_misd_HPROT     : out xyz_std_logic_vector(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(3 downto 0);
+    sdat_misd_HTRANS    : out xyz_std_logic_vector(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(1 downto 0);
+    sdat_misd_HMASTLOCK : out xyz_std_logic       (X-1 downto 0, Y-1 downto 0, Z-1 downto 0);
+    sdat_misd_HREADY    : in  xyz_std_logic       (X-1 downto 0, Y-1 downto 0, Z-1 downto 0);
+    sdat_misd_HRESP     : in  xyz_std_logic       (X-1 downto 0, Y-1 downto 0, Z-1 downto 0);
 
     --AHB instruction - Multi Port
-    mins_misd_HSEL      : out M_XYZ_CORES_PER_MISD;
-    mins_misd_HADDR     : out M_XYZ_CORES_PER_MISD_PLEN;
-    mins_misd_HWDATA    : out M_XYZ_CORES_PER_MISD_XLEN;
-    mins_misd_HRDATA    : in  M_XYZ_CORES_PER_MISD_XLEN;
-    mins_misd_HWRITE    : out M_XYZ_CORES_PER_MISD;
-    mins_misd_HSIZE     : out M_XYZ_CORES_PER_MISD_2;
-    mins_misd_HBURST    : out M_XYZ_CORES_PER_MISD_2;
-    mins_misd_HPROT     : out M_XYZ_CORES_PER_MISD_3;
-    mins_misd_HTRANS    : out M_XYZ_CORES_PER_MISD_1;
-    mins_misd_HMASTLOCK : out M_XYZ_CORES_PER_MISD;
-    mins_misd_HREADY    : in  M_XYZ_CORES_PER_MISD;
-    mins_misd_HRESP     : in  M_XYZ_CORES_PER_MISD;
+    mins_misd_HSEL      : out xyz_std_logic_vector(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_MISD-1 downto 0);
+    mins_misd_HADDR     : out xyz_std_logic_matrix(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_MISD-1 downto 0)(PLEN-1 downto 0);
+    mins_misd_HWDATA    : out xyz_std_logic_matrix(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_MISD-1 downto 0)(XLEN-1 downto 0);
+    mins_misd_HRDATA    : in  xyz_std_logic_matrix(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_MISD-1 downto 0)(XLEN-1 downto 0);
+    mins_misd_HWRITE    : out xyz_std_logic_vector(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_MISD-1 downto 0);
+    mins_misd_HSIZE     : out xyz_std_logic_matrix(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_MISD-1 downto 0)(2 downto 0);
+    mins_misd_HBURST    : out xyz_std_logic_matrix(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_MISD-1 downto 0)(2 downto 0);
+    mins_misd_HPROT     : out xyz_std_logic_matrix(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_MISD-1 downto 0)(3 downto 0);
+    mins_misd_HTRANS    : out xyz_std_logic_matrix(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_MISD-1 downto 0)(1 downto 0);
+    mins_misd_HMASTLOCK : out xyz_std_logic_vector(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_MISD-1 downto 0);
+    mins_misd_HREADY    : in  xyz_std_logic_vector(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_MISD-1 downto 0);
+    mins_misd_HRESP     : in  xyz_std_logic_vector(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_MISD-1 downto 0);
 
     --AHB data - Multi Port
-    mdat_simd_HSEL      : out M_XYZ_CORES_PER_SIMD;
-    mdat_simd_HADDR     : out M_XYZ_CORES_PER_SIMD_PLEN;
-    mdat_simd_HWDATA    : out M_XYZ_CORES_PER_SIMD_XLEN;
-    mdat_simd_HRDATA    : in  M_XYZ_CORES_PER_SIMD_XLEN;
-    mdat_simd_HWRITE    : out M_XYZ_CORES_PER_SIMD;
-    mdat_simd_HSIZE     : out M_XYZ_CORES_PER_SIMD_2;
-    mdat_simd_HBURST    : out M_XYZ_CORES_PER_SIMD_2;
-    mdat_simd_HPROT     : out M_XYZ_CORES_PER_SIMD_3;
-    mdat_simd_HTRANS    : out M_XYZ_CORES_PER_SIMD_1;
-    mdat_simd_HMASTLOCK : out M_XYZ_CORES_PER_SIMD;
-    mdat_simd_HREADY    : in  M_XYZ_CORES_PER_SIMD;
-    mdat_simd_HRESP     : in  M_XYZ_CORES_PER_SIMD;
+    mdat_simd_HSEL      : out xyz_std_logic_vector(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_SIMD-1 downto 0);
+    mdat_simd_HADDR     : out xyz_std_logic_matrix(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_SIMD-1 downto 0)(PLEN-1 downto 0);
+    mdat_simd_HWDATA    : out xyz_std_logic_matrix(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_SIMD-1 downto 0)(XLEN-1 downto 0);
+    mdat_simd_HRDATA    : in  xyz_std_logic_matrix(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_SIMD-1 downto 0)(XLEN-1 downto 0);
+    mdat_simd_HWRITE    : out xyz_std_logic_vector(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_SIMD-1 downto 0);
+    mdat_simd_HSIZE     : out xyz_std_logic_matrix(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_SIMD-1 downto 0)(2 downto 0);
+    mdat_simd_HBURST    : out xyz_std_logic_matrix(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_SIMD-1 downto 0)(2 downto 0);
+    mdat_simd_HPROT     : out xyz_std_logic_matrix(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_SIMD-1 downto 0)(3 downto 0);
+    mdat_simd_HTRANS    : out xyz_std_logic_matrix(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_SIMD-1 downto 0)(1 downto 0);
+    mdat_simd_HMASTLOCK : out xyz_std_logic_vector(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_SIMD-1 downto 0);
+    mdat_simd_HREADY    : in  xyz_std_logic_vector(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_SIMD-1 downto 0);
+    mdat_simd_HRESP     : in  xyz_std_logic_vector(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_SIMD-1 downto 0);
 
     --Interrupts Interface
-    ext_misd_nmi  : in M_XYZ_CORES_PER_MISD;
-    ext_misd_tint : in M_XYZ_CORES_PER_MISD;
-    ext_misd_sint : in M_XYZ_CORES_PER_MISD;
-    ext_misd_int  : in M_XYZ_CORES_PER_MISD_3;
+    ext_misd_nmi  : in xyz_std_logic_vector(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_MISD-1 downto 0);
+    ext_misd_tint : in xyz_std_logic_vector(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_MISD-1 downto 0);
+    ext_misd_sint : in xyz_std_logic_vector(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_MISD-1 downto 0);
+    ext_misd_int  : in xyz_std_logic_matrix(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_MISD-1 downto 0)(3 downto 0);
 
-    ext_simd_nmi  : in M_XYZ_CORES_PER_SIMD;
-    ext_simd_tint : in M_XYZ_CORES_PER_SIMD;
-    ext_simd_sint : in M_XYZ_CORES_PER_SIMD;
-    ext_simd_int  : in M_XYZ_CORES_PER_SIMD_3;
+    ext_simd_nmi  : in xyz_std_logic_vector(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_SIMD-1 downto 0);
+    ext_simd_tint : in xyz_std_logic_vector(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_SIMD-1 downto 0);
+    ext_simd_sint : in xyz_std_logic_vector(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_SIMD-1 downto 0);
+    ext_simd_int  : in xyz_std_logic_matrix(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_SIMD-1 downto 0)(3 downto 0);
 
     --Debug Interface
-    dbg_misd_stall : in  M_XYZ_CORES_PER_MISD;
-    dbg_misd_strb  : in  M_XYZ_CORES_PER_MISD;
-    dbg_misd_we    : in  M_XYZ_CORES_PER_MISD;
-    dbg_misd_addr  : in  M_XYZ_CORES_PER_MISD_PLEN;
-    dbg_misd_dati  : in  M_XYZ_CORES_PER_MISD_XLEN;
-    dbg_misd_dato  : out M_XYZ_CORES_PER_MISD_XLEN;
-    dbg_misd_ack   : out M_XYZ_CORES_PER_MISD;
-    dbg_misd_bp    : out M_XYZ_CORES_PER_MISD;
+    dbg_misd_stall : in  xyz_std_logic_vector(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_MISD-1 downto 0);
+    dbg_misd_strb  : in  xyz_std_logic_vector(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_MISD-1 downto 0);
+    dbg_misd_we    : in  xyz_std_logic_vector(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_MISD-1 downto 0);
+    dbg_misd_addr  : in  xyz_std_logic_matrix(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_MISD-1 downto 0)(PLEN-1 downto 0);
+    dbg_misd_dati  : in  xyz_std_logic_matrix(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_MISD-1 downto 0)(XLEN-1 downto 0);
+    dbg_misd_dato  : out xyz_std_logic_matrix(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_MISD-1 downto 0)(XLEN-1 downto 0);
+    dbg_misd_ack   : out xyz_std_logic_vector(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_MISD-1 downto 0);
+    dbg_misd_bp    : out xyz_std_logic_vector(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_MISD-1 downto 0);
 
-    dbg_simd_stall : in  M_XYZ_CORES_PER_SIMD;
-    dbg_simd_strb  : in  M_XYZ_CORES_PER_SIMD;
-    dbg_simd_we    : in  M_XYZ_CORES_PER_SIMD;
-    dbg_simd_addr  : in  M_XYZ_CORES_PER_SIMD_PLEN;
-    dbg_simd_dati  : in  M_XYZ_CORES_PER_SIMD_XLEN;
-    dbg_simd_dato  : out M_XYZ_CORES_PER_SIMD_XLEN;
-    dbg_simd_ack   : out M_XYZ_CORES_PER_SIMD;
-    dbg_simd_bp    : out M_XYZ_CORES_PER_SIMD;
+    dbg_simd_stall : in  xyz_std_logic_vector(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_SIMD-1 downto 0);
+    dbg_simd_strb  : in  xyz_std_logic_vector(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_SIMD-1 downto 0);
+    dbg_simd_we    : in  xyz_std_logic_vector(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_SIMD-1 downto 0);
+    dbg_simd_addr  : in  xyz_std_logic_matrix(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_SIMD-1 downto 0)(PLEN-1 downto 0);
+    dbg_simd_dati  : in  xyz_std_logic_matrix(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_SIMD-1 downto 0)(XLEN-1 downto 0);
+    dbg_simd_dato  : out xyz_std_logic_matrix(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_SIMD-1 downto 0)(XLEN-1 downto 0);
+    dbg_simd_ack   : out xyz_std_logic_vector(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_SIMD-1 downto 0);
+    dbg_simd_bp    : out xyz_std_logic_vector(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_SIMD-1 downto 0);
 
     --GPIO Interface
+    gpio_misd_i  : in  xyz_std_logic_matrix(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_MISD-1 downto 0)(PDATA_SIZE-1 downto 0);
+    gpio_misd_o  : out xyz_std_logic_matrix(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_MISD-1 downto 0)(PDATA_SIZE-1 downto 0);
+    gpio_misd_oe : out xyz_std_logic_matrix(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_MISD-1 downto 0)(PDATA_SIZE-1 downto 0);
 
-    gpio_misd_i  : in  M_XYZ_CORES_PER_MISD_PDATA_SIZE;
-    gpio_misd_o  : out M_XYZ_CORES_PER_MISD_PDATA_SIZE;
-    gpio_misd_oe : out M_XYZ_CORES_PER_MISD_PDATA_SIZE;
-
-    gpio_simd_i  : in  M_XYZ_CORES_PER_SIMD_PDATA_SIZE;
-    gpio_simd_o  : out M_XYZ_CORES_PER_SIMD_PDATA_SIZE;
-    gpio_simd_oe : out M_XYZ_CORES_PER_SIMD_PDATA_SIZE
+    gpio_simd_i  : in  xyz_std_logic_matrix(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_SIMD-1 downto 0)(PDATA_SIZE-1 downto 0);
+    gpio_simd_o  : out xyz_std_logic_matrix(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_SIMD-1 downto 0)(PDATA_SIZE-1 downto 0);
+    gpio_simd_oe : out xyz_std_logic_matrix(X-1 downto 0, Y-1 downto 0, Z-1 downto 0)(CORES_PER_SIMD-1 downto 0)(PDATA_SIZE-1 downto 0)
   );
 end riscv_mpsoc;
 
@@ -254,15 +253,15 @@ architecture RTL of riscv_mpsoc is
       clk : in std_logic;
       rst : in std_logic;
 
-      in_flit  : in  M_NODES_CHANNELS_FLIT_WIDTH;
-      in_last  : in  M_NODES_CHANNELS;
-      in_valid : in  M_NODES_CHANNELS;
-      in_ready : out M_NODES_CHANNELS;
+      in_flit  : in  std_logic_3array(NODES-1 downto 0)(CHANNELS-1 downto 0)(FLIT_WIDTH-1 downto 0);
+      in_last  : in  std_logic_matrix(NODES-1 downto 0)(CHANNELS-1 downto 0);
+      in_valid : in  std_logic_matrix(NODES-1 downto 0)(CHANNELS-1 downto 0);
+      in_ready : out std_logic_matrix(NODES-1 downto 0)(CHANNELS-1 downto 0);
 
-      out_flit  : out M_NODES_CHANNELS_FLIT_WIDTH;
-      out_last  : out M_NODES_CHANNELS;
-      out_valid : out M_NODES_CHANNELS;
-      out_ready : in  M_NODES_CHANNELS
+      out_flit  : out std_logic_3array(NODES-1 downto 0)(CHANNELS-1 downto 0)(FLIT_WIDTH-1 downto 0);
+      out_last  : out std_logic_matrix(NODES-1 downto 0)(CHANNELS-1 downto 0);
+      out_valid : out std_logic_matrix(NODES-1 downto 0)(CHANNELS-1 downto 0);
+      out_ready : in  std_logic_matrix(NODES-1 downto 0)(CHANNELS-1 downto 0)
     );
   end component;
 
@@ -346,8 +345,8 @@ architecture RTL of riscv_mpsoc is
       HCLK    : in std_logic;
 
       --PMA configuration
-      pma_cfg_i : in M_PMA_CNT_13;
-      pma_adr_i : in M_PMA_CNT_PLEN;
+      pma_cfg_i : in std_logic_matrix(PMA_CNT-1 downto 0)(13 downto 0);
+      pma_adr_i : in std_logic_matrix(PMA_CNT-1 downto 0)(PLEN-1 downto 0);
 
       --AHB instruction - Single Port
       sins_simd_HSEL      : out std_logic;
@@ -379,28 +378,28 @@ architecture RTL of riscv_mpsoc is
 
       --AHB instruction - Multi Port
       mins_misd_HSEL      : out std_logic_vector(CORES_PER_MISD-1 downto 0);
-      mins_misd_HADDR     : out M_CORES_PER_MISD_PLEN;
-      mins_misd_HWDATA    : out M_CORES_PER_MISD_XLEN;
-      mins_misd_HRDATA    : in  M_CORES_PER_MISD_XLEN;
+      mins_misd_HADDR     : out std_logic_matrix(CORES_PER_MISD-1 downto 0)(PLEN-1 downto 0);
+      mins_misd_HWDATA    : out std_logic_matrix(CORES_PER_MISD-1 downto 0)(XLEN-1 downto 0);
+      mins_misd_HRDATA    : in  std_logic_matrix(CORES_PER_MISD-1 downto 0)(XLEN-1 downto 0);
       mins_misd_HWRITE    : out std_logic_vector(CORES_PER_MISD-1 downto 0);
-      mins_misd_HSIZE     : out M_CORES_PER_MISD_2;
-      mins_misd_HBURST    : out M_CORES_PER_MISD_2;
-      mins_misd_HPROT     : out M_CORES_PER_MISD_3;
-      mins_misd_HTRANS    : out M_CORES_PER_MISD_1;
+      mins_misd_HSIZE     : out std_logic_matrix(CORES_PER_MISD-1 downto 0)(2 downto 0);
+      mins_misd_HBURST    : out std_logic_matrix(CORES_PER_MISD-1 downto 0)(2 downto 0);
+      mins_misd_HPROT     : out std_logic_matrix(CORES_PER_MISD-1 downto 0)(3 downto 0);
+      mins_misd_HTRANS    : out std_logic_matrix(CORES_PER_MISD-1 downto 0)(1 downto 0);
       mins_misd_HMASTLOCK : out std_logic_vector(CORES_PER_MISD-1 downto 0);
       mins_misd_HREADY    : in  std_logic_vector(CORES_PER_MISD-1 downto 0);
       mins_misd_HRESP     : in  std_logic_vector(CORES_PER_MISD-1 downto 0);
 
       --AHB data - Multi Port
       mdat_simd_HSEL      : out std_logic_vector(CORES_PER_SIMD-1 downto 0);
-      mdat_simd_HADDR     : out M_CORES_PER_SIMD_PLEN;
-      mdat_simd_HWDATA    : out M_CORES_PER_SIMD_XLEN;
-      mdat_simd_HRDATA    : in  M_CORES_PER_SIMD_XLEN;
+      mdat_simd_HADDR     : out std_logic_matrix(CORES_PER_SIMD-1 downto 0)(PLEN-1 downto 0);
+      mdat_simd_HWDATA    : out std_logic_matrix(CORES_PER_SIMD-1 downto 0)(XLEN-1 downto 0);
+      mdat_simd_HRDATA    : in  std_logic_matrix(CORES_PER_SIMD-1 downto 0)(XLEN-1 downto 0);
       mdat_simd_HWRITE    : out std_logic_vector(CORES_PER_SIMD-1 downto 0);
-      mdat_simd_HSIZE     : out M_CORES_PER_SIMD_2;
-      mdat_simd_HBURST    : out M_CORES_PER_SIMD_2;
-      mdat_simd_HPROT     : out M_CORES_PER_SIMD_3;
-      mdat_simd_HTRANS    : out M_CORES_PER_SIMD_1;
+      mdat_simd_HSIZE     : out std_logic_matrix(CORES_PER_SIMD-1 downto 0)(2 downto 0);
+      mdat_simd_HBURST    : out std_logic_matrix(CORES_PER_SIMD-1 downto 0)(2 downto 0);
+      mdat_simd_HPROT     : out std_logic_matrix(CORES_PER_SIMD-1 downto 0)(3 downto 0);
+      mdat_simd_HTRANS    : out std_logic_matrix(CORES_PER_SIMD-1 downto 0)(1 downto 0);
       mdat_simd_HMASTLOCK : out std_logic_vector(CORES_PER_SIMD-1 downto 0);
       mdat_simd_HREADY    : in  std_logic_vector(CORES_PER_SIMD-1 downto 0);
       mdat_simd_HRESP     : in  std_logic_vector(CORES_PER_SIMD-1 downto 0);
@@ -409,56 +408,56 @@ architecture RTL of riscv_mpsoc is
       ext_misd_nmi  : in std_logic_vector(CORES_PER_MISD-1 downto 0);
       ext_misd_tint : in std_logic_vector(CORES_PER_MISD-1 downto 0);
       ext_misd_sint : in std_logic_vector(CORES_PER_MISD-1 downto 0);
-      ext_misd_int  : in M_CORES_PER_MISD_3;
+      ext_misd_int  : in std_logic_matrix(CORES_PER_MISD-1 downto 0)(3 downto 0);
 
       ext_simd_nmi  : in std_logic_vector(CORES_PER_SIMD-1 downto 0);
       ext_simd_tint : in std_logic_vector(CORES_PER_SIMD-1 downto 0);
       ext_simd_sint : in std_logic_vector(CORES_PER_SIMD-1 downto 0);
-      ext_simd_int  : in M_CORES_PER_SIMD_3;
+      ext_simd_int  : in std_logic_matrix(CORES_PER_SIMD-1 downto 0)(3 downto 0);
 
       --Debug Interface
       dbg_misd_stall : in  std_logic_vector(CORES_PER_MISD-1 downto 0);
       dbg_misd_strb  : in  std_logic_vector(CORES_PER_MISD-1 downto 0);
       dbg_misd_we    : in  std_logic_vector(CORES_PER_MISD-1 downto 0);
-      dbg_misd_addr  : in  M_CORES_PER_MISD_PLEN;
-      dbg_misd_dati  : in  M_CORES_PER_MISD_XLEN;
-      dbg_misd_dato  : out M_CORES_PER_MISD_XLEN;
+      dbg_misd_addr  : in  std_logic_matrix(CORES_PER_MISD-1 downto 0)(PLEN-1 downto 0);
+      dbg_misd_dati  : in  std_logic_matrix(CORES_PER_MISD-1 downto 0)(XLEN-1 downto 0);
+      dbg_misd_dato  : out std_logic_matrix(CORES_PER_MISD-1 downto 0)(XLEN-1 downto 0);
       dbg_misd_ack   : out std_logic_vector(CORES_PER_MISD-1 downto 0);
       dbg_misd_bp    : out std_logic_vector(CORES_PER_MISD-1 downto 0);
 
       dbg_simd_stall : in  std_logic_vector(CORES_PER_SIMD-1 downto 0);
       dbg_simd_strb  : in  std_logic_vector(CORES_PER_SIMD-1 downto 0);
       dbg_simd_we    : in  std_logic_vector(CORES_PER_SIMD-1 downto 0);
-      dbg_simd_addr  : in  M_CORES_PER_SIMD_PLEN;
-      dbg_simd_dati  : in  M_CORES_PER_SIMD_XLEN;
-      dbg_simd_dato  : out M_CORES_PER_SIMD_XLEN;
+      dbg_simd_addr  : in  std_logic_matrix(CORES_PER_SIMD-1 downto 0)(PLEN-1 downto 0);
+      dbg_simd_dati  : in  std_logic_matrix(CORES_PER_SIMD-1 downto 0)(XLEN-1 downto 0);
+      dbg_simd_dato  : out std_logic_matrix(CORES_PER_SIMD-1 downto 0)(XLEN-1 downto 0);
       dbg_simd_ack   : out std_logic_vector(CORES_PER_SIMD-1 downto 0);
       dbg_simd_bp    : out std_logic_vector(CORES_PER_SIMD-1 downto 0);
 
       --GPIO Interface
-      gpio_misd_i  : in  M_CORES_PER_MISD_PDATA_SIZE;
-      gpio_misd_o  : out M_CORES_PER_MISD_PDATA_SIZE;
-      gpio_misd_oe : out M_CORES_PER_MISD_PDATA_SIZE;
+      gpio_misd_i  : in  std_logic_matrix(CORES_PER_MISD-1 downto 0)(PDATA_SIZE-1 downto 0);
+      gpio_misd_o  : out std_logic_matrix(CORES_PER_MISD-1 downto 0)(PDATA_SIZE-1 downto 0);
+      gpio_misd_oe : out std_logic_matrix(CORES_PER_MISD-1 downto 0)(PDATA_SIZE-1 downto 0);
 
-      gpio_simd_i  : in  M_CORES_PER_SIMD_PDATA_SIZE;
-      gpio_simd_o  : out M_CORES_PER_SIMD_PDATA_SIZE;
-      gpio_simd_oe : out M_CORES_PER_SIMD_PDATA_SIZE;
+      gpio_simd_i  : in  std_logic_matrix(CORES_PER_SIMD-1 downto 0)(PDATA_SIZE-1 downto 0);
+      gpio_simd_o  : out std_logic_matrix(CORES_PER_SIMD-1 downto 0)(PDATA_SIZE-1 downto 0);
+      gpio_simd_oe : out std_logic_matrix(CORES_PER_SIMD-1 downto 0)(PDATA_SIZE-1 downto 0);
 
       --NoC Interface
-      noc_misd_in_flit   : in  M_CHANNELS_FLIT_WIDTH;
+      noc_misd_in_flit   : in  std_logic_matrix(CHANNELS-1 downto 0)(FLIT_WIDTH-1 downto 0);
       noc_misd_in_last   : in  std_logic_vector(CHANNELS-1 downto 0);
       noc_misd_in_valid  : in  std_logic_vector(CHANNELS-1 downto 0);
       noc_misd_in_ready  : out std_logic_vector(CHANNELS-1 downto 0);
-      noc_misd_out_flit  : out M_CHANNELS_FLIT_WIDTH;
+      noc_misd_out_flit  : out std_logic_matrix(CHANNELS-1 downto 0)(FLIT_WIDTH-1 downto 0);
       noc_misd_out_last  : out std_logic_vector(CHANNELS-1 downto 0);
       noc_misd_out_valid : out std_logic_vector(CHANNELS-1 downto 0);
       noc_misd_out_ready : in  std_logic_vector(CHANNELS-1 downto 0);
 
-      noc_simd_in_flit   : in  M_CHANNELS_FLIT_WIDTH;
+      noc_simd_in_flit   : in  std_logic_matrix(CHANNELS-1 downto 0)(FLIT_WIDTH-1 downto 0);
       noc_simd_in_last   : in  std_logic_vector(CHANNELS-1 downto 0);
       noc_simd_in_valid  : in  std_logic_vector(CHANNELS-1 downto 0);
       noc_simd_in_ready  : out std_logic_vector(CHANNELS-1 downto 0);
-      noc_simd_out_flit  : out M_CHANNELS_FLIT_WIDTH;
+      noc_simd_out_flit  : out std_logic_matrix(CHANNELS-1 downto 0)(FLIT_WIDTH-1 downto 0);
       noc_simd_out_last  : out std_logic_vector(CHANNELS-1 downto 0);
       noc_simd_out_valid : out std_logic_vector(CHANNELS-1 downto 0);
       noc_simd_out_ready : in  std_logic_vector(CHANNELS-1 downto 0)
@@ -488,26 +487,26 @@ architecture RTL of riscv_mpsoc is
   --
 
   -- Flits from NoC->tiles
-  signal noc_misd_in_flit  : M_NODES_CHANNELS_FLIT_WIDTH;
-  signal noc_misd_in_last  : M_NODES_CHANNELS;
-  signal noc_misd_in_valid : M_NODES_CHANNELS;
-  signal noc_misd_in_ready : M_NODES_CHANNELS;
+  signal noc_misd_in_flit  : std_logic_3array(NODES-1 downto 0)(CHANNELS-1 downto 0)(FLIT_WIDTH-1 downto 0);
+  signal noc_misd_in_last  : std_logic_matrix(NODES-1 downto 0)(CHANNELS-1 downto 0);
+  signal noc_misd_in_valid : std_logic_matrix(NODES-1 downto 0)(CHANNELS-1 downto 0);
+  signal noc_misd_in_ready : std_logic_matrix(NODES-1 downto 0)(CHANNELS-1 downto 0);
 
-  signal noc_simd_out_flit  : M_NODES_CHANNELS_FLIT_WIDTH;
-  signal noc_simd_out_last  : M_NODES_CHANNELS;
-  signal noc_simd_out_valid : M_NODES_CHANNELS;
-  signal noc_simd_out_ready : M_NODES_CHANNELS;
+  signal noc_simd_out_flit  : std_logic_3array(NODES-1 downto 0)(CHANNELS-1 downto 0)(FLIT_WIDTH-1 downto 0);
+  signal noc_simd_out_last  : std_logic_matrix(NODES-1 downto 0)(CHANNELS-1 downto 0);
+  signal noc_simd_out_valid : std_logic_matrix(NODES-1 downto 0)(CHANNELS-1 downto 0);
+  signal noc_simd_out_ready : std_logic_matrix(NODES-1 downto 0)(CHANNELS-1 downto 0);
 
   -- Flits from tiles->NoC
-  signal noc_misd_out_flit  : M_NODES_CHANNELS_FLIT_WIDTH;
-  signal noc_misd_out_last  : M_NODES_CHANNELS;
-  signal noc_misd_out_valid : M_NODES_CHANNELS;
-  signal noc_misd_out_ready : M_NODES_CHANNELS;
+  signal noc_misd_out_flit  : std_logic_3array(NODES-1 downto 0)(CHANNELS-1 downto 0)(FLIT_WIDTH-1 downto 0);
+  signal noc_misd_out_last  : std_logic_matrix(NODES-1 downto 0)(CHANNELS-1 downto 0);
+  signal noc_misd_out_valid : std_logic_matrix(NODES-1 downto 0)(CHANNELS-1 downto 0);
+  signal noc_misd_out_ready : std_logic_matrix(NODES-1 downto 0)(CHANNELS-1 downto 0);
 
-  signal noc_simd_in_flit  : M_NODES_CHANNELS_FLIT_WIDTH;
-  signal noc_simd_in_last  : M_NODES_CHANNELS;
-  signal noc_simd_in_valid : M_NODES_CHANNELS;
-  signal noc_simd_in_ready : M_NODES_CHANNELS;
+  signal noc_simd_in_flit  : std_logic_3array(NODES-1 downto 0)(CHANNELS-1 downto 0)(FLIT_WIDTH-1 downto 0);
+  signal noc_simd_in_last  : std_logic_matrix(NODES-1 downto 0)(CHANNELS-1 downto 0);
+  signal noc_simd_in_valid : std_logic_matrix(NODES-1 downto 0)(CHANNELS-1 downto 0);
+  signal noc_simd_in_ready : std_logic_matrix(NODES-1 downto 0)(CHANNELS-1 downto 0);
 
 begin
   --//////////////////////////////////////////////////////////////
