@@ -1,0 +1,136 @@
+# vsim -c "+notimingchecks" -l ./log/DCACHE_SIZE0@ICACHE_SIZE0@MEM_LATENCY0@WRITEBUFFER_SIZE0@XLEN64@rv64ui-p-simple.log riscv_testbench -do "run -all; quit" -gINIT_FILE="../../../../../../software/tests/regression/rv64ui-p-simple.hex" 
+# Start time: 23:13:05 on Apr 16,2020
+# Loading sv_std.std
+# Loading work.riscv_testbench
+# Loading work.riscv_mpsoc
+# Loading work.noc_mesh3d
+# Loading work.riscv_dbg_bfm
+# Loading work.mpsoc_dbg_top_ahb3
+# Loading work.mpsoc_dbg_ahb3_module
+# Loading work.mpsoc_dbg_bus_module_core
+# Loading work.mpsoc_dbg_crc32
+# Loading work.mpsoc_dbg_ahb3_biu
+# Loading work.mpsoc_dbg_or1k_module
+# Loading work.mpsoc_dbg_or1k_status_reg
+# Loading work.mpsoc_dbg_or1k_biu
+# Loading work.mpsoc_dbg_jsp_apb_module
+# Loading work.mpsoc_dbg_jsp_module_core
+# Loading work.mpsoc_dbg_jsp_apb_biu
+# Loading work.mpsoc_dbg_syncflop
+# Loading work.mpsoc_dbg_syncreg
+# Loading work.mpsoc_dbg_bytefifo
+# Loading work.riscv_memory_model
+# Loading work.riscv_mmio_if
+# Loading work.noc_vchannel_mux
+# Loading work.arb_rr
+# Loading work.noc_router
+# Loading work.riscv_soc
+# Loading work.noc_router_input
+# Loading work.noc_router_output
+# Loading work.riscv_misd
+# Loading work.mpsoc_ahb3_mpram
+# Loading work.noc_mux
+# Loading work.noc_demux
+# Loading work.riscv_simd
+# Loading work.noc_buffer
+# Loading work.noc_router_lookup
+# Loading work.noc_router_lookup_slice
+# Loading work.mpsoc_ram_1r1w
+# Loading work.riscv_pu
+# Loading work.riscv_core
+# Loading work.riscv_if
+# Loading work.riscv_id
+# Loading work.riscv_execution
+# Loading work.riscv_alu
+# Loading work.riscv_lsu
+# Loading work.riscv_bu
+# Loading work.riscv_memory
+# Loading work.riscv_wb
+# Loading work.riscv_state
+# Loading work.riscv_rf
+# Loading work.riscv_du
+# Loading work.riscv_imem_ctrl
+# Loading work.riscv_membuf
+# Loading work.riscv_ram_queue
+# Loading work.riscv_memmisaligned
+# Loading work.riscv_mmu
+# Loading work.riscv_pmachk
+# Loading work.riscv_pmpchk
+# Loading work.riscv_dext
+# Loading work.riscv_mux
+# Loading work.riscv_dmem_ctrl
+# Loading work.riscv_biu
+# Loading work.mpsoc_msi_ahb3_interface
+# Loading work.mpsoc_dma_ahb3_top
+# Loading work.mpsoc_dma_ahb3_interface
+# Loading work.mpsoc_dma_request_table
+# Loading work.mpsoc_dma_ahb3_initiator
+# Loading work.mpsoc_dma_ahb3_initiator_req
+# Loading work.mpsoc_dma_initiator_nocreq
+# Loading work.mpsoc_dma_ahb3_initiator_nocres
+# Loading work.mpsoc_dma_packet_buffer
+# Loading work.mpsoc_dma_ahb3_target
+# Loading work.mpsoc_ahb3_peripheral_bridge
+# Loading work.mpsoc_apb_gpio
+# Loading work.mpsoc_ahb3_spram
+# Loading work.mpsoc_ahb3_uart
+# Loading work.mpsoc_uart_rx
+# Loading work.mpsoc_uart_tx
+# Loading work.mpsoc_uart_fifo
+# Loading work.mpsoc_uart_interrupt
+# Loading work.mpsoc_ram_1r1w_generic
+# Loading work.riscv_mul
+# Loading work.riscv_div
+# Loading work.riscv_bp
+# Loading work.riscv_ram_1r1w
+# Loading work.mpsoc_msi_ahb3_master_port
+# Loading work.mpsoc_msi_ahb3_slave_port
+# Loading work.riscv_ram_1r1w_generic
+# ** Warning: Design size of 13083 statements exceeds ModelSim-Intel FPGA Starter Edition recommended capacity.
+# Expect performance to be adversely affected.
+# run -all
+# 
+# 
+#                                                                                                          
+#                                                                                                          
+#                                                               ***                     ***          **    
+#                                                             ** ***    *                ***          **   
+#                                                            **   ***  ***                **          **   
+#                                                            **         *                 **          **   
+#     ****    **   ****                                      **                           **          **   
+#    * ***  *  **    ***  *    ***       ***    ***  ****    ******   ***        ***      **      *** **   
+#   *   ****   **     ****    * ***     * ***    **** **** * *****     ***      * ***     **     ********* 
+#  **    **    **      **    *   ***   *   ***    **   ****  **         **     *   ***    **    **   ****  
+#  **    **    **      **   **    *** **    ***   **    **   **         **    **    ***   **    **    **   
+#  **    **    **      **   ********  ********    **    **   **         **    ********    **    **    **   
+#  **    **    **      **   *******   *******     **    **   **         **    *******     **    **    **   
+#  **    **    **      **   **        **          **    **   **         **    **          **    **    **   
+#   *******     ******* **  ****    * ****    *   **    **   **         **    ****    *   **    **    **   
+#    ******      *****   **  *******   *******    ***   ***  **         *** *  *******    *** *  *****     
+#        **                   *****     *****      ***   ***  **         ***    *****      ***    ***      
+#        **                                                                                                
+#        **                                                                                                
+#         **                                                                                               
+# - RISC-V Regression TestBench ---------------------------------------------------------------------------
+#   XLEN | PRIV | MMU | FPU | RVA | RVM | MULLAT
+#     64 | MHSU |   1 |   1 |   1 |   1 |      1
+# ------------------------------------------------------------------------------
+#   CORES | NODES | X | Y | Z | CORES_PER_TILE | CORES_PER_MISD | CORES_PER_SIMD
+#      64 |     8 | 2 | 2 | 2 |              8 |              4 |              4   
+# ------------------------------------------------------------------------------
+#   Test   = ../../../../../../software/tests/regression/rv64ui-p-simple.hex
+#   ICache = 0kB
+#   DCache = 0kB
+# ------------------------------------------------------------------------------
+# 
+# 
+# -------------------------------------------------------------
+# * RISC-V test bench finished
+# * PASSED 1
+# -------------------------------------------------------------
+# 
+# 
+# ** Note: $finish    : /home/us1/github/MPSoC-RISCV/bench/verilog/regression/riscv_mmio_if.sv(154)
+#    Time: 163 ps  Iteration: 1  Region: /riscv_testbench/genblk15/mmio_if/genblk1[0]/genblk1[0]/genblk1[0]/genblk1[0]
+# End time: 23:13:36 on Apr 16,2020, Elapsed time: 0:00:31
+# Errors: 0, Warnings: 1

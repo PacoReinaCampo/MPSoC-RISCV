@@ -271,15 +271,16 @@ module riscv_mpsoc #(
   //
 
   //Instantiate RISC-V NoC MISD
-  mpsoc_noc_mesh #(
+  noc_mesh3d #(
     .FLIT_WIDTH       (FLIT_WIDTH),
     .CHANNELS         (CHANNELS),
-    .OUTPUTS          (OUTPUTS),
+
     .ENABLE_VCHANNELS (ENABLE_VCHANNELS),
+
     .X                (X),
     .Y                (Y),
     .Z                (Z),
-    .NODES            (NODES),
+
     .BUFFER_SIZE_IN   (BUFFER_SIZE_IN),
     .BUFFER_SIZE_OUT  (BUFFER_SIZE_OUT)
   )
@@ -299,15 +300,15 @@ module riscv_mpsoc #(
   );
 
   //Instantiate RISC-V NoC SIMD
-  mpsoc_noc_mesh #(
+  noc_mesh3d #(
     .FLIT_WIDTH       (FLIT_WIDTH),
     .CHANNELS         (CHANNELS),
-    .OUTPUTS          (OUTPUTS),
+
     .ENABLE_VCHANNELS (ENABLE_VCHANNELS),
     .X                (X),
     .Y                (Y),
     .Z                (Z),
-    .NODES            (NODES),
+
     .BUFFER_SIZE_IN   (BUFFER_SIZE_IN),
     .BUFFER_SIZE_OUT  (BUFFER_SIZE_OUT)
   )
