@@ -1,5 +1,0 @@
-ghdl -i system.vc
-
-ghdl -m riscv_soc
-
-ghdl -r riscv_soc --ieee-asserts=disable-at-0 --disp-tree=inst > riscv_soc.tree
