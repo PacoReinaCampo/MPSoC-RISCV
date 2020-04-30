@@ -105,6 +105,7 @@
 ../../../../soc/pu/rtl/verilog/memory/riscv_ram_1rw.sv
 ../../../../soc/pu/rtl/verilog/memory/riscv_ram_queue.sv
 ../../../../soc/pu/rtl/verilog/pu/riscv_biu.sv
+../../../../soc/pu/rtl/verilog/pu/riscv_module.sv
 ../../../../soc/pu/rtl/verilog/pu/riscv_pu.sv
 ../../../../rtl/verilog/soc/adapter/networkadapter_conf.sv
 ../../../../rtl/verilog/soc/adapter/networkadapter_ct.sv
