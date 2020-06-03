@@ -104,12 +104,12 @@
 ../../../../soc/pu/rtl/verilog/memory/riscv_ram_1rw_generic.sv
 ../../../../soc/pu/rtl/verilog/memory/riscv_ram_1rw.sv
 ../../../../soc/pu/rtl/verilog/memory/riscv_ram_queue.sv
-../../../../soc/pu/rtl/verilog/pu/riscv_biu.sv
-../../../../soc/pu/rtl/verilog/pu/riscv_module.sv
-../../../../soc/pu/rtl/verilog/pu/riscv_pu.sv
+../../../../soc/pu/rtl/verilog/pu/riscv_biu2ahb3.sv
+../../../../soc/pu/rtl/verilog/pu/riscv_module_ahb3.sv
+../../../../soc/pu/rtl/verilog/pu/riscv_pu_ahb3.sv
 ../../../../rtl/verilog/soc/adapter/networkadapter_conf.sv
 ../../../../rtl/verilog/soc/adapter/networkadapter_ct.sv
-../../../../rtl/verilog/soc/bootrom/bootrom.v
+../../../../rtl/verilog/soc/bootrom/bootrom.sv
 ../../../../rtl/verilog/soc/interconnection/bus/ahb3_bus_b3.sv
 ../../../../rtl/verilog/soc/interconnection/decode/ahb3_decode.sv
 ../../../../rtl/verilog/soc/interconnection/mux/ahb3_mux.sv
@@ -119,7 +119,7 @@
 ../../../../rtl/verilog/soc/spram/ahb32sram.sv
 ../../../../rtl/verilog/soc/riscv_tile.sv
 ../../../../bench/verilog/glip/glip_tcp_toplevel.sv
-../../../../bench/verilog/monitor/r3_checker.v
+../../../../bench/verilog/monitor/r3_checker.sv
 ../../../../bench/verilog/monitor/trace_monitor.sv
 ../../../../bench/verilog/riscv_mpsoc3d_testbench.sv
 --top-module riscv_mpsoc3d_testbench
