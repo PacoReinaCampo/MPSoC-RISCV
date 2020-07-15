@@ -1,5 +1,5 @@
 +incdir+../../../../soc/pu/rtl/verilog/pkg
-+incdir+../../../../rtl/verilog/soc/bootrom
++incdir+../../../../soc/rtl/verilog/soc/bootrom
 +incdir+../../../../bench/cpp/verilator/inc
 +incdir+../../../../bench/cpp/glip
 +incdir+../../../../soc/dma/rtl/verilog/ahb3/pkg
@@ -100,17 +100,17 @@
 ../../../../soc/pu/rtl/verilog/pu/riscv_biu2ahb3.sv
 ../../../../soc/pu/rtl/verilog/pu/riscv_module_ahb3.sv
 ../../../../soc/pu/rtl/verilog/pu/riscv_pu_ahb3.sv
-../../../../rtl/verilog/soc/adapter/networkadapter_conf.sv
-../../../../rtl/verilog/soc/adapter/networkadapter_ct.sv
-../../../../rtl/verilog/soc/bootrom/bootrom.sv
-../../../../rtl/verilog/soc/interconnection/bus/ahb3_bus_b3.sv
-../../../../rtl/verilog/soc/interconnection/decode/ahb3_decode.sv
-../../../../rtl/verilog/soc/interconnection/mux/ahb3_mux.sv
-../../../../rtl/verilog/soc/spram/sram_sp_impl_plain.sv
-../../../../rtl/verilog/soc/spram/sram_sp.sv
-../../../../rtl/verilog/soc/spram/ahb3_sram_sp.sv
-../../../../rtl/verilog/soc/spram/ahb32sram.sv
-../../../../rtl/verilog/soc/riscv_tile.sv
+../../../../soc/rtl/verilog/soc/adapter/networkadapter_conf.sv
+../../../../soc/rtl/verilog/soc/adapter/networkadapter_ct.sv
+../../../../soc/rtl/verilog/soc/bootrom/bootrom.sv
+../../../../soc/rtl/verilog/soc/interconnection/bus/ahb3_bus_b3.sv
+../../../../soc/rtl/verilog/soc/interconnection/decode/ahb3_decode.sv
+../../../../soc/rtl/verilog/soc/interconnection/mux/ahb3_mux.sv
+../../../../soc/rtl/verilog/soc/spram/sram_sp_impl_plain.sv
+../../../../soc/rtl/verilog/soc/spram/sram_sp.sv
+../../../../soc/rtl/verilog/soc/spram/ahb3_sram_sp.sv
+../../../../soc/rtl/verilog/soc/spram/ahb32sram.sv
+../../../../soc/rtl/verilog/soc/riscv_tile.sv
 
 ../../../../bench/verilog/glip/glip_tcp_toplevel.sv
 ../../../../bench/verilog/monitor/r3_checker.sv
