@@ -1,9 +1,9 @@
-rm -rf sim/verilog/regression/msim/transcript
-rm -rf sim/verilog/regression/msim/work
-rm -rf sim/verilog/regression/msim/stdout.*
+rm -rf sim/verilog/tests/msim/transcript
+rm -rf sim/verilog/tests/msim/work
+rm -rf sim/verilog/tests/msim/stdout.*
 
-rm -rf sim/verilog/regression/verilator/Vriscv_tile_testbench
-rm -rf sim/verilog/regression/verilator/Vriscv_mpsoc2d_testbench
-rm -rf sim/verilog/regression/verilator/Vriscv_mpsoc3d_testbench
-rm -rf sim/verilog/regression/verilator/Vriscv_mpsoc4d_testbench
-rm -rf sim/verilog/regression/verilator/stdout.*
+rm -rf sim/verilog/tests/verilator/Vriscv_tile_testbench
+rm -rf sim/verilog/tests/verilator/Vriscv_mpsoc2d_testbench
+rm -rf sim/verilog/tests/verilator/Vriscv_mpsoc3d_testbench
+rm -rf sim/verilog/tests/verilator/Vriscv_mpsoc4d_testbench
+rm -rf sim/verilog/tests/verilator/stdout.*
