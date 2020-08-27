@@ -15,7 +15,7 @@
 
 ###################################################################################
 ##                                                                               ##
-## Copyright (c) 2016-2015 by the author(s)                                      ##
+## Copyright (c) 2019-2020 by the author(s)                                      ##
 ##                                                                               ##
 ## Permission is hereby granted, free of charge, to any person obtaining a copy  ##
 ## of this software and associated documentation files (the "Software"), to deal ##
@@ -37,11 +37,41 @@
 ##                                                                               ##
 ## ============================================================================= ##
 ## Author(s):                                                                    ##
+##   Stefan Wallentowitz <stefan.wallentowitz@tum.de>                            ##
+##   Philipp Wagner <philipp.wagner@tum.de>                                      ##
 ##   Paco Reina Campo <pacoreinacampo@queenfield.tech>                           ##
 ##                                                                               ##
 ###################################################################################
 
-PROGRAM=heat_mpsimple
+all: bootrom_code.sv bootrom.hex
 
-BUILDSCRIPTS=$(shell pkg-config --variable=buildscriptdir optimsoc-baremetal)
-include $(BUILDSCRIPTS)/Makefile.inc
+bootrom.hex: bootrom.bin
+	./bin2vmem bootrom.bin > bootrom.hex
+
+bootrom_code.sv: bootrom.bin bin2vlogarray bin2vmem
+	cat bootrom_code.sv.header > bootrom_code.sv
+	cat bootrom.bin | ./bin2vlogarray >> bootrom_code.sv
+
+bootrom.bin: a.out
+	or1k-elf-objcopy -O binary a.out bootrom.bin
+
+bootrom.dis: a.out
+	or1k-elf-objdump -d a.out > bootrom.dis
+
+a.out: boot.s
+	or1k-elf-as boot.s
+
+bin2vlogarray: bin2vlogarray.c
+	gcc -Wall -o bin2vlogarray bin2vlogarray.c
+
+bin2vmem: bin2vmem.c
+	gcc -Wall -o bin2vmem bin2vmem.c
+	rm -f ../host/bin/bin2vmem
+	cp bin2vmem ../host/bin/
+
+install:
+	rm -f ../../../soc/rtl/verilog/soc/bootrom/bootrom_code.sv
+	cp -i bootrom_code.sv ../../../soc/rtl/verilog/soc/bootrom/
+
+clean:
+	rm -f a.out bootrom.bin bootrom.hex bootrom_code.sv bin2vlogarray bin2vmem
