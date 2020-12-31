@@ -146,8 +146,8 @@ module riscv_mpsoc2d_wrapper #(
         .REGISTERED_OUTPUT ( "NO" )
       )
       ahb3_spram (
-        .HRESETn   ( HRESETn ),
-        .HCLK      ( HCLK    ),
+        .HCLK      ( clk ),
+        .HRESETn   ( rst ),
 
         //AHB Slave Interface
         .HSEL      ( spram_HSEL      [i] ),
