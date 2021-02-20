@@ -1,3 +1,0 @@
-make clean
-make hardware-mpsoc4d
-make software-mpsoc4d

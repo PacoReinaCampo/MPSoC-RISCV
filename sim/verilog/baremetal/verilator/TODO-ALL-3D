@@ -1,3 +1,0 @@
-make clean
-make hardware-mpsoc3d
-make software-mpsoc3d
