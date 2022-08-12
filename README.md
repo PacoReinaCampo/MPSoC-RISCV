@@ -971,7 +971,7 @@ sudo apt upgrade
 
 #### 3.6.2.2. Network on Chip
 
-### 3.6.3. Multi Processor System on Chip
+### 3.6.3. Multi-Processor System on Chip
 
 # 4. HARDWARE WORKFLOW
 
