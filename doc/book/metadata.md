@@ -1,6 +1,6 @@
 ---
 title: 'MPSoC-RISCV'
-subtitle: 'QueenField ![](../../icon.jpg)'
+subtitle: 'QueenField ![](../../mpsoc-riscv.svg){width=17cm}'
 
 author: Paco Reina Campo
 
