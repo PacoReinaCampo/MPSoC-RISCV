@@ -1,6 +1,6 @@
 # MPSoC-RISCV
 ## QueenField
 
-![QueenField](../master/icon.jpg)
+![QueenField](../master/mpsoc-riscv.svg)
 
 **Multi-Processor System on Chip with ISA RISCV**
