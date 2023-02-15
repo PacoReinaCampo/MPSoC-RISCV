@@ -15,7 +15,55 @@ library
 │   └── wb
 │       ├── peripheral.c
 │       └── peripheral.h
-└── core
+├── core
+│   ├── ahb3
+│   │   ├── peripheral.c
+│   │   └── peripheral.h
+│   ├── apb4
+│   │   ├── peripheral.c
+│   │   └── peripheral.h
+│   ├── axi4
+│   │   ├── peripheral.c
+│   │   └── peripheral.h
+│   ├── bb
+│   │   ├── peripheral.c
+│   │   └── peripheral.h
+│   └── wb
+│       ├── peripheral.c
+│       └── peripheral.h
+├── mpsoc
+│   ├── ahb3
+│   │   ├── peripheral.c
+│   │   └── peripheral.h
+│   ├── apb4
+│   │   ├── peripheral.c
+│   │   └── peripheral.h
+│   ├── axi4
+│   │   ├── peripheral.c
+│   │   └── peripheral.h
+│   ├── bb
+│   │   ├── peripheral.c
+│   │   └── peripheral.h
+│   └── wb
+│       ├── peripheral.c
+│       └── peripheral.h
+├── pu
+│   ├── ahb3
+│   │   ├── peripheral.c
+│   │   └── peripheral.h
+│   ├── apb4
+│   │   ├── peripheral.c
+│   │   └── peripheral.h
+│   ├── axi4
+│   │   ├── peripheral.c
+│   │   └── peripheral.h
+│   ├── bb
+│   │   ├── peripheral.c
+│   │   └── peripheral.h
+│   └── wb
+│       ├── peripheral.c
+│       └── peripheral.h
+└── soc
     ├── ahb3
     │   ├── peripheral.c
     │   └── peripheral.h
@@ -32,4 +80,4 @@ library
         ├── peripheral.c
         └── peripheral.h
 
-12 directories, 20 files
+30 directories, 50 files

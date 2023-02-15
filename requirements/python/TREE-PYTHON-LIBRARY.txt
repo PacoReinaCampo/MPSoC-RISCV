@@ -10,7 +10,40 @@ library
 │   │   └── peripheral.py
 │   └── wb
 │       └── peripheral.py
-└── core
+├── core
+│   ├── ahb3
+│   │   └── peripheral.py
+│   ├── apb4
+│   │   └── peripheral.py
+│   ├── axi4
+│   │   └── peripheral.py
+│   ├── bb
+│   │   └── peripheral.py
+│   └── wb
+│       └── peripheral.py
+├── mpsoc
+│   ├── ahb3
+│   │   └── peripheral.py
+│   ├── apb4
+│   │   └── peripheral.py
+│   ├── axi4
+│   │   └── peripheral.py
+│   ├── bb
+│   │   └── peripheral.py
+│   └── wb
+│       └── peripheral.py
+├── pu
+│   ├── ahb3
+│   │   └── peripheral.py
+│   ├── apb4
+│   │   └── peripheral.py
+│   ├── axi4
+│   │   └── peripheral.py
+│   ├── bb
+│   │   └── peripheral.py
+│   └── wb
+│       └── peripheral.py
+└── soc
     ├── ahb3
     │   └── peripheral.py
     ├── apb4
@@ -22,4 +55,4 @@ library
     └── wb
         └── peripheral.py
 
-12 directories, 10 files
+30 directories, 25 files

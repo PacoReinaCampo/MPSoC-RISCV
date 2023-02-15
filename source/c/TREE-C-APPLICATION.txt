@@ -15,7 +15,55 @@ application
 │   └── wb
 │       ├── peripheral_test.c
 │       └── peripheral_test.h
-└── core
+├── core
+│   ├── ahb3
+│   │   ├── peripheral_test.c
+│   │   └── peripheral_test.h
+│   ├── apb4
+│   │   ├── peripheral_test.c
+│   │   └── peripheral_test.h
+│   ├── axi4
+│   │   ├── peripheral_test.c
+│   │   └── peripheral_test.h
+│   ├── bb
+│   │   ├── peripheral_test.c
+│   │   └── peripheral_test.h
+│   └── wb
+│       ├── peripheral_test.c
+│       └── peripheral_test.h
+├── mpsoc
+│   ├── ahb3
+│   │   ├── peripheral_test.c
+│   │   └── peripheral_test.h
+│   ├── apb4
+│   │   ├── peripheral_test.c
+│   │   └── peripheral_test.h
+│   ├── axi4
+│   │   ├── peripheral_test.c
+│   │   └── peripheral_test.h
+│   ├── bb
+│   │   ├── peripheral_test.c
+│   │   └── peripheral_test.h
+│   └── wb
+│       ├── peripheral_test.c
+│       └── peripheral_test.h
+├── pu
+│   ├── ahb3
+│   │   ├── peripheral_test.c
+│   │   └── peripheral_test.h
+│   ├── apb4
+│   │   ├── peripheral_test.c
+│   │   └── peripheral_test.h
+│   ├── axi4
+│   │   ├── peripheral_test.c
+│   │   └── peripheral_test.h
+│   ├── bb
+│   │   ├── peripheral_test.c
+│   │   └── peripheral_test.h
+│   └── wb
+│       ├── peripheral_test.c
+│       └── peripheral_test.h
+└── soc
     ├── ahb3
     │   ├── peripheral_test.c
     │   └── peripheral_test.h
@@ -32,4 +80,4 @@ application
         ├── peripheral_test.c
         └── peripheral_test.h
 
-12 directories, 20 files
+30 directories, 50 files
