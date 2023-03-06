@@ -158,4 +158,4 @@
 ../../../../soc/rtl/verilog/soc/spram/ahb32sram.sv
 ../../../../soc/rtl/verilog/soc/riscv_tile.sv
 
-../../../../bench/verilog/mpsoc2d_riscv_testbench.sv
+../../../../bench/verilog/main/mpsoc2d_riscv_testbench.sv

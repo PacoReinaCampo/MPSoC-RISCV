@@ -170,7 +170,7 @@
 --exe
 ../../../../soc/bench/cpp/glip/glip_tcp_dpi.cpp
 ../../../../soc/bench/cpp/glip/GlipTcp.cpp
-../../../../soc/bench/cpp/riscv_tile_testbench.cpp
+../../../../soc/bench/cpp/main/riscv_tile_testbench.cpp
 ../../../../soc/bench/cpp/verilator/src/OptionsParser.cpp
 ../../../../soc/bench/cpp/verilator/src/VerilatedControl.cpp
 -GNUM_CORES=2
