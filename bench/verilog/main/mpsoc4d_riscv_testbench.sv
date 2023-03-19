@@ -52,45 +52,45 @@ module mpsoc4d_riscv_testbench;
   // Constans
   //
 
-  parameter USE_DEBUG        = 0;
-  parameter ENABLE_VCHANNELS = 1*1;
+  parameter USE_DEBUG = 0;
+  parameter ENABLE_VCHANNELS = 1 * 1;
 
-  parameter integer NUM_CORES = 1*1; // bug in verilator would give a warning
-  parameter integer LMEM_SIZE = 32*1024*1024;
+  parameter integer NUM_CORES = 1 * 1;  // bug in verilator would give a warning
+  parameter integer LMEM_SIZE = 32 * 1024 * 1024;
 
-  localparam base_config_t
-  BASE_CONFIG = '{NUMTILES: 16,
-                  NUMCTS: 16,
-                  CTLIST: {{60{16'hx}}, 16'h0, 16'h1, 16'h2, 16'h3},
-                  CORES_PER_TILE: NUM_CORES,
-                  GMEM_SIZE: 0,
-                  GMEM_TILE: 'x,
-                  NOC_ENABLE_VCHANNELS: ENABLE_VCHANNELS,
-                  LMEM_SIZE: LMEM_SIZE,
-                  LMEM_STYLE: PLAIN,
-                  ENABLE_BOOTROM: 0,
-                  BOOTROM_SIZE: 0,
-                  ENABLE_DM: 1,
-                  DM_BASE: 32'h0,
-                  DM_SIZE: LMEM_SIZE,
-                  ENABLE_PGAS: 0,
-                  PGAS_BASE: 0,
-                  PGAS_SIZE: 0,
-                  CORE_ENABLE_FPU: 0,
-                  CORE_ENABLE_PERFCOUNTERS: 0,
-                  NA_ENABLE_MPSIMPLE: 1,
-                  NA_ENABLE_DMA: 1,
-                  NA_DMA_GENIRQ: 1,
-                  NA_DMA_ENTRIES: 4,
-                  USE_DEBUG: 1'(USE_DEBUG),
-                  DEBUG_STM: 1,
-                  DEBUG_CTM: 1,
-                  DEBUG_DEM_UART: 0,
-                  DEBUG_SUBNET_BITS: 6,
-                  DEBUG_LOCAL_SUBNET: 0,
-                  DEBUG_ROUTER_BUFFER_SIZE: 4,
-                  DEBUG_MAX_PKT_LEN: 12
-                  };
+  localparam base_config_t BASE_CONFIG = '{
+    NUMTILES: 16,
+    NUMCTS: 16,
+    CTLIST: {{60{16'hx}}, 16'h0, 16'h1, 16'h2, 16'h3},
+    CORES_PER_TILE: NUM_CORES,
+    GMEM_SIZE: 0,
+    GMEM_TILE: 'x,
+    NOC_ENABLE_VCHANNELS: ENABLE_VCHANNELS,
+    LMEM_SIZE: LMEM_SIZE,
+    LMEM_STYLE: PLAIN,
+    ENABLE_BOOTROM: 0,
+    BOOTROM_SIZE: 0,
+    ENABLE_DM: 1,
+    DM_BASE: 32'h0,
+    DM_SIZE: LMEM_SIZE,
+    ENABLE_PGAS: 0,
+    PGAS_BASE: 0,
+    PGAS_SIZE: 0,
+    CORE_ENABLE_FPU: 0,
+    CORE_ENABLE_PERFCOUNTERS: 0,
+    NA_ENABLE_MPSIMPLE: 1,
+    NA_ENABLE_DMA: 1,
+    NA_DMA_GENIRQ: 1,
+    NA_DMA_ENTRIES: 4,
+    USE_DEBUG: 1'(USE_DEBUG),
+    DEBUG_STM: 1,
+    DEBUG_CTM: 1,
+    DEBUG_DEM_UART: 0,
+    DEBUG_SUBNET_BITS: 6,
+    DEBUG_LOCAL_SUBNET: 0,
+    DEBUG_ROUTER_BUFFER_SIZE: 4,
+    DEBUG_MAX_PKT_LEN: 12
+  };
 
   localparam config_t CONFIG = derive_config(BASE_CONFIG);
 
@@ -99,7 +99,7 @@ module mpsoc4d_riscv_testbench;
   // Variables
   //
 
-  glip_channel c_glip_in  (.*);
+  glip_channel c_glip_in (.*);
   glip_channel c_glip_out (.*);
 
   logic logic_rst;
@@ -110,26 +110,25 @@ module mpsoc4d_riscv_testbench;
   //
 
   riscv_mpsoc4d #(
-    .CONFIG (CONFIG)
-  )
-  u_system (
-    .clk        (clk),
-    .rst        (rst | logic_rst),
-    .c_glip_in  (c_glip_in),
-    .c_glip_out (c_glip_out),
+    .CONFIG(CONFIG)
+  ) u_system (
+    .clk       (clk),
+    .rst       (rst | logic_rst),
+    .c_glip_in (c_glip_in),
+    .c_glip_out(c_glip_out),
 
-    .ahb3_ext_hsel_i      (),
-    .ahb3_ext_haddr_i     (),
-    .ahb3_ext_hwdata_i    (),
-    .ahb3_ext_hwrite_i    (),
-    .ahb3_ext_hsize_i     (),
-    .ahb3_ext_hburst_i    (),
-    .ahb3_ext_hprot_i     (),
-    .ahb3_ext_htrans_i    (),
-    .ahb3_ext_hmastlock_i (),
+    .ahb3_ext_hsel_i     (),
+    .ahb3_ext_haddr_i    (),
+    .ahb3_ext_hwdata_i   (),
+    .ahb3_ext_hwrite_i   (),
+    .ahb3_ext_hsize_i    (),
+    .ahb3_ext_hburst_i   (),
+    .ahb3_ext_hprot_i    (),
+    .ahb3_ext_htrans_i   (),
+    .ahb3_ext_hmastlock_i(),
 
-    .ahb3_ext_hrdata_o    ('x),
-    .ahb3_ext_hready_o    ('x),
-    .ahb3_ext_hresp_o     ('x)
+    .ahb3_ext_hrdata_o('x),
+    .ahb3_ext_hready_o('x),
+    .ahb3_ext_hresp_o ('x)
   );
 endmodule
