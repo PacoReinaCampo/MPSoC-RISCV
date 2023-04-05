@@ -9,14 +9,14 @@
 ##                  |_|                                                          ##
 ##                                                                               ##
 ##                                                                               ##
+##              Architecture                                                     ##
 ##              QueenField                                                       ##
-##              Multi-Processor System on Chip                                   ##
 ##                                                                               ##
 ###################################################################################
 
 ###################################################################################
 ##                                                                               ##
-## Copyright (c) 2022-2025 by the author(s)                                      ##
+## Copyright (c) 2019-2020 by the author(s)                                      ##
 ##                                                                               ##
 ## Permission is hereby granted, free of charge, to any person obtaining a copy  ##
 ## of this software and associated documentation files (the "Software"), to deal ##
@@ -42,4 +42,6 @@
 ##                                                                               ##
 ###################################################################################
 
-find . -type f -name '*.sv' -exec verible-verilog-format --inplace --wrap_spaces=2 --column_limit=256 --port_declarations_alignment=align --port_declarations_indentation=indent --named_port_alignment=align --named_port_indentation=indent --formal_parameters_alignment=align --named_parameter_alignment=align --class_member_variable_alignment=align --enum_assignment_statement_alignment=align --struct_union_members_alignment=align --assignment_statement_alignment=align --case_items_alignment=align --distribution_items_alignment=align --module_net_variable_alignment=align --nocompact_indexing_and_selections --expand_coverpoints {} \;
+git rm -rf soc
+
+git submodule add --force https://github.com/PacoReinaCampo/SoC-RISCV.git soc
