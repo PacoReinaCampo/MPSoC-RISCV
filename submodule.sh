@@ -42,6 +42,11 @@
 ##                                                                               ##
 ###################################################################################
 
+# Remove Submodule
 git rm -rf soc
 
+# Update Submodule
+git submodule update --init --recursive
+
+# Add Submodule
 git submodule add --force https://github.com/PacoReinaCampo/SoC-RISCV.git soc
