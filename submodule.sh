@@ -46,7 +46,7 @@
 git rm -rf soc
 
 # Update Submodule
-git submodule update --recursive --remote
+git submodule update --init --recursive --remote
 
 # Add Submodule
 git submodule add --force https://github.com/PacoReinaCampo/SoC-RISCV.git soc
