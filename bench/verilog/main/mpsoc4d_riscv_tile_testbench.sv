@@ -40,12 +40,12 @@
  *   Paco Reina Campo <pacoreinacampo@queenfield.tech>
  */
 
-import dii_package::dii_flit;
-import opensocdebug::mriscv_trace_exec;
-import optimsoc_config::*;
-import optimsoc_functions::*;
+import peripheral_dbg_soc_dii_channel::dii_flit;
+import opensocdebug::peripheral_dbg_soc_mriscv_trace_exec;
+import soc_optimsoc_configuration::*;
+import soc_optimsoc_functions::*;
 
-module riscv_mpsoc4d_testbench (
+module mpsoc4d_riscv_tile_testbench (
 `ifdef verilator
   input clk,
   input rst
@@ -116,8 +116,8 @@ module riscv_mpsoc4d_testbench (
   reg rst;
 `endif
 
-  glip_channel c_glip_in (.*);
-  glip_channel c_glip_out (.*);
+  soc_glip_channel c_glip_in (.*);
+  soc_glip_channel c_glip_out (.*);
 
   logic                                           com_rst;
   logic                                           logic_rst;
@@ -148,7 +148,7 @@ module riscv_mpsoc4d_testbench (
 
   if (CONFIG.USE_DEBUG == 1) begin : gen_use_debug_glip
     // TCP communication interface (simulation only)
-    glip_tcp_toplevel u_glip (
+    soc_glip_tcp_top u_glip (
       .*,
       .clk_io   (clk),
       .clk_logic(clk),
@@ -161,11 +161,11 @@ module riscv_mpsoc4d_testbench (
     for (t = 0; t < CONFIG.NUMCTS; t = t + 1) begin : gen_tracemon_ct
 
       logic               [31:0]                           trace_r3[0:CONFIG.CORES_PER_TILE-1];
-      mriscv_trace_exec [       CONFIG.CORES_PER_TILE-1:0] trace;
+      peripheral_dbg_soc_mriscv_trace_exec [       CONFIG.CORES_PER_TILE-1:0] trace;
       assign trace = u_system.gen_ct[t].u_ct.trace;
 
       for (i = 0; i < CONFIG.CORES_PER_TILE; i = i + 1) begin : gen_tracemon_core
-        r3_checker u_r3_checker (
+        soc_r3_checker u_r3_checker (
           .clk  (clk),
           .valid(trace[i].valid),
           .we   (trace[i].wben),
@@ -174,7 +174,7 @@ module riscv_mpsoc4d_testbench (
           .r3   (trace_r3[i])
         );
 
-        trace_monitor #(
+        soc_trace_monitor #(
           .STDOUT_FILENAME   ({"stdout.", index2string((t * CONFIG.CORES_PER_TILE) + i)}),
           .TRACEFILE_FILENAME({"trace.", index2string((t * CONFIG.CORES_PER_TILE) + i)}),
           .ENABLE_TRACE      (0),
@@ -193,7 +193,7 @@ module riscv_mpsoc4d_testbench (
     end
   endgenerate
 
-  riscv_mpsoc4d #(
+  mpsoc4d_riscv #(
     .CONFIG(CONFIG)
   ) u_system (
     .clk       (clk),

@@ -1,7 +1,7 @@
 cpp
 └── main
-    ├── riscv_mpsoc2d_testbench.cpp
-    ├── riscv_mpsoc3d_testbench.cpp
-    └── riscv_mpsoc4d_testbench.cpp
+    ├── mpsoc2d_riscv_tile_testbench.cpp
+    ├── mpsoc3d_riscv_tile_testbench.cpp
+    └── mpsoc4d_riscv_tile_testbench.cpp
 
 1 directory, 3 files

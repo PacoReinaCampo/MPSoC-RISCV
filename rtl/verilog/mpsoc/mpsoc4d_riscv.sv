@@ -40,26 +40,27 @@
  *   Paco Reina Campo <pacoreinacampo@queenfield.tech>
  */
 
-import dii_package::dii_flit;
-import optimsoc_config::*;
+import peripheral_dbg_soc_dii_channel::dii_flit;
+import soc_optimsoc_configuration::*;
 
-module riscv_mpsoc3d #(
+module mpsoc4d_riscv #(
   parameter PLEN = 32,
   parameter XLEN = 32,
 
   parameter X = 2,
   parameter Y = 2,
   parameter Z = 2,
+  parameter T = 2,
 
-  localparam NODES = X * Y * Z,
+  localparam NODES = X * Y * Z * T,
 
   parameter config_t CONFIG = 'x
 ) (
   input clk,
   input rst,
 
-  glip_channel c_glip_in,
-  glip_channel c_glip_out,
+  soc_glip_channel c_glip_in,
+  soc_glip_channel c_glip_out,
 
   output [NODES-1:0]           ahb3_ext_hsel_i,
   output [NODES-1:0][PLEN-1:0] ahb3_ext_haddr_i,
@@ -117,7 +118,7 @@ module riscv_mpsoc3d #(
   // Module Body
   //
 
-  debug_interface #(
+  peripheral_dbg_soc_interface #(
     .SYSTEM_VENDOR_ID        (2),
     .SYSTEM_DEVICE_ID        (2),
     .NUM_MODULES             (CONFIG.DEBUG_NUM_MODS),
@@ -125,7 +126,7 @@ module riscv_mpsoc3d #(
     .SUBNET_BITS             (CONFIG.DEBUG_SUBNET_BITS),
     .LOCAL_SUBNET            (CONFIG.DEBUG_LOCAL_SUBNET),
     .DEBUG_ROUTER_BUFFER_SIZE(CONFIG.DEBUG_ROUTER_BUFFER_SIZE)
-  ) u_debuginterface (
+  ) u_debug_interface (
     .clk           (clk),
     .rst           (rst),
     .sys_rst       (rst_sys),
@@ -146,7 +147,7 @@ module riscv_mpsoc3d #(
   assign debug_ring_in[2]        = debug_ring_out[3];
   assign debug_ring_out_ready[3] = debug_ring_in_ready[2];
 
-  noc_mesh3d #(
+  peripheral_noc_mesh4d #(
     .FLIT_WIDTH(FLIT_WIDTH),
     .CHANNELS  (CHANNELS),
 
@@ -154,7 +155,8 @@ module riscv_mpsoc3d #(
 
     .X(X),
     .Y(Y),
-    .Z(Z)
+    .Z(Z),
+    .T(T)
   ) u_noc (
     .*,
     .in_flit  (link_out_flit),
@@ -168,7 +170,7 @@ module riscv_mpsoc3d #(
   );
   generate
     for (i = 0; i < NODES; i = i + 1) begin : gen_ct
-      riscv_tile #(
+      soc_riscv_tile #(
         .CONFIG      (CONFIG),
         .ID          (i),
         .COREBASE    (i * CONFIG.CORES_PER_TILE),

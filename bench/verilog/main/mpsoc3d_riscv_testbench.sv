@@ -40,10 +40,10 @@
  *   Paco Reina Campo <pacoreinacampo@queenfield.tech>
  */
 
-import dii_package::dii_flit;
-import opensocdebug::mriscv_trace_exec;
-import optimsoc_config::*;
-import optimsoc_functions::*;
+import peripheral_dbg_soc_dii_channel::dii_flit;
+import opensocdebug::peripheral_dbg_soc_mriscv_trace_exec;
+import soc_optimsoc_configuration::*;
+import soc_optimsoc_functions::*;
 
 module mpsoc3d_riscv_testbench;
 
@@ -99,8 +99,11 @@ module mpsoc3d_riscv_testbench;
   // Variables
   //
 
-  glip_channel c_glip_in (.*);
-  glip_channel c_glip_out (.*);
+  soc_glip_channel c_glip_in (.*);
+  soc_glip_channel c_glip_out (.*);
+
+  logic clk;
+  logic rst;
 
   logic logic_rst;
 
@@ -109,7 +112,7 @@ module mpsoc3d_riscv_testbench;
   // Module Body
   //
 
-  riscv_mpsoc3d #(
+  mpsoc3d_riscv #(
     .CONFIG(CONFIG)
   ) u_system (
     .clk       (clk),
