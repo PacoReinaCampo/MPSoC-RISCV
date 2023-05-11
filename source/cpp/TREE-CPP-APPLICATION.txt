@@ -1,83 +1,58 @@
 application
 ├── bfm
 │   ├── ahb3
-│   │   ├── peripheral_test.cpp
-│   │   └── peripheral_test.hpp
+│   │   └── main.cpp
 │   ├── apb4
-│   │   ├── peripheral_test.cpp
-│   │   └── peripheral_test.hpp
+│   │   └── main.cpp
 │   ├── axi4
-│   │   ├── peripheral_test.cpp
-│   │   └── peripheral_test.hpp
+│   │   └── main.cpp
 │   ├── bb
-│   │   ├── peripheral_test.cpp
-│   │   └── peripheral_test.hpp
+│   │   └── main.cpp
 │   └── wb
-│       ├── peripheral_test.cpp
-│       └── peripheral_test.hpp
+│       └── main.cpp
 ├── core
 │   ├── ahb3
-│   │   ├── peripheral_test.cpp
-│   │   └── peripheral_test.hpp
+│   │   └── main.cpp
 │   ├── apb4
-│   │   ├── peripheral_test.cpp
-│   │   └── peripheral_test.hpp
+│   │   └── main.cpp
 │   ├── axi4
-│   │   ├── peripheral_test.cpp
-│   │   └── peripheral_test.hpp
+│   │   └── main.cpp
 │   ├── bb
-│   │   ├── peripheral_test.cpp
-│   │   └── peripheral_test.hpp
+│   │   └── main.cpp
 │   └── wb
-│       ├── peripheral_test.cpp
-│       └── peripheral_test.hpp
+│       └── main.cpp
 ├── mpsoc
 │   ├── ahb3
-│   │   ├── peripheral_test.cpp
-│   │   └── peripheral_test.hpp
+│   │   └── main.cpp
 │   ├── apb4
-│   │   ├── peripheral_test.cpp
-│   │   └── peripheral_test.hpp
+│   │   └── main.cpp
 │   ├── axi4
-│   │   ├── peripheral_test.cpp
-│   │   └── peripheral_test.hpp
+│   │   └── main.cpp
 │   ├── bb
-│   │   ├── peripheral_test.cpp
-│   │   └── peripheral_test.hpp
+│   │   └── main.cpp
 │   └── wb
-│       ├── peripheral_test.cpp
-│       └── peripheral_test.hpp
+│       └── main.cpp
 ├── pu
 │   ├── ahb3
-│   │   ├── peripheral_test.cpp
-│   │   └── peripheral_test.hpp
+│   │   └── main.cpp
 │   ├── apb4
-│   │   ├── peripheral_test.cpp
-│   │   └── peripheral_test.hpp
+│   │   └── main.cpp
 │   ├── axi4
-│   │   ├── peripheral_test.cpp
-│   │   └── peripheral_test.hpp
+│   │   └── main.cpp
 │   ├── bb
-│   │   ├── peripheral_test.cpp
-│   │   └── peripheral_test.hpp
+│   │   └── main.cpp
 │   └── wb
-│       ├── peripheral_test.cpp
-│       └── peripheral_test.hpp
+│       └── main.cpp
 └── soc
     ├── ahb3
-    │   ├── peripheral_test.cpp
-    │   └── peripheral_test.hpp
+    │   └── main.cpp
     ├── apb4
-    │   ├── peripheral_test.cpp
-    │   └── peripheral_test.hpp
+    │   └── main.cpp
     ├── axi4
-    │   ├── peripheral_test.cpp
-    │   └── peripheral_test.hpp
+    │   └── main.cpp
     ├── bb
-    │   ├── peripheral_test.cpp
-    │   └── peripheral_test.hpp
+    │   └── main.cpp
     └── wb
-        ├── peripheral_test.cpp
-        └── peripheral_test.hpp
+        └── main.cpp
 
-30 directories, 50 files
+30 directories, 25 files
