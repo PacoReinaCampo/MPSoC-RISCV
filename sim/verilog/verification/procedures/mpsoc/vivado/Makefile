@@ -69,4 +69,4 @@ simulate_mpsoc4d: build_mpsoc4d
 	xsim -R mpsoc4d_riscv_testbench
 
 clean:
-	rm -rf .Xil *.dir *.jou *.log *.pb
+	rm -rf *.vcd .Xil *.dir *.jou *.log *.pb
