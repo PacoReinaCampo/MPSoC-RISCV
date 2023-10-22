@@ -42,4 +42,5 @@
 ::                                                                               ::
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-SET PATH=C:\intelFPGA_pro\20.4\modelsim_ase\win32aloem;%PATH%
+SET PATH=C:\intelFPGA_pro\20.4\modelsim_ase\win32aloem;%PATH%%PATH%
+SET PATH=C:\gtkwave\bin;%PATH%
