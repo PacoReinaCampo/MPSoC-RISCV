@@ -129,10 +129,10 @@
 ../../../../../../soc/pu/rtl/verilog/core/decode/pu_riscv_id.sv
 ../../../../../../soc/pu/rtl/verilog/core/execute/pu_riscv_alu.sv
 ../../../../../../soc/pu/rtl/verilog/core/execute/pu_riscv_bu.sv
-../../../../../../soc/pu/rtl/verilog/core/execute/pu_riscv_div.sv
+../../../../../../soc/pu/rtl/verilog/core/execute/pu_riscv_divider.sv
 ../../../../../../soc/pu/rtl/verilog/core/execute/pu_riscv_execution.sv
 ../../../../../../soc/pu/rtl/verilog/core/execute/pu_riscv_lsu.sv
-../../../../../../soc/pu/rtl/verilog/core/execute/pu_riscv_mul.sv
+../../../../../../soc/pu/rtl/verilog/core/execute/pu_riscv_multiplier.sv
 ../../../../../../soc/pu/rtl/verilog/core/fetch/pu_riscv_if.sv
 ../../../../../../soc/pu/rtl/verilog/core/main/pu_riscv_bp.sv
 ../../../../../../soc/pu/rtl/verilog/core/main/pu_riscv_core.sv
