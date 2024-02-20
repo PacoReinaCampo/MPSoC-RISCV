@@ -47,10 +47,10 @@
 
 +incdir+../../../../../../soc/rtl/verilog/soc/bootrom
 -CFLAGS -I../../../../../../soc/rtl/verilog/soc/bootrom
-+incdir+../../../../../../soc/bench/cpp/verilator/inc
--CFLAGS -I../../../../../../soc/bench/cpp/verilator/inc
-+incdir+../../../../../../soc/bench/cpp/glip
--CFLAGS -I../../../../../../soc/bench/cpp/glip
++incdir+../../../../../../soc/verification/tasks/library/cpp/verilator/inc
+-CFLAGS -I../../../../../../soc/verification/tasks/library/cpp/verilator/inc
++incdir+../../../../../../soc/verification/tasks/library/cpp/glip
+-CFLAGS -I../../../../../../soc/verification/tasks/library/cpp/glip
 
 ../../../../../../soc/peripheral/dma/rtl/verilog/code/pkg/core/peripheral_dma_pkg.sv
 
@@ -67,7 +67,7 @@
 ../../../../../../soc/peripheral/dbg/rtl/soc/verilog/code/peripheral/interfaces/common/peripheral_dbg_soc_dii_channel.sv
 ../../../../../../soc/peripheral/dbg/rtl/soc/verilog/code/peripheral/interfaces/riscv/peripheral_dbg_soc_mriscv_trace_exec.sv
 
-../../../../../../soc/bench/verilog/glip/soc_glip_channel.sv
+../../../../../../soc/verification/tasks/library/verilog/glip/soc_glip_channel.sv
 
 ../../../../../../soc/peripheral/dbg/rtl/soc/verilog/code/peripheral/blocks/buffer/peripheral_dbg_soc_dii_buffer.sv
 ../../../../../../soc/peripheral/dbg/rtl/soc/verilog/code/peripheral/blocks/buffer/peripheral_dbg_soc_osd_fifo.sv
@@ -178,20 +178,20 @@
 
 ../../../../../../rtl/verilog/mpsoc/mpsoc4d_riscv.sv
 
-../../../../../../soc/bench/verilog/glip/soc_glip_tcp_top.sv
-../../../../../../soc/bench/verilog/monitor/soc_r3_checker.sv
-../../../../../../soc/bench/verilog/monitor/soc_trace_monitor.sv
+../../../../../../soc/verification/tasks/library/verilog/glip/soc_glip_tcp_top.sv
+../../../../../../soc/verification/tasks/library/verilog/monitor/soc_r3_checker.sv
+../../../../../../soc/verification/tasks/library/verilog/monitor/soc_trace_monitor.sv
 
-../../../../../../bench/verilog/main/mpsoc4d_riscv_tile_testbench.sv
+../../../../../../verification/tasks/library/verilog/main/mpsoc4d_riscv_tile_testbench.sv
 
 --top-module mpsoc4d_riscv_tile_testbench
 --exe
 
-../../../../../../soc/bench/cpp/glip/glip_tcp_dpi.cpp
-../../../../../../soc/bench/cpp/glip/GlipTcp.cpp
-../../../../../../soc/bench/cpp/verilator/src/OptionsParser.cpp
-../../../../../../soc/bench/cpp/verilator/src/VerilatedControl.cpp
+../../../../../../soc/verification/tasks/library/cpp/glip/glip_tcp_dpi.cpp
+../../../../../../soc/verification/tasks/library/cpp/glip/GlipTcp.cpp
+../../../../../../soc/verification/tasks/library/cpp/verilator/src/OptionsParser.cpp
+../../../../../../soc/verification/tasks/library/cpp/verilator/src/VerilatedControl.cpp
 
-../../../../../../bench/cpp/main/mpsoc4d_riscv_tile_testbench.cpp
+../../../../../../verification/tasks/library/cpp/main/mpsoc4d_riscv_tile_testbench.cpp
 -GNUM_CORES=2
 -GUSE_DEBUG=1
