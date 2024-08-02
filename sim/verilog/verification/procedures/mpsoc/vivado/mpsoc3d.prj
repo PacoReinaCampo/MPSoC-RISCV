@@ -136,7 +136,7 @@ sv work ../../../../../../soc/pu/rtl/verilog/core/main/pu_riscv_du.sv
 sv work ../../../../../../soc/pu/rtl/verilog/core/main/pu_riscv_memory.sv
 sv work ../../../../../../soc/pu/rtl/verilog/core/main/pu_riscv_rf.sv
 sv work ../../../../../../soc/pu/rtl/verilog/core/main/pu_riscv_state.sv
-sv work ../../../../../../soc/pu/rtl/verilog/core/main/pu_riscv_wb.sv
+sv work ../../../../../../soc/pu/rtl/verilog/core/main/pu_riscv_writeback.sv
 sv work ../../../../../../soc/pu/rtl/verilog/core/memory/pu_riscv_dmem_ctrl.sv
 sv work ../../../../../../soc/pu/rtl/verilog/core/memory/pu_riscv_imem_ctrl.sv
 sv work ../../../../../../soc/pu/rtl/verilog/core/memory/pu_riscv_membuf.sv
