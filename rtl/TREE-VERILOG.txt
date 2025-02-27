@@ -1,7 +1,8 @@
 verilog
 └── mpsoc
-    ├── mpsoc2d_riscv.sv
-    ├── mpsoc3d_riscv.sv
-    └── mpsoc4d_riscv.sv
+    └── optimsoc
+        ├── mpsoc2d_riscv.sv
+        ├── mpsoc3d_riscv.sv
+        └── mpsoc4d_riscv.sv
 
-1 directory, 3 files
+2 directories, 3 files
