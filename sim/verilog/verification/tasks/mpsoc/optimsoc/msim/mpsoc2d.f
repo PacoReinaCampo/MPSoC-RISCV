@@ -61,7 +61,7 @@
 ../../../../../../../soc/peripheral/dbg/rtl/soc/verilog/code/peripheral/interfaces/common/peripheral_dbg_soc_dii_channel.sv
 ../../../../../../../soc/peripheral/dbg/rtl/soc/verilog/code/peripheral/interfaces/riscv/peripheral_dbg_soc_mriscv_trace_exec.sv
 
-../../../../../../../soc/bench/verilog/glip/soc_glip_channel.sv
+../../../../../../../soc/verification/tasks/library/verilog/optimsoc/glip/soc_glip_channel.sv
 
 ../../../../../../../soc/peripheral/dbg/rtl/soc/verilog/code/peripheral/blocks/buffer/peripheral_dbg_soc_dii_buffer.sv
 ../../../../../../../soc/peripheral/dbg/rtl/soc/verilog/code/peripheral/blocks/buffer/peripheral_dbg_soc_osd_fifo.sv
@@ -170,6 +170,6 @@
 ../../../../../../../soc/rtl/verilog/soc/spram/soc_sram_sp_ahb3.sv
 ../../../../../../../soc/rtl/verilog/soc/spram/soc_ahb32sram.sv
 
-../../../../../../../rtl/verilog/mpsoc/mpsoc2d_riscv.sv
+../../../../../../../rtl/verilog/mpsoc/optimsoc/mpsoc2d_riscv.sv
 
-../../../../../../../bench/verilog/main/mpsoc2d_riscv_testbench.sv
+../../../../../../../verification/tasks/library/verilog/optimsoc/main/mpsoc2d_riscv_testbench.sv

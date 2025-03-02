@@ -57,7 +57,7 @@ sv work ../../../../../../soc/peripheral/dbg/rtl/soc/verilog/code/peripheral/int
 sv work ../../../../../../soc/peripheral/dbg/rtl/soc/verilog/code/peripheral/interfaces/common/peripheral_dbg_soc_dii_channel.sv
 sv work ../../../../../../soc/peripheral/dbg/rtl/soc/verilog/code/peripheral/interfaces/riscv/peripheral_dbg_soc_mriscv_trace_exec.sv
 
-sv work ../../../../../../soc/bench/verilog/glip/soc_glip_channel.sv
+sv work ../../../../../../soc/verification/tasks/library/verilog/optimsoc/glip/soc_glip_channel.sv
 
 sv work ../../../../../../soc/peripheral/dbg/rtl/soc/verilog/code/peripheral/blocks/buffer/peripheral_dbg_soc_dii_buffer.sv
 sv work ../../../../../../soc/peripheral/dbg/rtl/soc/verilog/code/peripheral/blocks/buffer/peripheral_dbg_soc_osd_fifo.sv
@@ -166,6 +166,6 @@ sv work ../../../../../../soc/rtl/verilog/soc/spram/soc_sram_sp.sv
 sv work ../../../../../../soc/rtl/verilog/soc/spram/soc_sram_sp_ahb3.sv
 sv work ../../../../../../soc/rtl/verilog/soc/spram/soc_ahb32sram.sv
 
-sv work ../../../../../../rtl/verilog/mpsoc/mpsoc2d_riscv.sv
+sv work ../../../../../../rtl/verilog/mpsoc/optimsoc/mpsoc2d_riscv.sv
 
-sv work ../../../../../../bench/verilog/main/mpsoc2d_riscv_testbench.sv
+sv work ../../../../../../verification/tasks/library/verilog/optimsoc/main/mpsoc2d_riscv_testbench.sv

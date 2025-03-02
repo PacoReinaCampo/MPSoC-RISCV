@@ -47,10 +47,10 @@
 
 +incdir+../../../../../../../soc/rtl/verilog/soc/bootrom
 -CFLAGS -I../../../../../../../soc/rtl/verilog/soc/bootrom
-+incdir+../../../../../../../soc/verification/tasks/library/cpp/verilator/inc
--CFLAGS -I../../../../../../../soc/verification/tasks/library/cpp/verilator/inc
-+incdir+../../../../../../../soc/verification/tasks/library/cpp/glip
--CFLAGS -I../../../../../../../soc/verification/tasks/library/cpp/glip
++incdir+../../../../../../../soc/verification/tasks/library/cpp/optimsoc/verilator/inc
+-CFLAGS -I../../../../../../../soc/verification/tasks/library/cpp/optimsoc/verilator/inc
++incdir+../../../../../../../soc/verification/tasks/library/cpp/optimsoc/glip
+-CFLAGS -I../../../../../../../soc/verification/tasks/library/cpp/optimsoc/glip
 
 ../../../../../../../soc/peripheral/dma/rtl/verilog/code/pkg/core/peripheral_dma_pkg.sv
 
@@ -67,7 +67,7 @@
 ../../../../../../../soc/peripheral/dbg/rtl/soc/verilog/code/peripheral/interfaces/common/peripheral_dbg_soc_dii_channel.sv
 ../../../../../../../soc/peripheral/dbg/rtl/soc/verilog/code/peripheral/interfaces/riscv/peripheral_dbg_soc_mriscv_trace_exec.sv
 
-../../../../../../../soc/verification/tasks/library/verilog/glip/soc_glip_channel.sv
+../../../../../../../soc/verification/tasks/library/verilog/optimsoc/glip/soc_glip_channel.sv
 
 ../../../../../../../soc/peripheral/dbg/rtl/soc/verilog/code/peripheral/blocks/buffer/peripheral_dbg_soc_dii_buffer.sv
 ../../../../../../../soc/peripheral/dbg/rtl/soc/verilog/code/peripheral/blocks/buffer/peripheral_dbg_soc_osd_fifo.sv
@@ -176,22 +176,22 @@
 ../../../../../../../soc/rtl/verilog/soc/spram/soc_sram_sp_ahb3.sv
 ../../../../../../../soc/rtl/verilog/soc/spram/soc_ahb32sram.sv
 
-../../../../../../../rtl/verilog/mpsoc/mpsoc4d_riscv.sv
+../../../../../../../rtl/verilog/mpsoc/optimsoc/mpsoc4d_riscv.sv
 
-../../../../../../../soc/verification/tasks/library/verilog/glip/soc_glip_tcp_top.sv
-../../../../../../../soc/verification/tasks/library/verilog/monitor/soc_r3_checker.sv
-../../../../../../../soc/verification/tasks/library/verilog/monitor/soc_trace_monitor.sv
+../../../../../../../soc/verification/tasks/library/verilog/optimsoc/glip/soc_glip_tcp_top.sv
+../../../../../../../soc/verification/tasks/library/verilog/optimsoc/monitor/soc_r3_checker.sv
+../../../../../../../soc/verification/tasks/library/verilog/optimsoc/monitor/soc_trace_monitor.sv
 
-../../../../../../../verification/tasks/library/verilog/main/mpsoc4d_riscv_tile_testbench.sv
+../../../../../../../verification/tasks/library/verilog/optimsoc/main/mpsoc4d_riscv_tile_testbench.sv
 
 --top-module mpsoc4d_riscv_tile_testbench
 --exe
 
-../../../../../../../soc/verification/tasks/library/cpp/glip/glip_tcp_dpi.cpp
-../../../../../../../soc/verification/tasks/library/cpp/glip/GlipTcp.cpp
-../../../../../../../soc/verification/tasks/library/cpp/verilator/src/OptionsParser.cpp
-../../../../../../../soc/verification/tasks/library/cpp/verilator/src/VerilatedControl.cpp
+../../../../../../../soc/verification/tasks/library/cpp/optimsoc/glip/glip_tcp_dpi.cpp
+../../../../../../../soc/verification/tasks/library/cpp/optimsoc/glip/GlipTcp.cpp
+../../../../../../../soc/verification/tasks/library/cpp/optimsoc/verilator/src/OptionsParser.cpp
+../../../../../../../soc/verification/tasks/library/cpp/optimsoc/verilator/src/VerilatedControl.cpp
 
-../../../../../../../verification/tasks/library/cpp/main/mpsoc4d_riscv_tile_testbench.cpp
+../../../../../../../verification/tasks/library/cpp/optimsoc/main/mpsoc4d_riscv_tile_testbench.cpp
 -GNUM_CORES=2
 -GUSE_DEBUG=1
