@@ -45,8 +45,8 @@
 --Mdir .
 --cc
 
-+incdir+../../../../../../../soc/rtl/verilog/soc/bootrom
--CFLAGS -I../../../../../../../soc/rtl/verilog/soc/bootrom
++incdir+../../../../../../../soc/rtl/verilog/soc/optimsoc/bootrom
+-CFLAGS -I../../../../../../../soc/rtl/verilog/soc/optimsoc/bootrom
 +incdir+../../../../../../../soc/verification/tasks/library/cpp/optimsoc/verilator/inc
 -CFLAGS -I../../../../../../../soc/verification/tasks/library/cpp/optimsoc/verilator/inc
 +incdir+../../../../../../../soc/verification/tasks/library/cpp/optimsoc/glip
@@ -58,10 +58,10 @@
 ../../../../../../../soc/pu/rtl/verilog/pkg/peripheral_biu_pkg.sv
 ../../../../../../../soc/pu/rtl/verilog/pkg/pu_riscv_pkg.sv
 
-../../../../../../../soc/rtl/verilog/pkg/arbiter/soc_arbiter_rr.sv
-../../../../../../../soc/rtl/verilog/pkg/functions/soc_optimsoc_functions.sv
-../../../../../../../soc/rtl/verilog/pkg/configuration/soc_optimsoc_configuration.sv
-../../../../../../../soc/rtl/verilog/pkg/constants/soc_optimsoc_constants.sv
+../../../../../../../soc/rtl/verilog/pkg/optimsoc/arbiter/soc_arbiter_rr.sv
+../../../../../../../soc/rtl/verilog/pkg/optimsoc/functions/soc_optimsoc_functions.sv
+../../../../../../../soc/rtl/verilog/pkg/optimsoc/configuration/soc_optimsoc_configuration.sv
+../../../../../../../soc/rtl/verilog/pkg/optimsoc/constants/soc_optimsoc_constants.sv
 
 ../../../../../../../soc/peripheral/dbg/rtl/soc/verilog/code/peripheral/interfaces/common/peripheral_dbg_soc_dii_channel_flat.sv
 ../../../../../../../soc/peripheral/dbg/rtl/soc/verilog/code/peripheral/interfaces/common/peripheral_dbg_soc_dii_channel.sv
@@ -164,17 +164,17 @@
 ../../../../../../../soc/pu/rtl/verilog/pu/ahb3/pu_riscv_biu2ahb3.sv
 ../../../../../../../soc/pu/rtl/verilog/pu/ahb3/pu_riscv_module_ahb3.sv
 
-../../../../../../../soc/rtl/verilog/soc/adapter/soc_network_adapter_configuration.sv
-../../../../../../../soc/rtl/verilog/soc/adapter/soc_network_adapter_ct.sv
-../../../../../../../soc/rtl/verilog/soc/bootrom/soc_bootrom.sv
-../../../../../../../soc/rtl/verilog/soc/interconnection/bus/soc_b3_ahb3.sv
-../../../../../../../soc/rtl/verilog/soc/interconnection/decode/soc_decode_ahb3.sv
-../../../../../../../soc/rtl/verilog/soc/interconnection/mux/soc_mux_ahb3.sv
-../../../../../../../soc/rtl/verilog/soc/main/soc_riscv_tile.sv
-../../../../../../../soc/rtl/verilog/soc/spram/soc_sram_sp_impl_plain.sv
-../../../../../../../soc/rtl/verilog/soc/spram/soc_sram_sp.sv
-../../../../../../../soc/rtl/verilog/soc/spram/soc_sram_sp_ahb3.sv
-../../../../../../../soc/rtl/verilog/soc/spram/soc_ahb32sram.sv
+../../../../../../../soc/rtl/verilog/soc/optimsoc/adapter/soc_network_adapter_configuration.sv
+../../../../../../../soc/rtl/verilog/soc/optimsoc/adapter/soc_network_adapter_ct.sv
+../../../../../../../soc/rtl/verilog/soc/optimsoc/bootrom/soc_bootrom.sv
+../../../../../../../soc/rtl/verilog/soc/optimsoc/interconnection/bus/soc_b3_ahb3.sv
+../../../../../../../soc/rtl/verilog/soc/optimsoc/interconnection/decode/soc_decode_ahb3.sv
+../../../../../../../soc/rtl/verilog/soc/optimsoc/interconnection/mux/soc_mux_ahb3.sv
+../../../../../../../soc/rtl/verilog/soc/optimsoc/main/soc_riscv_tile.sv
+../../../../../../../soc/rtl/verilog/soc/optimsoc/spram/soc_sram_sp_impl_plain.sv
+../../../../../../../soc/rtl/verilog/soc/optimsoc/spram/soc_sram_sp.sv
+../../../../../../../soc/rtl/verilog/soc/optimsoc/spram/soc_sram_sp_ahb3.sv
+../../../../../../../soc/rtl/verilog/soc/optimsoc/spram/soc_ahb32sram.sv
 
 ../../../../../../../rtl/verilog/mpsoc/optimsoc/mpsoc3d_riscv.sv
 
