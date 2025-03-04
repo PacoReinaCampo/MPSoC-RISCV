@@ -47,10 +47,10 @@
 
 +incdir+../../../../../../../soc/rtl/verilog/soc/bootrom
 -CFLAGS -I../../../../../../../soc/rtl/verilog/soc/bootrom
-+incdir+../../../../../../../soc/verification/tasks/library/cpp/optimsoc/verilator/inc
--CFLAGS -I../../../../../../../soc/verification/tasks/library/cpp/optimsoc/verilator/inc
-+incdir+../../../../../../../soc/verification/tasks/library/cpp/optimsoc/glip
--CFLAGS -I../../../../../../../soc/verification/tasks/library/cpp/optimsoc/glip
++incdir+../../../../../../../../verification/tasks/library/cpp/optimsoc/verilator/inc
+-CFLAGS -I../../../../../../../../verification/tasks/library/cpp/optimsoc/verilator/inc
++incdir+../../../../../../../../verification/tasks/library/cpp/optimsoc/glip
+-CFLAGS -I../../../../../../../../verification/tasks/library/cpp/optimsoc/glip
 
 ../../../../../../../soc/peripheral/peripheral/dma/rtl/verilog/code/pkg/core/peripheral_dma_pkg.sv
 
