@@ -45,7 +45,7 @@
 @echo off
 call ../../../../../../../../settings64_vivado.bat
 
-xvlog -prj soc.prj
+xvlog -prj mpsoc.prj
 
 xelab mpsoc_riscv_testbench
 xsim -R mpsoc_riscv_testbench

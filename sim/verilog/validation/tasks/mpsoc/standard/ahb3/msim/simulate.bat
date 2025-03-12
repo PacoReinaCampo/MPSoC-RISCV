@@ -46,6 +46,6 @@
 call ../../../../../../../../settings64_msim.bat
 
 vlib work
-vlog -sv -f soc.f
+vlog -sv -f mpsoc.f
 vsim -c -do run.do work.mpsoc_riscv_testbench
 pause

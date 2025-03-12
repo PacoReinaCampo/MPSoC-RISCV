@@ -45,7 +45,7 @@
 all: build simulate
 
 build:
-	xvlog -prj soc.prj
+	xvlog -prj mpsoc.prj
 
 simulate:
 	xelab mpsoc_riscv_testbench
