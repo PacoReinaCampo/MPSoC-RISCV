@@ -42,14 +42,14 @@
 ##                                                                               ##
 ###################################################################################
 
++incdir+../../../../../../../../peripheral/dbg/rtl/pu/riscv/verilog/code/pkg/core
+
 ../../../../../../../../pu/rtl/verilog/pkg/peripheral_ahb3_verilog_pkg.sv
 ../../../../../../../../pu/rtl/verilog/pkg/peripheral_biu_verilog_pkg.sv
 ../../../../../../../../pu/rtl/verilog/pkg/pu_riscv_verilog_pkg.sv
 
 ../../../../../../../../rtl/verilog/pkg/standard/peripheral_ahb3_pkg.sv
 ../../../../../../../../rtl/verilog/pkg/standard/peripheral_apb4_pkg.sv
-
-../../../../../../../../peripheral/dbg/rtl/pu/riscv/verilog/code/pkg/core/peripheral_dbg_pu_riscv_pkg.sv
 
 ../../../../../../../../pu/rtl/verilog/core/cache/pu_riscv_dcache_core.sv
 ../../../../../../../../pu/rtl/verilog/core/cache/pu_riscv_dext.sv
