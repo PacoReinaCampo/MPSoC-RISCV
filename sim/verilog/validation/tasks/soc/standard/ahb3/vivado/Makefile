@@ -48,8 +48,8 @@ build:
 	xvlog -prj soc.prj
 
 simulate:
-	xelab mpsoc_riscv_testbench
-	xsim -R mpsoc_riscv_testbench
+	xelab soc_riscv_testbench
+	xsim -R soc_riscv_testbench
 
 clean:
 	rm -rf *.vcd .Xil *.dir *.jou *.log *.pb

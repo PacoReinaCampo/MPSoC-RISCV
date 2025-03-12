@@ -9,14 +9,14 @@
 ##                  |_|                                                          ##
 ##                                                                               ##
 ##                                                                               ##
-##              Architecture                                                     ##
-##              QueenField                                                       ##
+##              Universal Verification Methodology                               ##
+##              Simulation Test Makefile                                         ##
 ##                                                                               ##
 ###################################################################################
 
 ###################################################################################
 ##                                                                               ##
-## Copyright (c) 2019-2020 by the author(s)                                      ##
+## Copyright (c) 2018-2019 by the author(s)                                      ##
 ##                                                                               ##
 ## Permission is hereby granted, free of charge, to any person obtaining a copy  ##
 ## of this software and associated documentation files (the "Software"), to deal ##
@@ -38,11 +38,18 @@
 ##                                                                               ##
 ## ============================================================================= ##
 ## Author(s):                                                                    ##
-##   Paco Reina Campo <pacoreinacampo@queenfield.tech>                           ##
+##   Francisco Javier Reina Campo <pacoreinacampo@queenfield.tech>               ##
 ##                                                                               ##
 ###################################################################################
 
-source ../../../../../../../../settings64_msim.sh
+all: build simulate
 
-make clean
-make
+build:
+	xvlog -prj soc.prj
+
+simulate:
+	xelab mpsoc_riscv_testbench
+	xsim -R mpsoc_riscv_testbench
+
+clean:
+	rm -rf *.vcd .Xil *.dir *.jou *.log *.pb

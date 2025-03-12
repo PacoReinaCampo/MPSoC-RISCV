@@ -43,9 +43,10 @@
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 @echo off
-call ../../../../../../../../settings64_msim.bat
+call ../../../../../../../../settings64_vivado.bat
 
-vlib work
-vlog -sv -f soc.f
-vsim -c -do run.do work.soc_riscv_testbench
+xvlog -prj soc.prj
+
+xelab mpsoc_riscv_testbench
+xsim -R mpsoc_riscv_testbench
 pause

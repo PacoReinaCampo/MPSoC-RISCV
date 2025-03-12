@@ -42,7 +42,14 @@
 ##                                                                               ##
 ###################################################################################
 
-source ../../../../../../../../settings64_msim.sh
+all: build simulate
 
-make clean
-make
+build:
+	if [ ! -e work ]; then vlib work; fi
+	vlog -sv -f soc.f
+
+simulate:
+	vsim -c -do run.do work.mpsoc_riscv_testbench
+
+clean:
+	rm -rf work transcript

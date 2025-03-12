@@ -49,7 +49,7 @@ build:
 	vlog -sv -f soc.f
 
 simulate:
-	vsim -c -do run.do work.mpsoc_riscv_testbench
+	vsim -c -do run.do work.soc_riscv_testbench
 
 clean:
 	rm -rf work transcript
