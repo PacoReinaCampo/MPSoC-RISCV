@@ -60,19 +60,19 @@ module mpsoc4d_riscv #(
   soc_glip_channel c_glip_in,
   soc_glip_channel c_glip_out,
 
-  output [NODES-1:0]           ahb3_ext_hsel_i,
-  output [NODES-1:0][PLEN-1:0] ahb3_ext_haddr_i,
-  output [NODES-1:0][XLEN-1:0] ahb3_ext_hwdata_i,
-  output [NODES-1:0]           ahb3_ext_hwrite_i,
-  output [NODES-1:0][     2:0] ahb3_ext_hsize_i,
-  output [NODES-1:0][     2:0] ahb3_ext_hburst_i,
-  output [NODES-1:0][     3:0] ahb3_ext_hprot_i,
-  output [NODES-1:0][     1:0] ahb3_ext_htrans_i,
-  output [NODES-1:0]           ahb3_ext_hmastlock_i,
+  output [NODES-1:0]           ahb4_ext_hsel_i,
+  output [NODES-1:0][PLEN-1:0] ahb4_ext_haddr_i,
+  output [NODES-1:0][XLEN-1:0] ahb4_ext_hwdata_i,
+  output [NODES-1:0]           ahb4_ext_hwrite_i,
+  output [NODES-1:0][     2:0] ahb4_ext_hsize_i,
+  output [NODES-1:0][     2:0] ahb4_ext_hburst_i,
+  output [NODES-1:0][     3:0] ahb4_ext_hprot_i,
+  output [NODES-1:0][     1:0] ahb4_ext_htrans_i,
+  output [NODES-1:0]           ahb4_ext_hmastlock_i,
 
-  input [NODES-1:0][XLEN-1:0] ahb3_ext_hrdata_o,
-  input [NODES-1:0]           ahb3_ext_hready_o,
-  input [NODES-1:0]           ahb3_ext_hresp_o
+  input [NODES-1:0][XLEN-1:0] ahb4_ext_hrdata_o,
+  input [NODES-1:0]           ahb4_ext_hready_o,
+  input [NODES-1:0]           ahb4_ext_hresp_o
 );
 
   //////////////////////////////////////////////////////////////////////////////
@@ -181,19 +181,19 @@ module mpsoc4d_riscv #(
         .debug_ring_out      (debug_ring_out[i]),
         .debug_ring_out_ready(debug_ring_out_ready[i]),
 
-        .ahb3_ext_hsel_i     (ahb3_ext_hsel_i[i]),
-        .ahb3_ext_haddr_i    (ahb3_ext_haddr_i[i]),
-        .ahb3_ext_hwdata_i   (ahb3_ext_hwdata_i[i]),
-        .ahb3_ext_hwrite_i   (ahb3_ext_hwrite_i[i]),
-        .ahb3_ext_hsize_i    (ahb3_ext_hsize_i[i]),
-        .ahb3_ext_hburst_i   (ahb3_ext_hburst_i[i]),
-        .ahb3_ext_hprot_i    (ahb3_ext_hprot_i[i]),
-        .ahb3_ext_htrans_i   (ahb3_ext_htrans_i[i]),
-        .ahb3_ext_hmastlock_i(ahb3_ext_hmastlock_i[i]),
+        .ahb4_ext_hsel_i     (ahb4_ext_hsel_i[i]),
+        .ahb4_ext_haddr_i    (ahb4_ext_haddr_i[i]),
+        .ahb4_ext_hwdata_i   (ahb4_ext_hwdata_i[i]),
+        .ahb4_ext_hwrite_i   (ahb4_ext_hwrite_i[i]),
+        .ahb4_ext_hsize_i    (ahb4_ext_hsize_i[i]),
+        .ahb4_ext_hburst_i   (ahb4_ext_hburst_i[i]),
+        .ahb4_ext_hprot_i    (ahb4_ext_hprot_i[i]),
+        .ahb4_ext_htrans_i   (ahb4_ext_htrans_i[i]),
+        .ahb4_ext_hmastlock_i(ahb4_ext_hmastlock_i[i]),
 
-        .ahb3_ext_hrdata_o(ahb3_ext_hrdata_o[i]),
-        .ahb3_ext_hready_o(ahb3_ext_hready_o[i]),
-        .ahb3_ext_hresp_o (ahb3_ext_hresp_o[i]),
+        .ahb4_ext_hrdata_o(ahb4_ext_hrdata_o[i]),
+        .ahb4_ext_hready_o(ahb4_ext_hready_o[i]),
+        .ahb4_ext_hresp_o (ahb4_ext_hresp_o[i]),
 
         .noc_in_ready (link_in_ready[i]),
         .noc_out_flit (link_out_flit[i]),

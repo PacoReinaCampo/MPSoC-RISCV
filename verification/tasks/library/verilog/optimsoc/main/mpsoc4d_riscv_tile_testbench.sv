@@ -196,19 +196,19 @@ module mpsoc4d_riscv_tile_testbench (
     .c_glip_in (c_glip_in),
     .c_glip_out(c_glip_out),
 
-    .ahb3_ext_hsel_i     (),
-    .ahb3_ext_haddr_i    (),
-    .ahb3_ext_hwdata_i   (),
-    .ahb3_ext_hwrite_i   (),
-    .ahb3_ext_hsize_i    (),
-    .ahb3_ext_hburst_i   (),
-    .ahb3_ext_hprot_i    (),
-    .ahb3_ext_htrans_i   (),
-    .ahb3_ext_hmastlock_i(),
+    .ahb4_ext_hsel_i     (),
+    .ahb4_ext_haddr_i    (),
+    .ahb4_ext_hwdata_i   (),
+    .ahb4_ext_hwrite_i   (),
+    .ahb4_ext_hsize_i    (),
+    .ahb4_ext_hburst_i   (),
+    .ahb4_ext_hprot_i    (),
+    .ahb4_ext_htrans_i   (),
+    .ahb4_ext_hmastlock_i(),
 
-    .ahb3_ext_hrdata_o('x),
-    .ahb3_ext_hready_o('x),
-    .ahb3_ext_hresp_o ('x)
+    .ahb4_ext_hrdata_o('x),
+    .ahb4_ext_hready_o('x),
+    .ahb4_ext_hresp_o ('x)
   );
 
   // Generate testbench signals.
